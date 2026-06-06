@@ -6,22 +6,15 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-frontend/node_modules/
-backend/node_modules/
 
-frontend/dist/
+node_modules
+dist
+dist/
 backend/dist/
-
-frontend/.env
-backend/.env
-.env
-.env.*
+dist-ssr
 *.local
 
 # Editor directories and files
-coverage/
-
-Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea
