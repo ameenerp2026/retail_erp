@@ -125,7 +125,7 @@ function SidebarMenuItem({ item }: any) {
 
 export default function Sidebar() {
   return (
-    <aside className="w-100 min-h-screen bg-[#043793] text-white   border-r border-slate-200 p-4">
+    <aside className="w-[300px] min-h-screen bg-[#043793] text-white   border-r border-slate-200 p-4">
       <div className="flex ">
        <p className="w-[55px] h-[55px] flex items-center justify-center text-[16px]  font-bold mb-6 bg-gradient-to-r from-[#093055] to-[#043793] rounded-3xl text-white">
   S
