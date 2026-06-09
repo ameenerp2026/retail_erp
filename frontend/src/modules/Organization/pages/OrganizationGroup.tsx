@@ -236,7 +236,7 @@ const handleChange = (
                label='Pin Code'
                name='pinCode'
                value={formData.pinCode}
-               type = "textarea"
+               type = "text"
                required 
              readOnly
                onChange={handleChange}

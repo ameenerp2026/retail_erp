@@ -74,11 +74,15 @@ const { isLoggedIn } = useAuth()
         element={isLoggedIn ? <DashBoardLayout /> : <Navigate to="/login" replace />}
       >
         <Route index element={<DashBoard />} />
-        <Route path="organization" element={<Organization />}>
+        
+      </Route>
+
+       <Route path="/organization" element={<Organization />}>
           <Route path="org-group" element={<OrganizationGroup />} />
           <Route path="org-unit" element={<OrganizationUnit />} />
         </Route>
-      </Route>
+      
+
 
       {/* Default + 404 */}
       <Route path="/" element={<Navigate to="/login" replace />} />
