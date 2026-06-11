@@ -1,4 +1,3 @@
-import logo from '../../../../public/logo.jpeg'
 import { useState } from 'react'
 import type { SyntheticEvent } from 'react'
 import { useAuth } from '../../../context/AuthContext'
@@ -37,7 +36,7 @@ function LoginForm() {
     <div className="min-h-screen overflow-hidden flex bg-[linear-gradient(145deg,#0D2B6E,#123882,#1A4DA0,#2ABFBF)]">
       <div className='w-1/2 flex flex-col items-center justify-center px-16'>
         <img
-          src={logo}
+          src="/logo.jpeg"
           width={180}
           height={70}
           loading='eager'

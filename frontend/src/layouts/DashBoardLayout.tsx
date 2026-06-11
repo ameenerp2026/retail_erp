@@ -3,19 +3,16 @@ import Sidebar from "../modules/dashboard/components/layouts/SideBar";
 import Topbar from "../modules/dashboard/components/layouts/TopBar";
 function DashBoardLayout() {
   return (
-   <div className="min-h-screen flex bg-slate-50">
-
+   <div className="min-h-screen bg-slate-50">
       <Sidebar />
 
-       <div className="flex-1 flex flex-col">
-             <Topbar />
-     <main className="flex-1 overflow-y-auto">
-  <div >
-    <Outlet />
-  </div>
-</main>
-       </div>
-     
+      {/* Add ml-[300px] to offset fixed sidebar */}
+      <div className="ml-[300px] flex flex-col min-h-screen">
+        <Topbar />
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
 
 //For future use don't delete
