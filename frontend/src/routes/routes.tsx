@@ -53,7 +53,6 @@ import { useAuth } from "../context/AuthContext"
 import LoginForm from "../modules/auth/pages/LoginForm"
 import DashBoardLayout from "../layouts/DashBoardLayout"
 import DashBoard from "../modules/dashboard/pages/DashBoard"
-import Organization from '../modules/Organization/pages/Organization'
 import OrganizationGroup from '../modules/Organization/pages/OrganizationGroup'
 import OrganizationUnit from '../modules/Organization/pages/OrganizationUnit'
 
@@ -74,15 +73,12 @@ const { isLoggedIn } = useAuth()
         element={isLoggedIn ? <DashBoardLayout /> : <Navigate to="/login" replace />}
       >
         <Route index element={<DashBoard />} />
-        
-      </Route>
-
-       <Route path="/organization" element={<Organization />}>
+        <Route path="organization">
           <Route path="org-group" element={<OrganizationGroup />} />
           <Route path="org-unit" element={<OrganizationUnit />} />
         </Route>
-      
-
+        
+      </Route>
 
       {/* Default + 404 */}
       <Route path="/" element={<Navigate to="/login" replace />} />

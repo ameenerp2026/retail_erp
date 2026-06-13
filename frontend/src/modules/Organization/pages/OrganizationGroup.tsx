@@ -1,255 +1,291 @@
-import { useState } from "react";
-import  {
- Lock,
- Save,
- Upload
-} from "lucide-react";
-
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Lock, Save, Upload, Unlock } from "lucide-react"
+import { useState } from 'react'
 import FormInput from '../../../components/forms/FormInput'
+import { organizationSchema, type OrganizationFormData } from '../../../components/forms/OrganizationGroup.schema'
+import toast from 'react-hot-toast' // or your toast lib
 
- const initialForm={
-        shortName :'',
-        financialYear :'April-March',
-        currency :'',
-        componyName:'',
-        cinNumber:'',
-        panNumber:'',
-        email:'',
-        phoneNumber:'',
-        website:'',
-        address:'',
-        state:"",
-        country:'',
-        pinCode:'560068'
-    }
+type RecordStatus = 'DRAFT' | 'LOCKED' | 'ACTIVE'
 
 function OrganizationGroup() {
-   
-const [formData, setFormData ]= useState(initialForm)
+  const [status, setStatus] = useState<RecordStatus>('DRAFT')
+  const isLocked = status === 'LOCKED'
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    getValues
+  } = useForm<OrganizationFormData>({
+    resolver: zodResolver(organizationSchema),
+    defaultValues: {
+      shortName: '',
+      financialYear: 'April-March',
+      currency: '',
+      companyName: '',
+      cinNumber: '',
+      panNumber: '',
+      email: '',
+      phoneNumber: '',
+      website: '',
+      address: '',
+      state: "",
+      country: '',
+      pinCode: '560068'
+    }
+  })
 
 
-const handleChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-) => {
-  console.log(e.target.name, e.target.value);
-  const {name, value} = e.target
-  setFormData((prev)=>({
-    ...prev,
-    [name]:value
-  }))
+  // Save Changes - runs validation
+  const onSave = async (data: OrganizationFormData) => {
+    console.log('Saving with validation:', data)
+    try {
+      const formData = new FormData()
+      // Loop all fields and append
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === 'logo' && value instanceof FileList && value[0]) {
+          formData.append('logo', value[0]) // actual file
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value)) // convert other fields to string
+        }
+      })
+      // TODO: replace with API call
+      // const res = await fetch('/api/company/save', {
+      //   method: 'POST',
+      //   body: formData
+      // })
 
-  console.log('setFormData',formData)
-};
+      // if (!res.ok) throw new Error('Save failed')
 
-// const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
+      // const result = await res.json()
+      // console.log('API Response:', result)
 
-//     console.log("Submitted data:", formData);
+      setStatus('ACTIVE')
+      toast.success('Saved successfully')
 
-//     // API call here
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to save')
+    }
+  }
 
-//     setFormData(initialForm); // clear form after submit
-//   };
-
-
+  // Lock Record - no validation
+  const handleLock = () => {
+    const data = getValues()
+    console.log('Locking without validation:', data)
+    // Optional minimal check
+    if (!data.companyName) {
+      toast.error('Company Name required to lock')
+      return
+    }
+    // TODO: replace with API call
+    // await fetch('/api/company/lock', { method: 'POST', body: JSON.stringify(data) })
+    setStatus('LOCKED')
+    toast.success('Record locked. Click Unlock to edit.')
+  }
+  // Unlock Record
+  const handleUnlock = () => {
+    console.log('Unlocking record')
+    // TODO: replace with API call later
+    // await fetch('/api/company/unlock', { method: 'POST' })
+    setStatus('DRAFT')
+    toast.success('Unlocked - you can edit now')
+  }
+  const logoFiles = watch('logo')
+  const fileName = logoFiles?.[0]?.name
 
   return (
-    <div className='bg-[#F1F5F9] p-6' >
-        
-
-        <div className="flex items-start justify-between">
-            <div>
-                <h2 className="text-[24px] text-[#043793]">
-                    Org Group — Company Master
-                </h2>
-                <p className="text-[13px] text-[#94A3B8]">Core company identity and registration details</p>
-            </div>
-            <div className="flex gap-3">
-                <button type='button' className="flex items-center bg-[#E2E8F0]
-                 rounded-2xl border border-[#F1F5F9] text-[14px] text-[#64748B] gap-2 px-3 py-4 width-120 height-50" ><Lock size={14} /> <span>Lock Record </span></button>
-                 <button type='button' className="flex items-center text-[14px] text-[#FFFFFF] gap-2 width-120 height-50 bg-[linear-gradient(#043793,#093055)] rounded-2xl border border-[#043793] px-3 py-4"> <Save size={14} /><span>Save Changes </span> </button>
-            </div>
+    <form onSubmit={handleSubmit(onSave)}>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h2 className="text-[24px] text-[#043793] font-bold">
+            Org Group — Company Master
+          </h2>
+          <p className="text-[13px] text-[#94A3B8]">Core company identity and registration details</p>
         </div>
+        <div className="flex gap-3">
+          {isLocked ? (
+            <button
+              type='button'
+              onClick={handleUnlock}
+              className="flex items-center bg-amber-500 text-white rounded-2xl border border-amber-600 text- gap-2 px-6 py-4"
+            >
+              <Unlock size={14} /> <span>Unlock Record</span>
+            </button>
+          ) : (
+            <button
+              type='button'
+              onClick={handleLock}
+              className="flex items-center bg-[#E2E8F0] rounded-2xl border border-[#F1F5F9] text- text-[#64748B] gap-2 px-6 py-4"
+            >
+              <Lock size={14} /> <span>Lock Record</span>
+            </button>
+          )}
 
+          <button
+            type='submit'
+            disabled={isLocked}
+            className="flex items-center text- text-[#FFFFFF] gap-2 bg-[linear-gradient(#043793,#093055)] rounded-2xl border border-[#043793] px-6 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save size={14} /><span>Save Changes</span>
+          </button>
+        </div>
+      </div>
+      <fieldset disabled={isLocked} className="disabled:opacity-60 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-3">
-
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                        <h4 className="text-[15px] text-[#043793] font-bold">Company Identity</h4>
-                        <div className="flex items-center justify-center my-4">
-                            <div className=" flex justify-center items-center bg-[linear-gradient(#043793,#093055)] w-25 h-25 rounded-2xl">
-                             <p className="flex text-center text-[#FFFFFF] ">RS</p>
-                        </div>
-                       
-                        </div>
-                        
-               
-               <div className="flex items-center justify-center">
-                    <button type='button' className=" flex justify-center items-center gap-2 bg-[#F1F5F9] w-30 h-10  rounded-2xl"><Upload size={14}/> <span>Upload</span></button>
-               </div>
-               
-                        
-                
-                
-               < FormInput
-               label='Short Name'
-               name='shortName'
-               value={formData.shortName}
-               type = "text"
-               required 
-               placeholder='short name'
-               onChange={handleChange}
-               />
-
-                < FormInput
-               label='Financial Year'
-               name='financialYear'
-               value={formData.financialYear}
-               type = "text"
-               readOnly
-               onChange={handleChange}
-               />
-                
-                <FormInput
-  label="Base Currency"
-  name='currency'
-  value={formData.currency}
-  type='select'
-  options={[  { label: "INR - Indian Rupee", value: "INR" },
-    { label: "USD - US Dollar", value: "USD" },
-    { label: "EUR - Euro", value: "EUR" },
-    { label: "GBP - British Pound", value: "GBP" },
-    { label: "AED - UAE Dirham", value: "AED" },]}
-  placeholder='Select currency'
-  onChange={handleChange}
-/>
+          <div className="lg:col-span-4">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm h-full">
+              <h4 className="text-[15px] text-[#043793] font-bold">Company Identity</h4>
+              <div className="flex items-center justify-center my-4">
+                <div className="flex justify-center items-center bg-[linear-gradient(#043793,#093055)] w-25 h-25 rounded-2xl">
+                  <p className="flex text-center text-[#FFFFFF]">RS</p>
                 </div>
+              </div>
+              <div className="flex items-center justify-center">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/png,image/jpeg"
+                    {...register('logo')}
+                  />
+                  <div className="flex justify-center items-center gap-2 bg-[#F1F5F9] w-30 h-10 rounded-2xl hover:bg-[#E2E8F0]">
+                    <Upload size={14} />
+                    <span>Upload</span>
+                  </div>
+                </label>
+
+                {fileName && (
+                  <span className="text-sm text-gray-600 truncate max-w-[200px]">
+                    {fileName}
+                  </span>
+                )}
+              </div>
+              <FormInput
+                label='Short Name'
+                required
+                placeholder='short name'
+                {...register('shortName')}
+                error={errors.shortName?.message}
+              />
+              <FormInput
+                label='Financial Year'
+                readOnly
+                {...register('financialYear')}
+                error={errors.financialYear?.message}
+              />
+              <FormInput
+                label="Base Currency"
+                type='select'
+                required
+                options={[
+                  { label: "INR - Indian Rupee", value: "INR" },
+                  { label: "USD - US Dollar", value: "USD" },
+                  { label: "EUR - Euro", value: "EUR" },
+                  { label: "GBP - British Pound", value: "GBP" },
+                  { label: "AED - UAE Dirham", value: "AED" }
+                ]}
+                {...register('currency')}
+                error={errors.currency?.message}
+              />
             </div>
-<div className="lg:col-span-9">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                     <div className="flex flex-col gap-3">
+          </div>
+          <div className="lg:col-span-8">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm h-full">
+              <div className="flex flex-col gap-3">
+                <p className="text-[#043793] text-[15px] font-bold">Company Details</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormInput
+                    label='Company Name'
+                    required
+                    placeholder='company name'
+                    {...register('companyName')}
+                    error={errors.companyName?.message}
+                  />
+                  <FormInput
+                    label='CIN Number'
+                    required
+                    placeholder='L12345AB2024PTC123456'
+                    {...register('cinNumber')}
+                    error={errors.cinNumber?.message}
+                  />
 
-             
-                        <p className="text-[#043793] text-[15px] font-bold">Company Details</p>
-  
-  <div className="grid grid-cols-2 gap-6">
-   
-
-               < FormInput
-               label='Compony Name'
-               name='componyName'
-               value={formData.componyName}
-               type = "text"
-               required 
-               placeholder='compony name'
-               onChange={handleChange}
-               />
-                 < FormInput
-               label='CIN Number'
-               name='cinNumber'
-               value={formData.cinNumber}
-               type = "text"
-               required 
-               placeholder='short name'
-               onChange={handleChange}
-               />
-
-               < FormInput
-               label='PAN Number'
-               name='panNumber'
-               value={formData.panNumber}
-               type = "text"
-               required 
-               placeholder='PAN Number'
-               onChange={handleChange}
-               />
-                 < FormInput
-               label='Email'
-               name='email'
-               value={formData.email}
-               type = "email"
-               required 
-               placeholder='email'
-               onChange={handleChange}
-               />
-               < FormInput
-               label='Phone Number'
-               name='phoneNumber'
-               value={formData.phoneNumber}
-               type = "text"
-               required 
-               placeholder='Phone Number'
-               onChange={handleChange}
-               />
-               < FormInput
-               label='Website'
-               name='website'
-               value={formData.website}
-               type = "text"
-               required 
-               placeholder='Website'
-               onChange={handleChange}
-               />
-               </div>
-               <div className="grid grid-cols-1">
-                < FormInput
-               label='Registered Address'
-               name='address'
-               value={formData.address}
-               type = "textarea"
-               required 
-               placeholder='Enter Address'
-               onChange={handleChange}
-               />
-               </div>
-
-               <div className="grid grid-cols-2 gap-6">
-
-  <FormInput
-  label="State"
-  name='state'
-  value={formData.state}
-  type='select'
-  options={[  { label: "INR - Indian Rupee", value: "INR" },
-    { label: "USD - US Dollar", value: "USD" },
-    { label: "EUR - Euro", value: "EUR" },
-    { label: "GBP - British Pound", value: "GBP" },
-    { label: "AED - UAE Dirham", value: "AED" },]}
-  placeholder='Select currency'
-  onChange={handleChange}
-/>
-  <FormInput
-  label="Country"
-  name='country'
-  value={formData.country}
-  type='select'
-  options={[  { label: "INR - Indian Rupee", value: "INR" },
-    { label: "USD - US Dollar", value: "USD" },
-    { label: "EUR - Euro", value: "EUR" },
-    { label: "GBP - British Pound", value: "GBP" },
-    { label: "AED - UAE Dirham", value: "AED" },]}
-  placeholder='Select currency'
-  onChange={handleChange}
-/>
-
-        < FormInput
-               label='Pin Code'
-               name='pinCode'
-               value={formData.pinCode}
-               type = "text"
-               required 
-             readOnly
-               onChange={handleChange}
-               />        
-  </div>
-
- 
-                     </div>
+                  <FormInput
+                    label='PAN Number'
+                    required
+                    placeholder='ABCDE1234F'
+                    {...register('panNumber')}
+                    error={errors.panNumber?.message}
+                  />
+                  <FormInput
+                    label='Email Address'
+                    type="email"
+                    placeholder='email'
+                    {...register('email')}
+                    error={errors.email?.message}
+                  />
+                  <FormInput
+                    label='Phone Number'
+                    placeholder='Phone Number'
+                    {...register('phoneNumber')}
+                    error={errors.phoneNumber?.message}
+                  />
+                  <FormInput
+                    label='Website'
+                    placeholder='https://example.com'
+                    {...register('website')}
+                    error={errors.website?.message}
+                  />
                 </div>
-</div>
-
+                <div className="grid grid-cols-1">
+                  <FormInput
+                    label='Registered Address'
+                    type="textarea"
+                    required
+                    placeholder='Enter Address'
+                    {...register('address')}
+                    error={errors.address?.message}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormInput
+                    label="State"
+                    type='select'
+                    required
+                    options={[
+                      { label: "Karnataka", value: "KA" },
+                      { label: "Maharashtra", value: "MH" },
+                      { label: "Delhi", value: "DL" }
+                    ]}
+                    {...register('state')}
+                    error={errors.state?.message}
+                  />
+                  <FormInput
+                    label="Country"
+                    type='select'
+                    required
+                    options={[
+                      { label: "India", value: "IN" },
+                      { label: "USA", value: "US" },
+                      { label: "UAE", value: "AE" }
+                    ]}
+                    {...register('country')}
+                    error={errors.country?.message}
+                  />
+                  <FormInput
+                    label='Pin Code'
+                    required
+                    {...register('pinCode')}
+                    error={errors.pinCode?.message}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
+      </fieldset>
+    </form>
   )
 }
 
