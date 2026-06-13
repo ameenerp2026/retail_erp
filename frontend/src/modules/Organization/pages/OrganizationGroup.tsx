@@ -221,12 +221,14 @@ function OrganizationGroup() {
                   <FormInput
                     label='Email Address'
                     type="email"
+                    required
                     placeholder='email'
                     {...register('email')}
                     error={errors.email?.message}
                   />
                   <FormInput
                     label='Phone Number'
+                    required
                     placeholder='Phone Number'
                     {...register('phoneNumber')}
                     error={errors.phoneNumber?.message}
@@ -234,6 +236,7 @@ function OrganizationGroup() {
                   <FormInput
                     label='Website'
                     placeholder='https://example.com'
+                    required
                     {...register('website')}
                     error={errors.website?.message}
                   />
