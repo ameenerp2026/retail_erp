@@ -1,13 +1,38 @@
 import { Search, Plus, Moon, Bell } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 function Topbar() {
+  const location = useLocation();
+ const getSegments = () => {
+    let path = location.pathname.replace('/dashboard', '');
+    if (!path || path === '/') return [];
+
+    return path
+     .split('/')
+     .filter(Boolean)
+     .map(segment => segment.replace(/-/g, ' ')); // ['organization', 'org group']
+  };
+
+  const segments = getSegments();
   return (
     <header className="h-16 w-full bg-white border-b border-slate-200 px-6 flex items-center justify-between">
       
       {/* Left Title */}
       <div>
         <h1 className="text-xl font-semibold text-[#043793]">
-          Dashboard
+         {segments.length === 0? (
+          <span className="text-[#043793]">dashboard</span>
+        ) : (
+          <>
+            <span className="text-gray-500 font-normal">{segments[0]}</span>
+            {segments.length > 1 && (
+              <>
+                <span className="text-gray-500 font-normal">/</span>
+                <span className="text-[#043793]">{segments[1]}</span>
+              </>
+            )}
+          </>
+        )}
         </h1>
       </div>
 

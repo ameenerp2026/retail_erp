@@ -1,7 +1,7 @@
 
 
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Building2,
   Building,
@@ -32,7 +32,7 @@ const menuItems = [
     label: "Organization",
     icon: Building2,
     children: [
-      { label: "Org Group", path: "/organization/org-group", icon: Building2 },
+      { label: "Org Group", path: "/dashboard/organization/org-group", icon: Building2 },
       { label: "Org Unit", path: "/organization/org-unit", icon: Building },
       { label: "Accounting Year", path: "/organization/accounting-year", icon: Calendar },
       { label: "Finance Month", path: "/organization/finance-month", icon: CreditCard },
@@ -122,6 +122,8 @@ function SidebarMenuItem({ item }: any) {
 }
 
 export default function Sidebar() {
+   const location = useLocation();
+  console.log('Current path:', location.pathname); 
   return (
     <div className="flex">
     <aside className="w-[300px] h-screen bg-[#043793] text-white flex flex-col fixed left-0 top-0">
@@ -153,16 +155,19 @@ export default function Sidebar() {
           </div>
         </div>
         {/* Dashboard - active with left accent */}
-        <div className="relative flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-[#2B6CB0] to-[#1A4A8A] text-white w-full overflow-hidden mb-4">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#4ADE80] rounded-l-xl"></div>
-          <svg className="w-5 h-5 shrink-0 ml-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-          <span className="text-sm font-semibold">Dashboard</span>
-        </div>
+       <NavLink 
+  to="/dashboard"
+  className="relative flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-[#2B6CB0] to-[#1A4A8A] text-white w-full overflow-hidden mb-4"
+>
+  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#4ADE80] rounded-l-xl"></div>
+  <svg className="w-5 h-5 shrink-0 ml-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+  </svg>
+  <span className="text-sm font-semibold">Dashboard</span>
+</NavLink>
 
         <nav className="flex flex-col gap-2">
           {menuItems.map((item) => (
