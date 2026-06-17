@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth/auth.routes.js'
+import organizationRoutes from './routes/organization/organization.routes.js'
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
   res.send("Backend running");
 });
 app.use('/api/auth',authRoutes) 
+app.use("/api/organization", organizationRoutes);
 
 
 const PORT = 5000;

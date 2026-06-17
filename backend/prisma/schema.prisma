@@ -19,3 +19,29 @@ enum Roles {
   ADMIN
   EMPLOYEE
 }
+
+
+model OrganizationGroup {
+  id              Int      @id @default(autoincrement())
+
+  shortName       String
+   logoUrl         String?
+  financialYear   String
+  currency        String
+
+  companyName     String
+  cinNumber       String
+  panNumber       String
+  email           String
+  phoneNumber     String
+  website         String?
+  address         String
+
+  state           String
+  country         String
+  pinCode         String
+
+  status          String   @default("DRAFT")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
