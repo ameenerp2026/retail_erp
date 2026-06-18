@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Lock, Save, Upload, Unlock } from "lucide-react"
 import { useState } from 'react'
 import FormInput from '../../../components/forms/FormInput'
-import { organizationSchema, type OrganizationFormData } from '../../../components/forms/OrganizationGroup.schema'
+import { organizationSchema, type OrganizationFormData } from '../../../components/forms/validate.schema'
 import toast from 'react-hot-toast' // or your toast lib
 
 type RecordStatus = 'DRAFT' | 'LOCKED' | 'ACTIVE'
