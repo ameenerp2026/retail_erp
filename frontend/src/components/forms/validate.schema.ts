@@ -43,3 +43,27 @@ phoneNumber: z.string()
 })
 
 export type OrganizationFormData = z.infer<typeof organizationSchema>
+
+export const orgUnitSchema = z.object({
+  name: z.string().trim().min(1, 'Unit name is required').min(3, 'Minimum 3 characters'),
+  
+  type: z.enum(['Head Office', 'Regional Office', 'Branch', 'Warehouse'], {
+    message: 'Unit type is required' // ← Use 'message' not 'errorMap'
+  }),
+  
+  group: z.string().min(1, 'Organization Group is required'),
+  
+  gstin: z.string()
+    .trim()
+    .min(1, 'GSTIN is required')
+    .length(15, 'GSTIN must be 15 characters')
+    .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid GSTIN format'),
+  
+  manager: z.string().trim().optional(),
+  state: z.string().optional(),
+  address: z.string().optional()
+})
+
+export type OrgUnitFormData = z.infer<typeof orgUnitSchema> & {
+  id?: string
+}
