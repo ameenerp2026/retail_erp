@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth/auth.routes.js'
 import organizationRoutes from './routes/organization/organization.routes.js'
-
+import organizationUnit from './routes/organization/organizationUnit.routes.js'
 const app = express();
 
 app.use(cors())
@@ -18,6 +18,7 @@ app.get("/", (req, res) => {
 });
 app.use('/api/auth',authRoutes) 
 app.use("/api/organization", organizationRoutes);
+app.use("/api/organizationUnit", organizationUnit);
 
 
 const PORT = 5000;

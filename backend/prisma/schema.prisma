@@ -45,3 +45,16 @@ model OrganizationGroup {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model OrganizationUnit{
+   id               Int      @id @default(autoincrement())
+ unitId             String
+ organizationUnit   String
+ branchName         String
+ gstIn              String
+ manager            String
+ status             String     @default("Active")
+  createdAt         DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+}
