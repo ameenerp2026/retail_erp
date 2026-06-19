@@ -1,0 +1,7 @@
+name: New Environment
+values:
+  - key: baseUrl
+    value: ''
+  - key: authToken
+    secret: true
+color: 180

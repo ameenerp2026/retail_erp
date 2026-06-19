@@ -1,0 +1,44 @@
+$kind: http-request
+name: http://localhost:5000/api/organization/org-group
+url: http://localhost:5000/api/organization/org-group
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"shortName\": \"ABC\",\r
+
+    \  \"logoUrl\": \"https://abcgroup.com/logo.png\",\r
+
+    \  \"financialYear\": \"2025-2026\",\r
+
+    \  \"currency\": \"INR\",\r
+
+    \  \"companyName\": \"ABC Retail Private Limited\",\r
+
+    \  \"cinNumber\": \"U52399MH2025PTC654321\",\r
+
+    \  \"panNumber\": \"ABCDE1234F\",\r
+
+    \  \"email\": \"info@abcretail.com\",\r
+
+    \  \"phoneNumber\": \"9988776655\",\r
+
+    \  \"website\": \"https://www.abcretail.com\",\r
+
+    \  \"address\": \"Bandra West, Mumbai\",\r
+
+    \  \"state\": \"Maharashtra\",\r
+
+    \  \"country\": \"India\",\r
+
+    \  \"pinCode\": \"400050\",\r
+
+    \  \"status\": \"ACTIVE\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{authToken}}"
+order: 3796

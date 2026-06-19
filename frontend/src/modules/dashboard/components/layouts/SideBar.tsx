@@ -45,11 +45,11 @@ const menuItems = [
     label: "Finance",
     icon: DollarSign,
     children: [
-      { label: "Account Group", path: "/finance/account-group", icon: BookOpen },
-      { label: "Account Class", path: "/finance/account-class", icon: BookMarked },
-      { label: "Ledger", path: "/finance/ledger", icon: LibraryBig },
-      { label: "Sub Ledger", path: "/finance/sub-ledger", icon: NotebookTabs },
-      { label: "Currency", path: "/finance/currency", icon: BadgeIndianRupee },
+      { label: "Account Group", path: "/dashboard/finance/account-group", icon: BookOpen },
+      { label: "Account Class", path: "/dashboard//finance/account-class", icon: BookMarked },
+      { label: "Ledger", path: "/dashboard/finance/ledger", icon: LibraryBig },
+      { label: "Sub Ledger", path: "/dashboard//finance/sub-ledger", icon: NotebookTabs },
+      { label: "Currency", path: "/dashboard/finance/currency", icon: BadgeIndianRupee },
     ],
   },
   {

@@ -54,7 +54,14 @@ import LoginForm from "../modules/auth/pages/LoginForm"
 import DashBoardLayout from "../layouts/DashBoardLayout"
 import DashBoard from "../modules/dashboard/pages/DashBoard"
 import OrganizationGroup from '../modules/Organization/pages/OrganizationGroup'
-import OrganizationUnit from '../modules/Organization/pages/OrganizationUnit'
+import OrganizationUnit from '../modules/Organization/pages/OrganizationUnit';
+import AccountGroup from '../modules/Finance/AccountGroup';
+import AccountClass from '../modules/Finance/AccountClass';
+import Ledger from '../modules/Finance/Ledger';
+import SubLedger from '../modules/Finance/SubLedger';
+import Currency from '../modules/Finance/Currency';
+import Finance from '../modules/Finance/Finance'
+
 
 export default function AppRoutes() {
 const { isLoggedIn } = useAuth() 
@@ -76,6 +83,14 @@ const { isLoggedIn } = useAuth()
         <Route path="organization">
           <Route path="org-group" element={<OrganizationGroup />} />
           <Route path="org-unit" element={<OrganizationUnit />} />
+        </Route>
+        <Route path="finance" element = {<Finance />}>
+           <Route path="account-group" element={<AccountGroup />} />
+          <Route path="account-class" element={<AccountClass />} />
+           <Route path="ledger" element={<Ledger />} />
+            <Route path="sub-ledger" element={<SubLedger />} />
+             <Route path="currency" element={<Currency />} />
+         
         </Route>
         
       </Route>
