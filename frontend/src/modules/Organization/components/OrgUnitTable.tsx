@@ -10,9 +10,10 @@ export interface OrgUnit extends OrgUnitFormData {
 interface OrgUnitTableProps {
   units: OrgUnit[]
   onEdit: (row: OrgUnit) => void // Must match units type
+  onDelete: (row: OrgUnit) => void
   loading?: boolean
 }
-export default function OrgUnitTable({ units,onEdit,loading }: OrgUnitTableProps) {
+export default function OrgUnitTable({ units,onEdit,onDelete,loading }: OrgUnitTableProps) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <table className="w-full">
@@ -90,7 +91,8 @@ export default function OrgUnitTable({ units,onEdit,loading }: OrgUnitTableProps
                       <Pencil size={16} />
                     </button>
                     <button
-                      
+                      onClick={() => onDelete(unit)} 
+                      disabled={loading}
                       className="text-[#EF4444] hover:text-[#DC2626] transition"
                       title="Delete"
                     >
