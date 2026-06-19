@@ -4,6 +4,7 @@ import OrgUnitTable from "../components/OrgUnitTable"
 import Pagination from "../components/Pagination"
 import OrgUnitModal from "../components/OrgUnitModal"
 import { OrgUnitFormData } from "@/components/forms/validate.schema"
+import DeleteConfirmModal from "../components/DeleteConfirmModal"
 import toast from "react-hot-toast"
 
 export interface OrgUnit extends OrgUnitFormData {
@@ -32,12 +33,17 @@ const orgUnits : OrgUnit[]= [
 
 
 function OrganizationUnit() {
+  //delete org unit
+const [units, setUnits] = useState<OrgUnit[]>(orgUnits)
+const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+const [unitToDelete, setUnitToDelete] = useState<OrgUnit | null>(null)
+
 const [currentPage, setCurrentPage] = useState(1)
 const [rowsPerPage] = useState(10)
-const totalPages = Math.ceil(orgUnits.length / rowsPerPage)
+const totalPages = Math.ceil(units.length / rowsPerPage)
 const startIndex = (currentPage - 1) * rowsPerPage
 const endIndex = startIndex + rowsPerPage
-const currentUnits = orgUnits.slice(startIndex, endIndex)
+const currentUnits = units.slice(startIndex, endIndex)
 //add org unit 
 const [isModalOpen, setIsModalOpen] = useState(false)
 const [editingUnit, setEditingUnit] = useState<OrgUnitFormData | null>(null)
@@ -82,6 +88,28 @@ const [loading, setLoading] = useState(false)
       setLoading(false)
     }
   }
+  //delete org handler
+  const handleDeleteClick = (row: OrgUnit) => {
+    setUnitToDelete(row)
+    setDeleteModalOpen(true)
+  }
+  const handleConfirmDelete = async () => {
+    if (!unitToDelete) return
+    setLoading(true)
+    try {
+      // TODO: API call
+      // await fetch(`/api/org-units/${unitToDelete.id}`, { method: 'DELETE' })
+      
+      setUnits(prev => prev.filter(u => u.id !== unitToDelete.id))
+      toast.success(`${unitToDelete.name} deleted successfully`)
+      setDeleteModalOpen(false)
+      setUnitToDelete(null)
+    } catch (error) {
+      toast.error('Failed to delete org unit')
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm">
       {/* Header */}
@@ -90,7 +118,7 @@ const [loading, setLoading] = useState(false)
           <h2 className="text-[24px] text-[#043793] font-bold">
             Org Unit
           </h2>
-          <p className="text-[13px] text-[#94A3B8]">{orgUnits.length} {orgUnits.length === 1? 'unit' : 'units'} across all groups</p>
+          <p className="text-[13px] text-[#94A3B8]">{units.length} {units.length === 1? 'unit' : 'units'} across all groups</p>
         </div>
         <div className="flex gap-3">
           <button className="h-10 px-4 rounded-lg bg-[linear-gradient(#F3F4F6,#E5E7EB)] text-gray-700 flex items-center gap-1.5 text-sm font-medium hover:bg-gray-300 transition border border-gray-300">
@@ -133,14 +161,21 @@ const [loading, setLoading] = useState(false)
         </div>
       </div>
       {/* Table */}
-     <OrgUnitTable units={currentUnits} onEdit={handleEditClick} loading={loading} />
+     <OrgUnitTable units={currentUnits} onEdit={handleEditClick} onDelete={handleDeleteClick} loading={loading} />
+     {/* Delete confirmation modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        unitName={unitToDelete?.name || ''}
+        loading={loading} />
       {/* Pagination */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         startIndex={startIndex}
         endIndex={endIndex}
-        totalItems={orgUnits.length}
+        totalItems={units.length}
         onPageChange={setCurrentPage}
       />
     </div>
