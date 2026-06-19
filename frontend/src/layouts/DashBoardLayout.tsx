@@ -3,17 +3,24 @@ import Sidebar from "../modules/dashboard/components/layouts/SideBar";
 import Topbar from "../modules/dashboard/components/layouts/TopBar";
 function DashBoardLayout() {
   return (
-   <div className="min-h-screen bg-slate-50">
-      <Sidebar />
-
-      {/* Add ml-[300px] to offset fixed sidebar */}
-      <div className="ml-[300px] flex flex-col min-h-screen">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
-        </main>
+   <div className="min-h-screen bg-slate-50 overflow-x-hidden">
+  <Sidebar />
+  <div className="ml-72 flex flex-col min-h-screen"  style={{ marginLeft: '288px', width: 'calc(100vw - 288px)' }}>
+    <Topbar />
+    <main className="fixed overflow-y-auto overflow-x-hidden" 
+      style={{ 
+        left: '288px', 
+        top: '64px', // header height
+        right: 0, 
+        bottom: 0 
+      }}
+    >
+      <div className="p-6"> {/* Prevents child elements from overflowing */}
+        <Outlet />
       </div>
-    </div>
+    </main>
+  </div>
+</div>
 
 //For future use don't delete
 //     import SuperAdminDashboard from "./pages/SuperAdminDashboard";

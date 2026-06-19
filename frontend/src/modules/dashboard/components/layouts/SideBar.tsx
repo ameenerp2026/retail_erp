@@ -126,8 +126,8 @@ export default function Sidebar() {
   console.log('Current path:', location.pathname); 
   return (
     <div className="flex">
-    <aside className="w-[300px] h-screen bg-[#043793] text-white flex flex-col fixed left-0 top-0">
-      <div className="px-4 pt-4">
+    <aside className="fixed left-0 top-0 h-screen w-72 bg-[#043793] text-white flex flex-col fixed">
+      <div className="px-4 pt-4 flex-shrink-0">
         {/* Logo + Brand */}
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-[#1A3A7A] rounded-lg flex items-center justify-center text-white font-bold text-lg shrink-0">
@@ -168,12 +168,14 @@ export default function Sidebar() {
   </svg>
   <span className="text-sm font-semibold">Dashboard</span>
 </NavLink>
-
-        <nav className="flex flex-col gap-2">
+       <div className="flex-1 overflow-y-auto min-h-0 px-4">
+        <nav className="flex flex-col gap-2 pb-4">
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.label} item={item} />
           ))}
         </nav>
+        </div>
+        
         {/* Thin divider - 1px */}
         <div className="h-[1px] bg-[#5B8BC6] -mx-4 mb-2 opacity-60"></div>
 
