@@ -7,7 +7,7 @@ type Props = {
   onConfirm: () => void
 }
 
-export function DeleteConfirmForm({ unitName, loading, onClose, onConfirm }: Props) {
+export function DeleteConfirmForm({loading, onClose, onConfirm }: Props) {
   return (
     <div className="px-8 py-6 text-center">
       {/* Icon */}
