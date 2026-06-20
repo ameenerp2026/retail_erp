@@ -56,5 +56,12 @@ model OrganizationUnit{
  status             String     @default("Active")
   createdAt         DateTime @default(now())
   updatedAt        DateTime @updatedAt
-
+}
+model AccountingYear{
+  id               Int      @id @default(autoincrement())
+  fromDate         DateTime
+  toDate           DateTime
+  yearName         String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
