@@ -15,8 +15,7 @@ function Topbar() {
 
   const segments = getSegments();
   return (
-    <header className="fixed top-0 right-0 h-16 w-full bg-white border-b border-slate-200 px-6 flex items-center justify-between z-40" style={{ left: '288px' }}>
-      
+    <header className="fixed top-0 right-0 h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-40" style={{ left: '288px' }}>
       {/* Left Title */}
       <div>
         <h1 className="text-xl font-semibold text-[#043793]">

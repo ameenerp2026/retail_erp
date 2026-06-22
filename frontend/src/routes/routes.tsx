@@ -61,6 +61,7 @@ import Ledger from '../modules/Finance/Ledger';
 import SubLedger from '../modules/Finance/SubLedger';
 import Currency from '../modules/Finance/Currency';
 import Finance from '../modules/Finance/Finance'
+import AccountingYearPage from "@/modules/Organization/pages/AccountingYearPage"
 
 
 export default function AppRoutes() {
@@ -83,6 +84,7 @@ const { isLoggedIn } = useAuth()
         <Route path="organization">
           <Route path="org-group" element={<OrganizationGroup />} />
           <Route path="org-unit" element={<OrganizationUnit />} />
+          <Route path="accounting-year" element={<AccountingYearPage />} />
         </Route>
         <Route path="finance" element = {<Finance />}>
            <Route path="account-group" element={<AccountGroup />} />

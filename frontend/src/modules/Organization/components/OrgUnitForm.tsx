@@ -140,7 +140,7 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 bg-slate-50 border-b border-gray flex justify-end gap-3 shrink-0">
+      <div className="px-6 py-4 bg-slate-50 border-t border-gray-200 flex justify-end gap-3 shrink-0">
         <button 
           onClick={onClose} 
           className="h-10 px-4 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
