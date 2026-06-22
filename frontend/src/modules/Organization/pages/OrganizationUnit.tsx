@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Download, Plus, Search, X } from "lucide-react"
 import OrgUnitTable from "../components/OrgUnitTable"
 import Pagination from "../components/Pagination"
-import { Modal } from '@/components/ui/Modal'
+import { Modal } from '@/components/shared/Modal'
 import { OrgUnitForm } from "../components/OrgUnitForm"
 import { DeleteConfirmForm } from "../components/DeleteConfirmForm"
 import { OrgUnitFormData } from "@/components/forms/validate.schema"

@@ -34,7 +34,7 @@ const menuItems = [
     children: [
       { label: "Org Group", path: "/dashboard/organization/org-group", icon: Building2 },
       { label: "Org Unit", path: "/dashboard/organization/org-unit", icon: Building },
-      { label: "Accounting Year", path: "/organization/accounting-year", icon: Calendar },
+      { label: "Accounting Year", path: "/dashboard/organization/accounting-year", icon: Calendar },
       { label: "Finance Month", path: "/organization/finance-month", icon: CreditCard },
       { label: "Inventory Month", path: "/organization/inventory-month", icon: Package },
       { label: "GSTIN Management", path: "/organization/gstin", icon: FileText },
@@ -127,6 +127,7 @@ export default function Sidebar() {
   return (
     <div className="flex">
     <aside className="fixed left-0 top-0 h-screen w-72 bg-[#043793] text-white flex flex-col fixed">
+    
       <div className="px-4 pt-4 flex-shrink-0">
         {/* Logo + Brand */}
         <div className="flex items-center gap-3 mb-4">
