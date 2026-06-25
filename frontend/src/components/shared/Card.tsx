@@ -1,16 +1,46 @@
-type cardProps = {
-    count: number | string,
-    description: string,
-    countColor: string // pass "text-red-500" or "text-green-600"
+import { ReactNode } from "react"
+
+type CardProps = {
+  count: number | string
+  title?: string
+  description?: string
+  countColor?: string
+  icon?: ReactNode
+  iconBgColor?: string
+  className?: string
 }
 
-function Card({count, description, countColor}: cardProps) {
+function Card({
+  count,
+  title,
+  description,
+  countColor = "text-[#1A2332]",
+  icon,
+  iconBgColor="",
+  className = ""
+}: CardProps) {
   return (
-    <div className="rounded-2xl bg-white shadow-sm border border-slate-200 p-3">
-      <span className={`text-[28px] font-extrabold ${countColor}`}>
-        {count}
-      </span>
-      <p className="text-[12px] text-[#6B7280]">{description}</p>
+    <div className={`rounded-2xl bg-white border border-slate-200 p-4 flex items-center gap-3 ${className}`}>
+      {/* Icon in circle bg */}
+      {icon && (
+        <div className={`w-12 h-12 rounded-full ${iconBgColor} flex items-center justify-center flex-shrink-0`}>
+          {icon}
+        </div>
+      )}
+
+      {/* Text content */}
+      <div className="flex flex-col">
+        <span className="text-xs text-[#6B7A99] uppercase tracking-wide whitespace-nowrap">
+          {title}
+        </span>
+        <span className={`text-2xl font-bold text-[#1A2332] leading-tight ${countColor}`}>
+          {count}
+        </span>
+      </div>
+      {/* Description */}
+      {description && (
+        <p className="text-xs text-gray-400 mt-1">{description}</p>
+      )}
     </div>
   )
 }

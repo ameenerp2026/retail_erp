@@ -62,6 +62,7 @@ import SubLedger from '../modules/Finance/SubLedger';
 import Currency from '../modules/Finance/Currency';
 import Finance from '../modules/Finance/Finance'
 import AccountingYearPage from "@/modules/Organization/pages/AccountingYearPage"
+import FinanceMonths from "@/modules/Organization/pages/FinanceMonths"
 
 
 export default function AppRoutes() {
@@ -85,6 +86,7 @@ const { isLoggedIn } = useAuth()
           <Route path="org-group" element={<OrganizationGroup />} />
           <Route path="org-unit" element={<OrganizationUnit />} />
           <Route path="accounting-year" element={<AccountingYearPage />} />
+          <Route path="finance-month" element={<FinanceMonths />} />
         </Route>
         <Route path="finance" element = {<Finance />}>
            <Route path="account-group" element={<AccountGroup />} />
