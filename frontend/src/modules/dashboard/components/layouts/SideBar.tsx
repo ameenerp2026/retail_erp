@@ -35,7 +35,7 @@ const menuItems = [
       { label: "Org Group", path: "/dashboard/organization/org-group", icon: Building2 },
       { label: "Org Unit", path: "/dashboard/organization/org-unit", icon: Building },
       { label: "Accounting Year", path: "/dashboard/organization/accounting-year", icon: Calendar },
-      { label: "Finance Month", path: "/organization/finance-month", icon: CreditCard },
+      { label: "Finance Month", path: "/dashboard/organization/finance-month", icon: CreditCard },
       { label: "Inventory Month", path: "/organization/inventory-month", icon: Package },
       { label: "GSTIN Management", path: "/organization/gstin", icon: FileText },
       { label: "GST Slate Details", path: "/organization/gst-slate", icon: CreditCard },
