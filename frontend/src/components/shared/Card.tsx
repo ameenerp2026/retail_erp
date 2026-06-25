@@ -2,7 +2,7 @@ import { ReactNode } from "react"
 
 type CardProps = {
   count: number | string
-  title: string
+  title?: string
   description?: string
   countColor?: string
   icon?: ReactNode
