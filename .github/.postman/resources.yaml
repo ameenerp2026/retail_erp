@@ -1,7 +1,10 @@
 workspace:
   id: 1273e9e1-f779-4e64-af13-482e116d9e88
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
 cloudResources:
   collections:
-    ../postman/collections/Organization: 55163723-685306b0-b35f-4632-93ec-e90cf3b6494f
+    ..\postman\collections\retail_erp: 55163723-685306b0-b35f-4632-93ec-e90cf3b6494f
   environments:
     ../postman/environments/New Environment.environment.yaml: 55163723-0703f88d-006e-4ddd-9bb1-04e9a06a60cd

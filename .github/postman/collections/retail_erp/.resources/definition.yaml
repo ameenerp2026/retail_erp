@@ -1,4 +1,5 @@
 $kind: collection
+name: retail_erp
 auth:
   - id: 121beeaf-b951-4d17-a0ff-f4843e2bf584
     type: bearer
