@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth/auth.routes.js'
-import organizationRoutes from './routes/organization/organization.routes.js'
-import organizationUnit from './routes/organization/organizationUnit.routes.js'
+import organizationRoutes from './routes/admin/organization/organization.routes.js'
+import organizationUnit from './routes/admin/organization/organizationUnit.routes.js'
 const app = express();
 
 app.use(cors())

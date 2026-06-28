@@ -4,8 +4,8 @@ import  {
     getOrgUnitByIdController,
     updateOrgUnitController,
     deleteOrgUnitController,
-} from '../../controllers/organization/organizationUnit.controller.js'
-import {authMiddleware }from '../../middleware/auth.middleware.js'
+} from '../../../controllers/admin/organization/organizationUnit.controller.js'
+import {authMiddleware }from '../../../middleware/auth.middleware.js'
 const router= express.Router()
 router.use(authMiddleware);
 router.post('/org-unit',createOrgUnitController);
