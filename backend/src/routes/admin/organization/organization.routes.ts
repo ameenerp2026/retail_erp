@@ -3,8 +3,8 @@ import {
   createOrgGroupController,
   getOrgGroupByIdController,
   updateOrgGroupController
-} from "../../controllers/organization/organizationGroup.controller.js";
-import {authMiddleware }from '../../middleware/auth.middleware.js'
+} from "../../../controllers/admin/organization/organizationGroup.controller.js";
+import {authMiddleware }from '../../../middleware/auth.middleware.js'
 const router = express.Router();
 router.use(authMiddleware);
 

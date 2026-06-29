@@ -1,10 +1,12 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["user","organization", "finance"]
 }
 
 model User {
@@ -13,11 +15,14 @@ model User {
   password  String
   createdAt DateTime @default(now())
   role      Roles    @default(EMPLOYEE)
+
+  @@schema("user")
 }
 
 enum Roles {
   ADMIN
   EMPLOYEE
+  @@schema("user")
 }
 
 
@@ -44,6 +49,8 @@ model OrganizationGroup {
   status          String   @default("DRAFT")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+   @@schema("organization")
 }
 
 model OrganizationUnit{
@@ -56,6 +63,8 @@ model OrganizationUnit{
  status             String     @default("Active")
   createdAt         DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+   @@schema("organization")
 }
 model AccountingYear{
   id               Int      @id @default(autoincrement())
@@ -64,4 +73,26 @@ model AccountingYear{
   yearName         String
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+   @@schema("organization")
+}
+model FinanceMonth {
+  id                Int      @id @default(autoincrement())
+
+  period            String
+  startDate         DateTime
+  endDate           DateTime
+
+  financeStatus     String   @default("Open")
+  invoiceStatus     String   @default("Open")
+  cogsStatus        String   @default("Pending")
+
+
+  lastModifiedBy    String?
+  lastModifiedAt    DateTime @updatedAt
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@schema("organization")
 }

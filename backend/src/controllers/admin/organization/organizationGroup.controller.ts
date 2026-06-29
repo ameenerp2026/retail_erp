@@ -3,7 +3,7 @@ import {
   createOrganizationGroup,
   getOrganizationGroupById,
   updateOrganizationGroup
-} from "../../services/organization/organizationGroup.service.js";
+} from "../../../services/admin/organization/organizationGroup.service.js";
 
 export const createOrgGroupController = async (
   req: Request,

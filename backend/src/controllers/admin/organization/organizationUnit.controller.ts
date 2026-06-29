@@ -4,7 +4,7 @@ import {
   getOrganizationUnit,
   deleteOrganizationUnit,
   updateOrganizationUnit
-} from "../../services/organization/OrganizationUnit.service.js";
+} from "../../../services/admin/organization/OrganizationUnit.service.js";
 
 export const createOrgUnitController = async (
   req: Request,
