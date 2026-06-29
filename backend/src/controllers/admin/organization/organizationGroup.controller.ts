@@ -9,6 +9,7 @@ export const createOrgGroupController = async (
   req: Request,
   res: Response
 ) => {
+  console.log('createOrgGroupController',req.body)
   try {
     
     const result = await createOrganizationGroup(req.body);

@@ -31,15 +31,15 @@ phoneNumber: z.string()
   .trim()
   .length(6, "PIN Code must be 6 digits")
   .regex(/^[1-9]\d{5}$/, "Invalid PIN Code format"),
-  logo: z
-   .custom<FileList>()
-   .refine((files) => files?.length === 1, 'Logo is required')
-   .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size 5MB`)
-   .refine(
-      (files) => ACCEPTED_TYPES.includes(files?.[0]?.type),
-      'Only.jpg,.png allowed'
-    )
-   .optional(), // remove.optional() if required
+  // logo: z
+  //  .custom<FileList>()
+  //  .refine((files) => files?.length === 1, 'Logo is required')
+  //  .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size 5MB`)
+  //  .refine(
+  //     (files) => ACCEPTED_TYPES.includes(files?.[0]?.type),
+  //     'Only.jpg,.png allowed'
+  //   )
+  //  .optional(), // remove.optional() if required
 })
 
 export type OrganizationFormData = z.infer<typeof organizationSchema>
