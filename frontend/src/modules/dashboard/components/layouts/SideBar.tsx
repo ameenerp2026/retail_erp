@@ -37,8 +37,8 @@ const menuItems = [
       { label: "Accounting Year", path: "/dashboard/organization/accounting-year", icon: Calendar },
       { label: "Finance Month", path: "/dashboard/organization/finance-month", icon: CreditCard },
       { label: "Inventory Month", path: "/dashboard/organization/inventory-month", icon: Package },
-      { label: "GSTIN Management", path: "/organization/gstin", icon: FileText },
-      { label: "GST Slate Details", path: "/organization/gst-slate", icon: CreditCard },
+      { label: "GSTIN Management", path: "/dashboard/organization/gstin", icon: FileText },
+      { label: "GST State Details", path: "/dashboard/organization/gst-state", icon: CreditCard },
     ],
   },
   {

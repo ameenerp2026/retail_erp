@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom'  // ← add this
 type DrawerProps = {
   isOpen: boolean
   onClose: () => void
-  title: string
+  title?: string
   description?: string
   children: React.ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -55,6 +55,7 @@ export default function Drawer({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
+        {title && (
         <div className="flex items-start justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
           <div>
             <h2 className="text-base font-bold text-slate-800">{title}</h2>
@@ -69,7 +70,12 @@ export default function Drawer({
             <X size={16} />
           </button>
         </div>
-
+        )}
+        {!title && (
+  <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition z-10">
+    <X size={16} />
+  </button>
+)}
         {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1 px-6 py-4">
           {children}
