@@ -1,4 +1,4 @@
-import type { StatusType } from '@/modules/Organization/components/FinanceMonths/StatusTags'
+import type { StatusType } from '@/components/shared/StatusTags'
 
 export type FinanceStatType = 'open' | 'closed' | 'provisional'|'pending'
 

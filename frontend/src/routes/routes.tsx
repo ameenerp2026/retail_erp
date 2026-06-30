@@ -63,7 +63,8 @@ import Currency from '../modules/Finance/Currency';
 import Finance from '../modules/Finance/Finance'
 import AccountingYearPage from "@/modules/Organization/pages/AccountingYearPage"
 import FinanceMonths from "@/modules/Organization/pages/FinanceMonths"
-
+import InventoryMonths from "@/modules/Organization/pages/InventoryMonths"
+import RecalculateCOGS from "@/modules/Organization/components/InventoryMonths/RecalculateCOGS"
 
 export default function AppRoutes() {
 const { isLoggedIn } = useAuth() 
@@ -87,6 +88,8 @@ const { isLoggedIn } = useAuth()
           <Route path="org-unit" element={<OrganizationUnit />} />
           <Route path="accounting-year" element={<AccountingYearPage />} />
           <Route path="finance-month" element={<FinanceMonths />} />
+          <Route path="inventory-month" element={<InventoryMonths />} />
+           <Route path="recalculate-cogs" element={<RecalculateCOGS />} />
         </Route>
         <Route path="finance" element = {<Finance />}>
            <Route path="account-group" element={<AccountGroup />} />

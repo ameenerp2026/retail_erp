@@ -29,8 +29,8 @@ function Card({
       )}
 
       {/* Text content */}
-      <div className="flex flex-col">
-        <span className="text-xs text-[#6B7A99] uppercase tracking-wide whitespace-nowrap">
+      <div className="flex flex-col gap-1 min-w-0">
+        <span className="text-xs text-[#6B7A99] uppercase truncate whitespace-nowrap">
           {title}
         </span>
         <span className={`text-2xl font-bold text-[#1A2332] leading-tight ${countColor}`}>

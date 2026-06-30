@@ -1,54 +1,41 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { RefreshCw, Lock, DollarSign } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { StatCards } from '../components/FinanceMonths/StatCards'
-import PeriodTable from '../components/FinanceMonths/PeriodTable'
-import PeriodDetailPanel from '../components/FinanceMonths/PeriodDetailPanel'
+import StatCards from '@/components/shared/StatCards'
+import PeriodTable from '../components/FinanceMonths/FinanceTable'
+import PeriodDetailPanel from '../components/FinanceMonths/FinanceDetailPanel'
 import { financeService } from '@/services/financeService'
 import type { FinancePeriod } from '@/types/finance'
 import FilterBar from '@/components/shared/FilterBar'
-
-// FinanceMonths.tsx — main page component
-const filterFields = [
-  { key: "fy",           placeholder: "FY 2025 26",     width: "120px" },
-  { key: "organization", placeholder: "Organization",    width: "150px" },
-  { key: "month",        placeholder: "Search month...", width: "150px" },
-  { key: "status",       placeholder: "All Status",      width: "140px" },
-]
+import { usePeriodFilter } from '@/hooks/usePeriodFilter'
+import { PERIOD_FILTER_FIELDS } from '../config/filterConfig'
+import { CARD_CONFIG } from '../config/cardConfig'
 
 export default function FinanceMonths() {
   // sidepanel state: which period is currently selected (if any)
   const [selectedPeriod, setSelectedPeriod] = useState<FinancePeriod | null>(null)
+   const { data: periods = [], isLoading: periodsLoading } = useQuery({
+    queryKey: ['finance-periods'],
+    queryFn: financeService.getPeriods
+  })
   //Filter state for the table
-  const [filters, setFilters] = useState<Record<string, string>>({})
+  const { filteredItems, setFilters } = usePeriodFilter(periods)
   // Fetch finance stats and periods using react-query
   const { data: stats = [], isLoading: statsLoading } = useQuery({
     queryKey: ['finance-stats'],
     queryFn: financeService.getStats
   })
 
-  const { data: periods = [], isLoading: periodsLoading } = useQuery({
-    queryKey: ['finance-periods'],
-    queryFn: financeService.getPeriods
-  })
-    // Filtered data based on the current filters
-  const filteredData = useMemo(() => {
-      return periods.filter((item) => {
-        if (filters.fy && !item.period.toLowerCase().includes(filters.fy.toLowerCase())) return false
-        if (filters.month && !item.period.toLowerCase().includes(filters.month.toLowerCase())) return false
-        if (filters.status &&
-          !item.financeStatus.toLowerCase().includes(filters.status.toLowerCase()) &&
-          !item.invStatus.toLowerCase().includes(filters.status.toLowerCase()) &&
-          !item.cogsStatus.toLowerCase().includes(filters.status.toLowerCase())
-        ) return false
-        return true
-      })
-  }, [filters, periods])
-
   if (statsLoading || periodsLoading) {
     return <div className="p-6">Loading...</div>
   }
-
+const financeCards = stats.map((stat) => ({
+  id:          stat.id,
+  label:       stat.label,
+  count:       stat.count,
+  logo:        CARD_CONFIG[stat.type].logo,
+  logoBgColor: CARD_CONFIG[stat.type].logoBgColor,
+}))
   return (
     <div className="p-6 bg-slate-50 min-h-screen w-full">
 
@@ -74,10 +61,10 @@ export default function FinanceMonths() {
       </div>
 
       {/* Stat Cards */}
-      <StatCards stats={stats} />
+      <StatCards cards={financeCards} />
 
       {/* Filters */}
-      <FilterBar fields={filterFields} onApply={setFilters} />
+      <FilterBar fields={PERIOD_FILTER_FIELDS} onApply={setFilters} />
 
       {/* Table + Side Panel */}
       <div className="flex gap-4 w-full">
@@ -85,7 +72,7 @@ export default function FinanceMonths() {
         {/* Table — takes all remaining space */}
         <div className="flex-1 min-w-0">
           <PeriodTable
-            periods={filteredData}
+            periods={filteredItems}
             onRowClick={setSelectedPeriod}  // ← clicking a row sets selectedPeriod
           />
         </div>
