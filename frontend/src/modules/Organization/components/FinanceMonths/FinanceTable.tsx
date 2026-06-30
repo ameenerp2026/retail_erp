@@ -1,4 +1,4 @@
-import { getPeriodColumns } from "./PeriodColumns"
+import { getPeriodColumns } from "./FinanceColumns"
 import type { FinancePeriod } from "@/types/finance"
 import ReusableTable from "@/components/shared/ReusableTable"
 

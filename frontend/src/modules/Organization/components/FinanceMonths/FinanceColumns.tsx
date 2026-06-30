@@ -1,7 +1,7 @@
 // PeriodColumns.tsx
 import type { ColumnsType } from "antd/es/table"
 import type { FinancePeriod } from "@/types/finance"
-import StatusTag from "./StatusTags"
+import StatusTag from "@/components/shared/StatusTags"
 import { MoreHorizontal } from "lucide-react"
 
 export function getPeriodColumns(

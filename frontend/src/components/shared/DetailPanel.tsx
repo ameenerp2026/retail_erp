@@ -18,7 +18,7 @@ type ActivityItem = {
   user: string
   bgColor: string
   iconColor: string
-  icon: string
+  icon: React.ReactNode
 }
 
 type DetailPanelProps = {

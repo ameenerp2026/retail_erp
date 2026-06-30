@@ -1,7 +1,7 @@
 
 // PeriodDetailPanel.tsx — now just a thin wrapper
 import DetailPanel, { type DetailRow, type ActivityItem } from '@/components/shared/DetailPanel'
-import StatusTag from './StatusTags'
+import StatusTag from '@/components/shared/StatusTags'
 import type { FinancePeriod } from '@/types/finance'
 
 type Props = {
