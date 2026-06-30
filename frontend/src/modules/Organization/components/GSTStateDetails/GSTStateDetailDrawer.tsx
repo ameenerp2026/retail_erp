@@ -1,4 +1,3 @@
-import { Globe } from 'lucide-react'
 import Drawer from '@/components/shared/Drawer'
 import DetailInfoCard from '@/components/shared/DetailInfoCard'
 import EmptyState from '@/components/shared/EmptyState'
