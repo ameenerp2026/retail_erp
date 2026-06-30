@@ -65,6 +65,8 @@ import AccountingYearPage from "@/modules/Organization/pages/AccountingYearPage"
 import FinanceMonths from "@/modules/Organization/pages/FinanceMonths"
 import InventoryMonths from "@/modules/Organization/pages/InventoryMonths"
 import RecalculateCOGS from "@/modules/Organization/components/InventoryMonths/RecalculateCOGS"
+import GSTINManagement from "@/modules/Organization/pages/GSTINManagement"
+import GSTStateDetails from "@/modules/Organization/pages/GSTStateDetails"
 
 export default function AppRoutes() {
 const { isLoggedIn } = useAuth() 
@@ -89,7 +91,9 @@ const { isLoggedIn } = useAuth()
           <Route path="accounting-year" element={<AccountingYearPage />} />
           <Route path="finance-month" element={<FinanceMonths />} />
           <Route path="inventory-month" element={<InventoryMonths />} />
-           <Route path="recalculate-cogs" element={<RecalculateCOGS />} />
+          <Route path="recalculate-cogs" element={<RecalculateCOGS />} />
+          <Route path="gstin" element={<GSTINManagement />} />
+          <Route path="gst-state" element={<GSTStateDetails />} />
         </Route>
         <Route path="finance" element = {<Finance />}>
            <Route path="account-group" element={<AccountGroup />} />
