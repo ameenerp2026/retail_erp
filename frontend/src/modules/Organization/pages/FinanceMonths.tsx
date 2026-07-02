@@ -8,8 +8,8 @@ import { financeService } from '@/services/financeService'
 import type { FinancePeriod } from '@/types/finance'
 import FilterBar from '@/components/shared/FilterBar'
 import { usePeriodFilter } from '@/hooks/usePeriodFilter'
-import { PERIOD_FILTER_FIELDS } from '../config/filterConfig'
-import { CARD_CONFIG } from '../config/cardConfig'
+import { PERIOD_FILTER_FIELDS } from '@/config/filterConfig'
+import { CARD_CONFIG } from '@/config/cardConfig'
 
 export default function FinanceMonths() {
   // sidepanel state: which period is currently selected (if any)

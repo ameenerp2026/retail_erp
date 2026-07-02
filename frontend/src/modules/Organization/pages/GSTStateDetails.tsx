@@ -1,6 +1,6 @@
 import { Download, RefreshCw, Search } from "lucide-react";
 import GSTStateDetailDrawer from '../components/GSTStateDetails/GSTStateDetailDrawer'
-import { GST_STATE_STAT_CARDS } from "../config/gstinCardConfig";
+import { GST_STATE_STAT_CARDS } from "@/config/gstinCardConfig";
 import SimpleStatCard from "@/components/shared/SimpleStatCard";
 import { useMemo, useState } from "react";
 import { GSTStateRecord } from "@/types/gstState";

@@ -1,5 +1,5 @@
 import { Plus, Search} from "lucide-react";
-import { GSTIN_STAT_CARDS } from "../config/gstinCardConfig";
+import { GSTIN_STAT_CARDS } from "@/config/gstinCardConfig";
 import SimpleStatCard from "@/components/shared/SimpleStatCard";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";

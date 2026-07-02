@@ -1,23 +1,14 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "../modules/dashboard/components/layouts/SideBar";
-import Topbar from "../modules/dashboard/components/layouts/TopBar";
+import Sidebar from "@/layouts/SideBar";
+import Topbar from "@/layouts/TopBar";
 function DashBoardLayout() {
   return (
-   <div className="min-h-screen bg-slate-50 overflow-x-hidden">
+   <div className="h-screen bg-slate-50">
   <Sidebar />
-  <div className="ml-72 flex flex-col min-h-screen"  style={{ marginLeft: '288px', width: 'calc(100vw - 288px)' }}>
+  <div className="ml-72 flex flex-col min-h-screen">
     <Topbar />
-    <main className="fixed overflow-y-auto overflow-x-hidden" 
-      style={{ 
-        left: '288px', 
-        top: '64px', // header height
-        right: 0, 
-        bottom: 0 
-      }}
-    >
-      <div className="p-6"> {/* Prevents child elements from overflowing */}
-        <Outlet />
-      </div>
+    <main className="pt-28 px-6 flex-1 overflow-y-auto">
+      <Outlet />
     </main>
   </div>
 </div>
