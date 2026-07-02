@@ -1,4 +1,3 @@
-import { LogOut, ChevronLeft} from "lucide-react";
 import { MODULE_ROUTES } from "@/config/navigationConfig";
 import { NavLink, useLocation } from "react-router-dom";
 
