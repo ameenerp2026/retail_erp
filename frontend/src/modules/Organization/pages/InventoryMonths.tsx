@@ -1,10 +1,10 @@
 import { BarChart2,Lock, RefreshCw } from "lucide-react";
 import StatCards from '@/components/shared/StatCards'
-import { INVENTORY_CARD_CONFIG } from '@/modules/Organization/config/inventoryCardConfig'
+import { INVENTORY_CARD_CONFIG } from '@/config/inventoryCardConfig'
 import { useQuery } from "@tanstack/react-query";
 import { inventoryService } from "@/services/inventoryService";
 import { usePeriodFilter } from "@/hooks/usePeriodFilter";
-import { PERIOD_FILTER_FIELDS } from "../config/filterConfig";
+import { PERIOD_FILTER_FIELDS } from "@/config/filterConfig";
 import FilterBar from "@/components/shared/FilterBar";
 import InventoryTable from "../components/InventoryMonths/InventoryTable";
 import { InventoryPeriod } from "@/types/inventory";
@@ -64,7 +64,7 @@ const inventoryCards = stats.map((stat) => ({
                         <Lock size={12} /> Close Month
                     </button>
                     <button
-                        onClick={() => navigate('/dashboard/organization/recalculate-cogs')} 
+                        onClick={() => navigate('/organization/recalculate-cogs')} 
                         className="flex items-center gap-2 px-4 py-2 text-sm bg-[#043793] text-white rounded-full cursor-pointer">
                         <BarChart2 size={12} /> Recalculate COGS
                     </button>
