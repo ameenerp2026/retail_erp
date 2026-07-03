@@ -13,25 +13,24 @@ function TenantAdminDashBoard() {
     <div className="bg-[#F1F5F9]">
     <div className="text-[#043793] font-bold text-[24px] font-['Manrope']">Tenant Admin DashBoard</div>
     {/* KPI Cards */}
-    <div className="flex gap-9">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
  
-    <KpiCard 
-    title="Active Users"
+      <KpiCard 
+        title="Active Users"
         value="48"
         icon={Users}
         change={12}
         description="from last month"
         badgeColor="bg-blue-100"
         iconColor="text-blue-600"
-    />
-
-       <KpiCard
+      />
+      <KpiCard
         title="Org Units"
         value="34"
         icon={Hotel}
         change={3}
         description="This Month "
-         badgeColor="bg-green-100"
+        badgeColor="bg-green-100"
         iconColor="text-green-600"
       />
 
@@ -41,7 +40,7 @@ function TenantAdminDashBoard() {
         icon={Shield}
         change={-1}
         description="vs last month"
-          badgeColor="bg-sky-100"
+        badgeColor="bg-sky-100"
         iconColor="text-sky-600"
       />
 
@@ -64,7 +63,7 @@ function TenantAdminDashBoard() {
           badgeColor="bg-red-100"
         iconColor="text-red-600"
       />
-       </div>
+    </div>
     
 
     {/* PlatformActivities */}

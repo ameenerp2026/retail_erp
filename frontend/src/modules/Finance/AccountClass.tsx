@@ -1,5 +1,5 @@
-import Card from '../../components/common/Card'
-import ReusableTable from '../../components/common/ReusableTable'
+import Card from '../../components/shared/Card'
+import ReusableTable from '../../components/shared/ReusableTable'
 import { Tag, Space } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";

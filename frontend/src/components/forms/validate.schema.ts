@@ -31,15 +31,15 @@ phoneNumber: z.string()
   .trim()
   .length(6, "PIN Code must be 6 digits")
   .regex(/^[1-9]\d{5}$/, "Invalid PIN Code format"),
-  // logo: z
-  //  .custom<FileList>()
-  //  .refine((files) => files?.length === 1, 'Logo is required')
-  //  .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size 5MB`)
-  //  .refine(
-  //     (files) => ACCEPTED_TYPES.includes(files?.[0]?.type),
-  //     'Only.jpg,.png allowed'
-  //   )
-  //  .optional(), // remove.optional() if required
+ logo: z
+  .instanceof(FileList) // Use instanceof instead of custom
+  .refine((files) => files?.length === 1, 'Logo is required')
+  .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size 5MB`)
+  .refine(
+      (files) => ACCEPTED_TYPES.includes(files?.[0]?.type),
+      'Only.jpg,.png allowed'
+    )
+  .optional()
 })
 
 export type OrganizationFormData = z.infer<typeof organizationSchema>
@@ -67,3 +67,17 @@ export const orgUnitSchema = z.object({
 export type OrgUnitFormData = z.infer<typeof orgUnitSchema> & {
   id?: string
 }
+export const accountingYearSchema = z.object({
+  fromDate: z.string().min(1, 'Start date is required'),
+  toDate: z.string().min(1, 'End date is required'),
+  yearName: z.string()
+   .trim()
+   .min(1, 'Year name is required')
+   .min(3, 'Year name must be at least 3 characters')
+})
+.refine((data) => new Date(data.fromDate) < new Date(data.toDate), {
+  message: 'End date must be after start date',
+  path: ['toDate']
+})
+
+export type AccountingYearFormData = z.infer<typeof accountingYearSchema>

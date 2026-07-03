@@ -6,6 +6,7 @@ import organizationUnit from './routes/admin/organization/organizationUnit.route
 import financeMonth from './routes/admin/organization/financeMonth.router.js'
 const app = express();
 
+
 app.use(cors())
 app.use(express.json())
 
