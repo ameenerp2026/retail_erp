@@ -5,7 +5,7 @@ import { useState } from 'react'
 import FormInput from '../../../components/forms/FormInput'
 import { organizationSchema, type OrganizationFormData } from '../../../components/forms/validate.schema'
 import toast from 'react-hot-toast' // or your toast lib
-
+import apiClient from "../../../services/apiClient";
 type RecordStatus = 'DRAFT' | 'LOCKED' | 'ACTIVE'
 
 function OrganizationGroup() {
@@ -14,7 +14,7 @@ function OrganizationGroup() {
   const {
     register,
     handleSubmit,
-    watch,
+    //watch,
     formState: { errors },
     getValues
   } = useForm<OrganizationFormData>({
@@ -39,7 +39,6 @@ function OrganizationGroup() {
 
   // Save Changes - runs validation
   const onSave = async (data: OrganizationFormData) => {
-    console.log('Saving with validation:', data)
     try {
       const formData = new FormData()
       // Loop all fields and append
@@ -50,16 +49,18 @@ function OrganizationGroup() {
           formData.append(key, String(value)) // convert other fields to string
         }
       })
-      // TODO: replace with API call
-      // const res = await fetch('/api/company/save', {
-      //   method: 'POST',
-      //   body: formData
-      // })
+      console.log('formData',formData)
+      //TODO: replace with API call
+      const res =  await apiClient.post('/api/organization/org-group',data) 
+       
 
-      // if (!res.ok) throw new Error('Save failed')
+      if (res.status !== 201) {
+  throw new Error("Save failed");
+}
 
-      // const result = await res.json()
-      // console.log('API Response:', result)
+
+      const result = await res.data;
+      console.log('API Response:', result)
 
       setStatus('ACTIVE')
       toast.success('Saved successfully')
@@ -92,13 +93,13 @@ function OrganizationGroup() {
     setStatus('DRAFT')
     toast.success('Unlocked - you can edit now')
   }
-  const logoFiles = watch('logo')
-  const fileName = logoFiles?.[0]?.name
+ // const logoFiles = watch('logo')
+  //const fileName = logoFiles?.[0]?.name
 
   return (
-        <div className="p-6 bg-slate-50 min-h-screen">
-
-    <form onSubmit={handleSubmit(onSave)}>
+    <form onSubmit={handleSubmit(onSave, (errors) => {
+      console.log(errors);
+    })}>
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-[24px] text-[#043793] font-bold">
@@ -150,7 +151,7 @@ function OrganizationGroup() {
                     type="file"
                     className="hidden"
                     accept="image/png,image/jpeg"
-                    {...register('logo')}
+                    //{...register('logo')}
                   />
                   <div className="flex justify-center items-center gap-2 bg-[#F1F5F9] w-30 h-10 rounded-2xl hover:bg-[#E2E8F0]">
                     <Upload size={14} />
@@ -158,11 +159,11 @@ function OrganizationGroup() {
                   </div>
                 </label>
 
-                {fileName && (
+                {/* {fileName && (
                   <span className="text-sm text-gray-600 truncate max-w-[200px]">
                     {fileName}
                   </span>
-                )}
+                )} */}
               </div>
               <FormInput
                 label='Short Name'
@@ -291,7 +292,7 @@ function OrganizationGroup() {
         </div>
       </fieldset>
     </form>
-    </div>
+    
   )
 }
 
