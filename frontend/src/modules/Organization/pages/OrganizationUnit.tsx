@@ -130,7 +130,7 @@ function OrganizationUnit() {
   }
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm">
+    <div className="p-6 bg-slate-50 min-h-screen">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>

@@ -5,7 +5,7 @@ import DashBoardLayout from "../layouts/DashBoardLayout"
 import DashBoard from "../modules/dashboard/pages/DashBoard"
 import OrganizationGroup from '../modules/Organization/pages/OrganizationGroup'
 import OrganizationUnit from '../modules/Organization/pages/OrganizationUnit';
-import AccountGroup from '../modules/Finance/AccountGroup';
+import AccountGroup from '../modules/Finance/pages/AccountGroup';
 import AccountClass from '../modules/Finance/AccountClass';
 import Ledger from '../modules/Finance/Ledger';
 import SubLedger from '../modules/Finance/SubLedger';
