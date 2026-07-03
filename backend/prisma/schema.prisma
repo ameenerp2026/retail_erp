@@ -1,98 +1,91 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["user","organization", "finance"]
+  schemas  = ["finance", "organization", "user"]
 }
 
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String
   createdAt DateTime @default(now())
+  password  String
   role      Roles    @default(EMPLOYEE)
 
   @@schema("user")
 }
 
-enum Roles {
-  ADMIN
-  EMPLOYEE
-  @@schema("user")
-}
-
-
 model OrganizationGroup {
-  id              Int      @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
+  shortName     String
+  logoUrl       String?
+  financialYear String
+  currency      String
+  companyName   String
+  cinNumber     String
+  panNumber     String
+  email         String
+  phoneNumber   String
+  website       String?
+  address       String
+  state         String
+  country       String
+  pinCode       String
+  status        String   @default("DRAFT")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  shortName       String
-   logoUrl         String?
-  financialYear   String
-  currency        String
-
-  companyName     String
-  cinNumber       String
-  panNumber       String
-  email           String
-  phoneNumber     String
-  website         String?
-  address         String
-
-  state           String
-  country         String
-  pinCode         String
-
-  status          String   @default("DRAFT")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-   @@schema("organization")
+  @@schema("organization")
 }
 
-model OrganizationUnit{
-   id               Int      @id @default(autoincrement())
- unitId             String
- organizationUnit   String
- branchName         String
- gstIn              String
- manager            String
- status             String     @default("Active")
-  createdAt         DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-   @@schema("organization")
-}
-model AccountingYear{
+model OrganizationUnit {
   id               Int      @id @default(autoincrement())
-  fromDate         DateTime
-  toDate           DateTime
-  yearName         String
+  unitId           String
+  organizationUnit String
+  branchName       String
+  gstIn            String
+  manager          String
+  status           String   @default("Active")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-   @@schema("organization")
+  @@schema("organization")
 }
-model FinanceMonth {
-  id                Int      @id @default(autoincrement())
 
-  period            String
-  startDate         DateTime
-  endDate           DateTime
-
-  financeStatus     String   @default("Open")
-  invoiceStatus     String   @default("Open")
-  cogsStatus        String   @default("Pending")
-
-
-  lastModifiedBy    String?
-  lastModifiedAt    DateTime @updatedAt
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+model AccountingYear {
+  id        Int      @id @default(autoincrement())
+  yearName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  fromDate  DateTime
+  toDate    DateTime
 
   @@schema("organization")
+}
+
+model FinanceMonth {
+  id             Int      @id @default(autoincrement())
+  period         String
+  startDate      DateTime
+  endDate        DateTime
+  financeStatus  String   @default("Open")
+  invoiceStatus  String   @default("Open")
+  cogsStatus     String   @default("Pending")
+  lastModifiedBy String?
+  lastModifiedAt DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@schema("organization")
+}
+
+enum Roles {
+  ADMIN
+  EMPLOYEE
+
+  @@schema("user")
 }
