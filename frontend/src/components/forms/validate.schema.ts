@@ -81,3 +81,25 @@ export const accountingYearSchema = z.object({
 })
 
 export type AccountingYearFormData = z.infer<typeof accountingYearSchema>
+// ── Account Class ──────────────────────────────────────────────
+export const accountClassSchema = z.object({
+  className: z.string()
+    .trim()
+    .min(1, 'Class name is required')
+    .min(3, 'Class name must be at least 3 characters')
+    .max(50, 'Class name must be under 50 characters'),
+
+  accountGroup: z.string()
+    .min(1, 'Account group is required'),
+
+  description: z.string()
+    .trim()
+    .max(200, 'Description must be under 200 characters')
+    .optional(),
+
+  status: z.enum(['Active', 'Inactive'], {
+    message: 'Status is required'
+  }),
+})
+
+export type AccountClassFormData = z.infer<typeof accountClassSchema>
