@@ -4,9 +4,9 @@ import type { AccountGroupNode } from '@/types/accountGroup'
 
 // Color per level — matches Figma dots
 const LEVEL_STYLES = {
-  1: { text: 'text-[#0B4D8C]',  font: 'font-bold  text-sm'  },
-  2: { text: 'text-[#21B6A8]',  font: 'font-medium text-sm' },
-  3: { text: 'text-[#4FC3F7]',  font: 'font-normal text-sm' },
+  1: { chevron: "text-[#043793]",text: 'text-[#0B4D8C]',  font: 'font-bold  text-sm',circle: ""},
+  2: { chevron: "text-[#21B6A8]",text: 'text-[#334155]',  font: 'font-medium text-sm',circle: "border-[#21B6A8]"},
+  3: { chevron: "text-[#4FC3F7]",text: 'text-[#334155]',  font: 'font-normal text-sm',circle: "border-[#4FC3F7]"},
 }
 
 const INDENT = {
@@ -23,7 +23,7 @@ export default function TreeRow({ node }: TreeRowProps) {
   const [expanded, setExpanded] = useState(true)
   const hasChildren = node.children && node.children.length > 0
   const styles = LEVEL_STYLES[node.level]
-console.log(styles)
+
   return (
     <div>
       {/* Row */}
@@ -32,15 +32,20 @@ console.log(styles)
         {/* Expand/collapse chevron */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-4 h-4 flex items-center justify-center text-slate-400 flex-shrink-0"
+          className={`w-4 h-4 flex items-center justify-center ${styles.chevron} flex-shrink-0`}
         >
-          {hasChildren ? (
-            expanded
-              ? <ChevronDown size={13} />
-              : <ChevronRight size={13} />
+        {hasChildren ? (
+           expanded ? (
+              <ChevronDown size={12} />
+            ) : (
+              <ChevronRight size={12} />
+            )
           ) : (
-            <span className="w-4" /> // spacer
-          )}
+            <span
+              className={`w-3 h-3 rounded-full border-2 ${styles.circle}`}
+            />
+          )
+        }
         </button>
 
         {/* Name */}
