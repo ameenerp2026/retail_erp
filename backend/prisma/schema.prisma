@@ -76,3 +76,45 @@ model AccountingYear{
 
    @@schema("organization")
 }
+
+model FinanceMonth{
+  id               Int      @id @default(autoincrement())
+  fromDate         DateTime
+  toDate           DateTime
+  yearName         String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+   @@schema("organization")
+}
+
+model GSTMangement{
+  id                      Int      @id @default(autoincrement())
+  gstin                   String   @unique
+  state                   String
+  organizationUnit        String
+  type                    GstType
+  status                  GstStatus
+
+  lastVerified            DateTime?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+   @@schema("organization")
+}
+
+
+enum GstType {
+  REGULAR
+  COMPOSITION
+
+  @@schema("organization")
+}
+
+enum GstStatus {
+  VERIFIED
+  PENDING
+  FAILED
+
+  @@schema("organization")
+}
