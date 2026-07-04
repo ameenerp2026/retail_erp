@@ -120,7 +120,7 @@ function OrganizationGroup() {
             <button
               type='button'
               onClick={handleLock}
-              className="flex items-center bg-[#E2E8F0] rounded-2xl border border-[#F1F5F9] text- text-[#64748B] gap-2 px-6 py-4"
+              className="h-10 px-4 rounded-lg bg-[linear-gradient(#F3F4F6,#E5E7EB)] text-gray-700 flex items-center gap-1.5 text-sm font-medium hover:bg-gray-300 transition border border-gray-300"
             >
               <Lock size={14} /> <span>Lock Record</span>
             </button>
@@ -129,7 +129,7 @@ function OrganizationGroup() {
           <button
             type='submit'
             disabled={isLocked}
-            className="flex items-center text- text-[#FFFFFF] gap-2 bg-[linear-gradient(#043793,#093055)] rounded-2xl border border-[#043793] px-6 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-10 px-4 rounded-xl bg-[linear-gradient(#093055,#043793)] text-white flex items-center gap-2 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
           >
             <Save size={14} /><span>Save Changes</span>
           </button>
@@ -292,6 +292,7 @@ function OrganizationGroup() {
         </div>
       </fieldset>
     </form>
+    
   )
 }
 
