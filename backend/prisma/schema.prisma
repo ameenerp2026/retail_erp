@@ -79,9 +79,13 @@ model AccountingYear{
 
 model FinanceMonth{
   id               Int      @id @default(autoincrement())
-  fromDate         DateTime
-  toDate           DateTime
-  yearName         String
+
+   period         String
+   startDate      DateTime
+   endDate        DateTime
+  financeStatus   String
+  invoiceStatus   String
+  
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
