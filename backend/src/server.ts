@@ -4,6 +4,7 @@ import authRoutes from './routes/auth/auth.routes.js'
 import organizationRoutes from './routes/admin/organization/organization.routes.js'
 import organizationUnit from './routes/admin/organization/organizationUnit.routes.js'
 import financeMonth from './routes/admin/organization/financeMonth.router.js'
+import accountingYear from './routes/admin/organization/accountingYear.router.js'
 const app = express();
 
 
@@ -21,7 +22,8 @@ app.get("/", (req, res) => {
 app.use('/api/auth',authRoutes) 
 app.use("/api/organization", organizationRoutes);
 app.use("/api/organizationUnit", organizationUnit);
-app.use('/api/financeMonth',financeMonth)
+app.use('/api/financeMonth',financeMonth);
+app.use('/api/accountingYear',accountingYear)
 
 
 const PORT = 5000;
