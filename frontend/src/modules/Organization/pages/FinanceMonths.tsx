@@ -29,13 +29,14 @@ export default function FinanceMonths() {
   if (statsLoading || periodsLoading) {
     return <div className="p-6">Loading...</div>
   }
-const financeCards = stats.map((stat) => ({
-  id:          stat.id,
-  label:       stat.label,
-  count:       stat.count,
-  logo:        CARD_CONFIG[stat.type].logo,
-  logoBgColor: CARD_CONFIG[stat.type].logoBgColor,
-}))
+  console.log('stats',stats)
+// const financeCards = stats.map((stat) => ({
+//   id:          stat.id,
+//   label:       stat.label,
+//   count:       stat.count,
+//   logo:        CARD_CONFIG[stat.type].logo,
+//   logoBgColor: CARD_CONFIG[stat.type].logoBgColor,
+// }))
   return (
     <div className="p-6 bg-slate-50 min-h-screen w-full">
 
@@ -61,7 +62,7 @@ const financeCards = stats.map((stat) => ({
       </div>
 
       {/* Stat Cards */}
-      <StatCards cards={financeCards} />
+      {/* //<StatCards cards={financeCards} /> */}
 
       {/* Filters */}
       <FilterBar fields={PERIOD_FILTER_FIELDS} onApply={setFilters} />
