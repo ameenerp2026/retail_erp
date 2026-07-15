@@ -22,6 +22,10 @@ import Roles from "@/modules/Securities/pages/Roles"
 import RoleWizard from "@/modules/Securities/pages/RoleWizard"
 import Users from "@/modules/Securities/pages/Users"
 import UserLogs from "@/modules/Securities/pages/UserLogs"
+import Utilities from "@/modules/Utilities/Utilities"
+import DataImport from "@/modules/Utilities/pages/DataImport"
+import EInvoice from "@/modules/Utilities/pages/EInvoice"
+import EWayBill from "@/modules/Utilities/pages/EWayBill"
 
 export default function AppRoutes() {
 const { isLoggedIn } = useAuth() 
@@ -73,6 +77,12 @@ const { isLoggedIn } = useAuth()
         <Route path="role-wizard" element={<RoleWizard />} />
         <Route path="users" element={<Users />} />
         <Route path="user-logs" element={<UserLogs />} />
+      </Route>
+
+      <Route path="/utilities" element={<Utilities />}>
+        <Route path="data-import" element={<DataImport />} />
+        <Route path="e-invoice" element={<EInvoice />} />
+        <Route path="e-way-bill" element={<EWayBill />} />
       </Route>
     </Route>
 
