@@ -17,6 +17,10 @@ import InventoryMonths from "@/modules/Organization/pages/InventoryMonths"
 import RecalculateCOGS from "@/modules/Organization/components/InventoryMonths/RecalculateCOGS"
 import GSTINManagement from "@/modules/Organization/pages/GSTINManagement"
 import GSTStateDetails from "@/modules/Organization/pages/GSTStateDetails"
+import Utilities from "@/modules/Utilities/Utilities"
+import DataImport from "@/modules/Utilities/pages/DataImport"
+import EInvoice from "@/modules/Utilities/pages/EInvoice"
+import EWayBill from "@/modules/Utilities/pages/EWayBill"
 
 export default function AppRoutes() {
 const { isLoggedIn } = useAuth() 
@@ -60,6 +64,12 @@ const { isLoggedIn } = useAuth()
         <Route path="ledger" element={<Ledger />} />
         <Route path="sub-ledger" element={<SubLedger />} />
         <Route path="currency" element={<Currency />} />
+      </Route>
+
+      <Route path="/utilities" element={<Utilities />}>
+        <Route path="data-import" element={<DataImport />} />
+        <Route path="e-invoice" element={<EInvoice />} />
+        <Route path="e-way-bill" element={<EWayBill />} />
       </Route>
     </Route>
 
