@@ -16,7 +16,7 @@ export function DeleteConfirmForm({loading, onClose, onConfirm }: Props) {
       </div>
 
       {/* Title */}
-      <h2 className="text-lg font-semibold text-[#043793] mb-2">
+      <h2 className="mb-2 text-base font-semibold text-[#043793]">
         Delete Org Unit?
       </h2>
 

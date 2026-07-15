@@ -18,11 +18,11 @@ export default function Pagination({
   if (totalPages <= 1) return null
 
   return (
-    <div className="flex justify-between items-center px-4 py-3 bg-white border-t border-gray-200">
-      <p className="text-sm text-gray-500">
+    <div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+      <p className="text-xs text-gray-500 sm:text-sm">
         Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} results
       </p>
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center gap-1">
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}

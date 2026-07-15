@@ -37,26 +37,26 @@ export default function GSTStateDetails(){
   const columns = getGSTStateColumns(handleView, handleLinkedClick)
 
     return (
-        <div className="p-6 bg-slate-50 min-h-screen w-full">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div className="page-shell">
+            <div className="page-header">
                 <div>
-                    <h1 className="text-[24px] text-[#043793] font-bold">GST State Details</h1>
-                    <p className="text-sm text-gray-500 mt-1 sm:whitespace-nowrap">State-wise GST tax applicability reference</p>
+                    <h1 className="page-title">GST State Details</h1>
+                    <p className="page-subtitle">State-wise GST tax applicability reference</p>
                 </div>
-                <div className="flex gap-3">
-                     <button 
-                    className="flex items-center gap-2 text-[#6B7280] px-4 py-2.5 rounded-full bg-[#F5F7FB] text-sm font-medium  border border-gray-300"
+                <div className="page-actions">
+                     <button
+                    type="button"
+                    className="flex items-center gap-2 rounded-full border border-gray-300 bg-[#F5F7FB] px-3 py-2.5 text-sm font-medium text-[#6B7280] sm:px-4"
                 >
-                    <span><Download size={18} /></span>Export
+                    <Download size={16} /><span className="hidden sm:inline">Export</span>
                 </button>
-                <button 
-                    className="flex items-center gap-2 text-white px-4 py-2.5 rounded-full bg-[linear-gradient(#093055,#043793)] text-sm font-medium "
+                <button
+                    type="button"
+                    className="flex items-center gap-2 rounded-full bg-[linear-gradient(#093055,#043793)] px-3 py-2.5 text-sm font-medium text-white sm:px-4"
                 >
-                    <span><RefreshCw size={18} /></span> Sync GST DB
+                    <RefreshCw size={16} /><span className="hidden sm:inline">Sync GST DB</span>
                 </button>
                 </div>
-               
             </div>
             {/*stat cards*/}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
