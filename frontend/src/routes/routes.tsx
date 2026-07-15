@@ -17,6 +17,11 @@ import InventoryMonths from "@/modules/Organization/pages/InventoryMonths"
 import RecalculateCOGS from "@/modules/Organization/components/InventoryMonths/RecalculateCOGS"
 import GSTINManagement from "@/modules/Organization/pages/GSTINManagement"
 import GSTStateDetails from "@/modules/Organization/pages/GSTStateDetails"
+import Securities from "@/modules/Securities/Securities"
+import Roles from "@/modules/Securities/pages/Roles"
+import RoleWizard from "@/modules/Securities/pages/RoleWizard"
+import Users from "@/modules/Securities/pages/Users"
+import UserLogs from "@/modules/Securities/pages/UserLogs"
 
 export default function AppRoutes() {
 const { isLoggedIn } = useAuth() 
@@ -60,6 +65,14 @@ const { isLoggedIn } = useAuth()
         <Route path="ledger" element={<Ledger />} />
         <Route path="sub-ledger" element={<SubLedger />} />
         <Route path="currency" element={<Currency />} />
+      </Route>
+
+      <Route path="/securities" element={<Securities />}>
+        <Route index element={<Navigate to="roles" replace />} />
+        <Route path="roles" element={<Roles />} />
+        <Route path="role-wizard" element={<RoleWizard />} />
+        <Route path="users" element={<Users />} />
+        <Route path="user-logs" element={<UserLogs />} />
       </Route>
     </Route>
 
