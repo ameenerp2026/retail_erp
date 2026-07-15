@@ -1,92 +1,162 @@
-import { useState } from 'react'
-import { RefreshCw, Lock, DollarSign } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Calendar, Download, Plus, RefreshCw, Search, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import StatCards from '@/components/shared/StatCards'
 import PeriodTable from '../components/FinanceMonths/FinanceTable'
-import PeriodDetailPanel from '../components/FinanceMonths/FinanceDetailPanel'
+import FinanceSetupStatCards from '../components/FinanceMonths/FinanceSetupStatCards'
 import { financeService } from '@/services/financeService'
-import type { FinancePeriod } from '@/types/finance'
-import FilterBar from '@/components/shared/FilterBar'
-import { usePeriodFilter } from '@/hooks/usePeriodFilter'
-import { PERIOD_FILTER_FIELDS } from '@/config/filterConfig'
-import { CARD_CONFIG } from '@/config/cardConfig'
+import type { FinancePeriodStatus } from '@/types/finance'
+
+type StatusTab = 'All' | FinancePeriodStatus
+
+const STATUS_TABS: StatusTab[] = ['All', 'Open', 'Closed', 'Future']
 
 export default function FinanceMonths() {
-  // sidepanel state: which period is currently selected (if any)
-  const [selectedPeriod, setSelectedPeriod] = useState<FinancePeriod | null>(null)
-   const { data: periods = [], isLoading: periodsLoading } = useQuery({
+  const [statusTab, setStatusTab] = useState<StatusTab>('All')
+  const [search, setSearch] = useState('')
+  const [dateFilter, setDateFilter] = useState('')
+
+  const { data: periods = [], isLoading: periodsLoading } = useQuery({
     queryKey: ['finance-periods'],
-    queryFn: financeService.getPeriods
+    queryFn: financeService.getPeriods,
   })
-  //Filter state for the table
-  const { filteredItems, setFilters } = usePeriodFilter(periods)
-  // Fetch finance stats and periods using react-query
+
   const { data: stats = [], isLoading: statsLoading } = useQuery({
     queryKey: ['finance-stats'],
-    queryFn: financeService.getStats
+    queryFn: financeService.getStats,
   })
 
-  if (statsLoading || periodsLoading) {
-    return <div className="p-6">Loading...</div>
-  }
-const financeCards = stats.map((stat) => ({
-  id:          stat.id,
-  label:       stat.label,
-  count:       stat.count,
-  logo:        CARD_CONFIG[stat.type].logo,
-  logoBgColor: CARD_CONFIG[stat.type].logoBgColor,
-}))
-  return (
-    <div className="p-6 bg-slate-50 min-h-screen w-full">
+  const filteredPeriods = useMemo(() => {
+    return periods.filter((period) => {
+      if (statusTab !== 'All' && period.financeStatus !== statusTab) return false
+      if (
+        search &&
+        !period.period.toLowerCase().includes(search.toLowerCase()) &&
+        !period.periodId.toLowerCase().includes(search.toLowerCase())
+      ) {
+        return false
+      }
+      if (dateFilter) {
+        const needle = dateFilter.toLowerCase()
+        if (
+          !period.startDate.toLowerCase().includes(needle) &&
+          !period.endDate.toLowerCase().includes(needle) &&
+          !period.period.toLowerCase().includes(needle)
+        ) {
+          return false
+        }
+      }
+      return true
+    })
+  }, [periods, statusTab, search, dateFilter])
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  const resetFilters = () => {
+    setStatusTab('All')
+    setSearch('')
+    setDateFilter('')
+  }
+
+  const hasActiveFilters = statusTab !== 'All' || Boolean(search) || Boolean(dateFilter)
+
+  if (statsLoading || periodsLoading) {
+    return <div className="page-shell text-sm text-slate-500">Loading...</div>
+  }
+
+  return (
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h1 className="text-[24px] text-[#043793] font-bold">Finance Months</h1>
-          <p className="text-sm text-gray-500 mt-1 sm:whitespace-nowrap">
-            Manage and monitor finance period status across all organization units
+          <h1 className="page-title">Finance Month Setup</h1>
+          <p className="page-subtitle">
+            Manage accounting periods and transaction availability
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <button className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 bg-white rounded-full hover:bg-gray-50 text-[#1A2332]">
-            <RefreshCw size={12} /> Refresh
+        <div className="page-actions">
+          <button
+            type="button"
+            className="flex h-9 items-center gap-2 rounded-[14px] border border-slate-200 bg-[#F5F7FB] px-3 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 sm:px-4"
+          >
+            <Download size={13} />
+            <span className="hidden sm:inline">Export Periods</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 bg-white rounded-full hover:bg-gray-50 text-[#1A2332]">
-            <Lock size={12} /> Close Period
+          <button
+            type="button"
+            className="flex h-9 items-center gap-2 rounded-[14px] border border-slate-200 bg-[#F5F7FB] px-3 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 sm:px-4"
+          >
+            <RefreshCw size={13} />
+            <span className="hidden sm:inline">Sync FY</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#043793] text-white rounded-full">
-            <DollarSign size={12} /> Open Finance Period
+          <button
+            type="button"
+            className="flex h-9 items-center gap-2 rounded-[14px] bg-[linear-gradient(#093055,#043793)] px-3 text-xs font-semibold text-white sm:px-4"
+          >
+            <Plus size={13} />
+            <span className="hidden xs:inline sm:inline">Create Adjustment</span>
           </button>
         </div>
       </div>
 
-      {/* Stat Cards */}
-      <StatCards cards={financeCards} />
+      <FinanceSetupStatCards stats={stats} />
 
-      {/* Filters */}
-      <FilterBar fields={PERIOD_FILTER_FIELDS} onApply={setFilters} />
-
-      {/* Table + Side Panel */}
-      <div className="flex gap-4 w-full">
-
-        {/* Table — takes all remaining space */}
-        <div className="flex-1 min-w-0">
-          <PeriodTable
-            periods={filteredItems}
-            onRowClick={setSelectedPeriod}  // ← clicking a row sets selectedPeriod
+      {/* Filters — Figma: date · status tabs · search · reset */}
+      <div className="mb-5 flex flex-col gap-3 rounded-[14px] border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:flex-row lg:items-center">
+        <div className="relative w-full lg:w-44">
+          <Calendar
+            size={14}
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="text"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            placeholder="Filter by date..."
+            className="h-9 w-full rounded-xl border border-slate-200 bg-[#F5F7FB] pr-3 pl-9 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#043793]/40 focus:ring-2 focus:ring-[#043793]/10"
           />
         </div>
 
-        {/* Side panel — only renders when a row is clicked */}
-        {selectedPeriod && (
-          <div className="w-[320px] flex-shrink-0 max-h-[calc(100vh-100px)] overflow-y-auto">
-            <PeriodDetailPanel
-              period={selectedPeriod}
-              onClose={() => setSelectedPeriod(null)}
-            />
-          </div>
-      )}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {STATUS_TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setStatusTab(tab)}
+              className={`h-8 rounded-lg px-3 text-xs font-semibold transition ${
+                statusTab === tab
+                  ? 'bg-[#043793] text-white'
+                  : 'border border-slate-200 bg-white text-slate-500 hover:bg-slate-50'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative min-w-0 flex-1">
+          <Search
+            size={14}
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search period..."
+            className="h-9 w-full rounded-xl border border-slate-200 bg-[#F5F7FB] pr-3 pl-9 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#043793]/40 focus:ring-2 focus:ring-[#043793]/10"
+          />
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#043793] hover:underline"
+          >
+            <X size={12} />
+            Reset Filters
+          </button>
+        )}
       </div>
+
+      <PeriodTable periods={filteredPeriods} />
     </div>
   )
 }
