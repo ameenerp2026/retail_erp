@@ -22,8 +22,8 @@ export default function RunStatCard({
 
       {/* Text */}
       <div>
-        <p className="w-4 font-bold text-[#1A2332] leading-tight whitespace-nowrap mb-2">{count}</p>
-        <p className="text-xs text-[#6B7A99] uppercase tracking-wide whitespace-nowrap">{label}</p>
+        <p className="stat-value mb-1 text-[#1A2332]">{count}</p>
+        <p className="text-xs uppercase tracking-wide text-[#6B7A99] whitespace-nowrap">{label}</p>
       </div>
     </div>
   )

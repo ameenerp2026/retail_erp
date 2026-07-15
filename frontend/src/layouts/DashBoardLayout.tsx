@@ -1,47 +1,49 @@
-import { Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "@/layouts/SideBar";
 import Topbar from "@/layouts/TopBar";
+
 function DashBoardLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Prevent body scroll when mobile drawer is open
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [sidebarOpen]);
+
   return (
-   <div className="h-screen bg-slate-50">
-  <Sidebar />
-  <div className="ml-72 flex flex-col min-h-screen">
-    <Topbar />
-    <main className="pt-28 px-6 flex-1 overflow-y-auto">
-      <Outlet />
-    </main>
-  </div>
-</div>
+    <div className="min-h-screen bg-slate-50 font-sans">
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-//For future use don't delete
-//     import SuperAdminDashboard from "./pages/SuperAdminDashboard";
-// import TenantAdminDashboard from "./pages/TenantAdminDashboard";
-// import StoreManagerDashboard from "./pages/StoreManagerDashboard";
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[1px] lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-// function DashboardRouter() {
-
-//   const user = JSON.parse(
-//     localStorage.getItem("user") || "{}"
-//   );
-
-//   switch (user.role) {
-
-//     case "SUPER_ADMIN":
-//       return <SuperAdminDashboard />;
-
-//     case "TENANT_ADMIN":
-//       return <TenantAdminDashboard />;
-
-//     case "STORE_MANAGER":
-//       return <StoreManagerDashboard />;
-
-//     default:
-//       return <div>Unauthorized</div>;
-//   }
-// }
-
-// export default DashboardRouter;
-  )
+      <div className="flex min-h-screen flex-col lg:pl-72">
+        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 overflow-x-hidden px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
 }
 
-export default DashBoardLayout
+export default DashBoardLayout;

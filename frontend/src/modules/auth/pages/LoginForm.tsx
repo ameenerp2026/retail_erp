@@ -4,162 +4,109 @@ import { useAuth } from '../../../context/AuthContext'
 import apiClient from '../../../services/apiClient'
 import toast from 'react-hot-toast'
 
-
 function LoginForm() {
-  const { login } = useAuth() // <- use context instead of useNavigate
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleLogin = async (e: SyntheticEvent) => { // SyntheticEvent - works on all versions
+  const handleLogin = async (e: SyntheticEvent) => {
     e.preventDefault()
     setLoading(true)
-    console.log(email,password)
     try {
       const response = await apiClient.post('/api/auth/login', { email, password })
 
       if (response.status === 200 && response.data.token) {
         toast.success('Login successful!')
-        console.log('response.data.token',response.data.token)
-        login(response.data.token, response.data.user) //context handle redirect + state
+        login(response.data.token, response.data.user)
       }
-    }
-    catch (err: any) {
+    } catch (err: any) {
       const msg = err?.response?.data?.message || 'Invalid email or password'
       toast.error(msg)
-    }
-    finally {
+    } finally {
       setLoading(false)
     }
-
   }
 
   return (
-    <div className="min-h-screen overflow-hidden flex bg-[linear-gradient(145deg,#0D2B6E,#123882,#1A4DA0,#2ABFBF)]">
-      <div className='w-1/2 flex flex-col items-center justify-center px-16'>
+    <div className="flex min-h-screen flex-col bg-[linear-gradient(145deg,#0D2B6E,#123882,#1A4DA0,#2ABFBF)] lg:flex-row">
+      {/* Brand panel */}
+      <div className="flex flex-col items-center justify-center px-6 py-10 text-center sm:px-10 lg:w-1/2 lg:px-16 lg:py-0 lg:text-left lg:items-start">
         <img
           src="/logo.jpeg"
           width={180}
           height={70}
-          loading='eager'
-          decoding='async'
-          className="w-[180px] h-[60px] object-contain select-none"
+          loading="eager"
+          decoding="async"
+          alt="Streamys"
+          className="mb-6 h-[52px] w-auto object-contain select-none sm:h-[60px]"
         />
-        <p className='text-white text-[36px] leading -[45px] font-["Plus_Jakarta_Sans"]'> Powerful Tenant
-
-          Administration</p>
-        <p className='text-white/70 font-["Plus_Jakarta_Sans] text-[18px] font-normal leading-[45px]"]'> Manage users, workflows, approvals, and system <br />
-          health from one unified platform built for scale.</p>
+        <p className="max-w-md text-xl font-bold leading-snug tracking-tight text-white sm:text-2xl">
+          Powerful Tenant Administration
+        </p>
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-white/70">
+          Manage users, workflows, approvals, and system health from one unified
+          platform built for scale.
+        </p>
       </div>
-      <div className='w-1/2 flex items-center justify-center px-16 shrink-0'>
-        <div className='rounded-2xl bg-white w-[548px] h-[420px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2)] px-10 py-10'>
-          <h2 className='text-black text-[24px]  font-["Plus_Jakarta_Sans"] font-bold leading-[32px] ' >Welcome Back</h2>
-          <p className='text-slate-500 font-["Plus_Jakarta_Sans"] mb-4 text-[14px] font-normal leading-[20px]'> Sign in to your admin account</p>
 
+      {/* Form panel */}
+      <div className="flex flex-1 items-start justify-center px-4 pb-10 sm:px-8 lg:w-1/2 lg:items-center lg:px-16 lg:pb-0">
+        <form
+          onSubmit={handleLogin}
+          className="w-full max-w-[420px] rounded-2xl bg-white px-5 py-7 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2)] sm:px-8 sm:py-9 lg:max-w-[480px]"
+        >
+          <h2 className="text-lg font-bold tracking-tight text-slate-900">
+            Welcome Back
+          </h2>
+          <p className="mt-1 mb-5 text-sm text-slate-500">
+            Sign in to your admin account
+          </p>
 
-          <label
-            htmlFor="email"
-            className='
-        text-black
-        font-["Plus_Jakarta_Sans"]
-        text-[14px]
-        font-medium
-        leading-[20px]
-        my-1
-        
-      '
-          >
+          <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-800">
             Email Address
           </label>
           <input
+            id="email"
             type="email"
             placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="
-        w-full
-        rounded-xl
-        border
-        border-gray-300
-        px-4
-        py-3
-        my-2
-        outline-none
-        focus:border-blue-600
-        placeholder:text-[rgba(15,23,42,0.50)]
-         placeholder:text-[14px]
-    placeholder:font-normal
-    placeholder:font-['Plus_Jakarta_Sans']
-      "
+            className="mb-4 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#043793] focus:ring-2 focus:ring-[#043793]/15"
           />
 
-          {/* Password */}
-
-
-          <label
-            htmlFor="email"
-            className='
-        text-black
-        font-["Plus_Jakarta_Sans"]
-        text-[14px]
-        font-normal
-        leading-[20px]
-        my-1
-      '
-          >
+          <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-800">
             Password
           </label>
           <input
+            id="password"
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="
-        w-full
-        rounded-xl
-        border
-        border-gray-300
-        px-4
-        py-3
-        my-2
-        outline-none
-        focus:border-blue-600
-        placeholder:text-[rgba(15,23,42,0.50)]
-         placeholder:text-[14px]
-    placeholder:font-normal
-    placeholder:font-['Plus_Jakarta_Sans']
-      "
+            className="mb-3 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#043793] focus:ring-2 focus:ring-[#043793]/15"
           />
 
-
-          <div className="flex justify-end my-3">
+          <div className="mb-5 flex justify-end">
             <a
               href="/forgot-password"
-              className="
-        text-blue-600
-        text-sm
-        font-medium
-        hover:underline
-        transition-colors
-      "
+              className="text-sm font-medium text-[#043793] transition-colors hover:underline"
             >
               Forgot Password?
             </a>
           </div>
 
-
-
           <button
-            type='button'
-            className="w-full bg-blue-600 text-white p-3 rounded-xl disabled:bg-gray-400 disabled:cursor-not-allowed"
-            onClick={handleLogin}
+            type="submit"
+            className="w-full rounded-xl bg-[#043793] p-3.5 text-sm font-semibold text-white transition hover:bg-[#032d75] disabled:cursor-not-allowed disabled:bg-slate-400"
             disabled={loading}
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   )
 }
+
 export default LoginForm
