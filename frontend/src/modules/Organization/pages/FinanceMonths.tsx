@@ -60,6 +60,16 @@ export default function FinanceMonths() {
   if (statsLoading || periodsLoading) {
     return <div className="page-shell text-sm text-slate-500">Loading...</div>
   }
+  console.log('stats',stats)
+// const financeCards = stats.map((stat) => ({
+//   id:          stat.id,
+//   label:       stat.label,
+//   count:       stat.count,
+//   logo:        CARD_CONFIG[stat.type].logo,
+//   logoBgColor: CARD_CONFIG[stat.type].logoBgColor,
+// }))
+  return (
+    <div className="p-6 bg-slate-50 min-h-screen w-full">
 
   return (
     <div className="page-shell">
@@ -95,7 +105,8 @@ export default function FinanceMonths() {
         </div>
       </div>
 
-      <FinanceSetupStatCards stats={stats} />
+      {/* Stat Cards */}
+      {/* //<StatCards cards={financeCards} /> */}
 
       {/* Filters — Figma: date · status tabs · search · reset */}
       <div className="mb-5 flex flex-col gap-3 rounded-[14px] border border-slate-200 bg-white p-3 shadow-sm sm:p-4 lg:flex-row lg:items-center">

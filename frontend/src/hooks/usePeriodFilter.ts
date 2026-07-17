@@ -7,11 +7,11 @@ type FilterableItem = {
   cogsStatus?: string
 }
 
-export function usePeriodFilter<T extends FilterableItem>(items: T[]) {
+export function usePeriodFilter<T extends FilterableItem>(items: T[]=[]) {
   const [filters, setFilters] = useState<Record<string, string>>({})
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
+     return (Array.isArray(items) ? items : []).filter((item) => {
       if (filters.fy && !item.period.toLowerCase().includes(filters.fy.toLowerCase())) return false
       if (filters.month && !item.period.toLowerCase().includes(filters.month.toLowerCase())) {
         return false
@@ -29,3 +29,5 @@ export function usePeriodFilter<T extends FilterableItem>(items: T[]) {
 
   return { filteredItems, setFilters }
 }
+
+
