@@ -20,7 +20,7 @@ function Card({
   className = ""
 }: CardProps) {
   return (
-    <div className={`rounded-2xl bg-white border border-slate-200 p-4 flex items-center gap-3 ${className}`}>
+    <div className={`rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 flex items-center gap-3 ${className}`}>
       {/* Icon in circle bg */}
       {icon && (
         <div className={`w-12 h-12 rounded-full ${iconBgColor} flex items-center justify-center flex-shrink-0`}>
@@ -33,7 +33,7 @@ function Card({
         <span className="text-xs text-[#6B7A99] uppercase truncate whitespace-nowrap">
           {title}
         </span>
-        <span className={`text-2xl font-bold text-[#1A2332] leading-tight ${countColor}`}>
+        <span className={`stat-value text-[#1A2332] ${countColor}`}>
           {count}
         </span>
       </div>

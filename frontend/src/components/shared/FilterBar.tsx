@@ -25,13 +25,13 @@ export default function FilterBar({ fields, onApply }: FilterBarProps) {
   }
 
   return (
-    <div className="flex items-center gap-3 mb-6 bg-white p-4 rounded-lg border border-slate-200">
-      <div className="flex items-center gap-2 text-xs text-[#6B7A99]">
+    <div className="mb-5 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:gap-3 sm:p-4">
+      <div className="flex shrink-0 items-center gap-2 text-xs font-medium tracking-wide text-[#6B7A99]">
         <Filter size={16} className="shrink-0" />
         <span>FILTERS</span>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap flex-1">
+      <div className="flex flex-1 flex-wrap items-center gap-2 sm:gap-3">
         {fields.map(field => (
           <input
             key={field.key}

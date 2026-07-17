@@ -37,7 +37,7 @@ export function Modal({ isOpen, onClose, children, maxWidth = '2xl' }: ModalProp
       onClick={onClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] flex flex-col`}
+        className={`bg-white rounded-2xl shadow-xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] flex flex-col overflow-hidden`}
         onClick={e => e.stopPropagation()}
       >
         {children}

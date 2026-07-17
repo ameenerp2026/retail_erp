@@ -58,7 +58,7 @@ export default function Drawer({
         {title && (
         <div className="flex items-start justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
           <div>
-            <h2 className="text-base font-bold text-slate-800">{title}</h2>
+            <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
             {description && (
               <p className="text-xs text-slate-400 mt-0.5">{description}</p>
             )}
