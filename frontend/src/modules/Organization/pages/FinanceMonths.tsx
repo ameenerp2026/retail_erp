@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Calendar, Download, Plus, RefreshCw, Search, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import PeriodTable from '../components/FinanceMonths/FinanceTable'
-import FinanceSetupStatCards from '../components/FinanceMonths/FinanceSetupStatCards'
+//import FinanceSetupStatCards from '../components/FinanceMonths/FinanceSetupStatCards'
 import { financeService } from '@/services/financeService'
 import type { FinancePeriodStatus } from '@/types/finance'
 
@@ -68,9 +68,8 @@ export default function FinanceMonths() {
 //   logo:        CARD_CONFIG[stat.type].logo,
 //   logoBgColor: CARD_CONFIG[stat.type].logoBgColor,
 // }))
-  return (
-    <div className="p-6 bg-slate-50 min-h-screen w-full">
-
+  
+    
   return (
     <div className="page-shell">
       <div className="page-header">

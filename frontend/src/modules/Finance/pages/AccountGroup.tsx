@@ -17,6 +17,7 @@ function AccountGroup() {
     queryKey: ['account-groups'],
     queryFn: accountGroupService.getAll,
   })
+  console.log(groups);
 
   return (
      <div className="p-6 bg-slate-50 min-h-screen">
