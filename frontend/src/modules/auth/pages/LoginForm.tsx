@@ -19,6 +19,7 @@ function LoginForm() {
       if (response.status === 200 && response.data.token) {
         toast.success('Login successful!')
         login(response.data.token, response.data.user)
+        
       }
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Invalid email or password'

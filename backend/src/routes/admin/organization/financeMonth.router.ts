@@ -14,6 +14,6 @@ router.post("/finance-month", createFinanceMonthController);
 router.get("/finance-month", getFinanceMonthsController);
 router.get("/finance-month/:id", getFinanceMonthByIdController);
 router.patch("/finance-month/:id", updateFinanceMonthController);
-router.delete('finance-month/:id',deleteFinanceMonthController)
+router.delete('/finance-month/:id',deleteFinanceMonthController)
 
 export default router;
