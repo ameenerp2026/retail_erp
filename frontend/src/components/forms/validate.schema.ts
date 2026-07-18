@@ -81,7 +81,6 @@ export const accountingYearSchema = z.object({
 })
 
 export type AccountingYearFormData = z.infer<typeof accountingYearSchema>
-
 // ── Account Class ──────────────────────────────────────────────
 export const accountClassSchema = z.object({
   className: z.string()

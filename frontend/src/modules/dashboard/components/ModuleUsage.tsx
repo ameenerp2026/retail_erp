@@ -1,72 +1,59 @@
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-} from "recharts";
-
-const data = [
-  { name: "Finance", value: 38, color: "#0F5CA8" },
-  { name: "Organization", value: 24, color: "#22B8B0" },
-  { name: "Securities", value: 20, color: "#4FC3F7" },
-  { name: "Utilities", value: 18, color: "#F59E0B" },
-];
+import { useQuery } from '@tanstack/react-query'
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { dashboardService } from '@/services/dashboardService'
 
 function ModuleUsage() {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ['dashboard-module-usage'],
+    queryFn: dashboardService.getModuleUsage,
+  })
+
   return (
-    <div className="h-full min-h-[420px] bg-white rounded-[24px] border border-slate-200 p-6 shadow-sm">
+    <div className="section-card h-full min-h-[280px] sm:min-h-[360px]">
       <div>
-        <h2 className="text-[18px] font-semibold text-[#0F3F91]">
-          Module Usage
-        </h2>
-
-        <p className="text-[14px] text-slate-400 mt-1">
-          Activity distribution
-        </p>
+        <h2 className="section-title">Module Usage</h2>
+        <p className="mt-0.5 text-xs text-slate-400">Activity distribution</p>
       </div>
 
-      <div className="h-[180px] mt-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              innerRadius={55}
-              outerRadius={78}
-              paddingAngle={2}
-              stroke="#ffffff"
-              strokeWidth={4}
-            >
-              {data.map((item) => (
-                <Cell key={item.name} fill={item.color} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="mt-3 space-y-3">
-        {data.map((item) => (
-          <div
-            key={item.name}
-            className="flex items-center justify-between text-[14px]"
-          >
-            <div className="flex items-center gap-2">
-              <span
-                className="w-[10px] h-[10px] rounded-full"
-                style={{ backgroundColor: item.color }}
-              />
-              <span className="text-slate-600 text-[12px]">{item.name}</span>
-            </div>
-
-            <span className="font-semibold text-[12px] text-[#0F3F91]">
-              {item.value}%
-            </span>
+      {isLoading ? (
+        <div className="mt-8 text-center text-sm text-slate-400">Loading...</div>
+      ) : (
+        <>
+          <div className="mt-4 h-[160px] sm:h-[180px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  innerRadius={48}
+                  outerRadius={70}
+                  paddingAngle={2}
+                  stroke="#ffffff"
+                  strokeWidth={4}
+                >
+                  {data.map((item) => (
+                    <Cell key={item.name} fill={item.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        ))}
-      </div>
+
+          <div className="mt-3 space-y-2.5 sm:space-y-3">
+            {data.map((item) => (
+              <div key={item.name} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-xs text-slate-600">{item.name}</span>
+                </div>
+                <span className="text-xs font-semibold text-[#0F3F91]">{item.value}%</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
-  );
+  )
 }
 
-export default ModuleUsage;
+export default ModuleUsage

@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Download, Plus, Search } from 'lucide-react'
 import ReusableTable from '@/components/shared/ReusableTable'
 import SimpleStatCard from '@/components/shared/SimpleStatCard'
-import { getAccountClassColumns } from '../components/AccountClass/AccountClassColumns'
+import { getAccountClassColumns } from '@/modules/Finance/components/AccountClass/AccountClassColumns'
 import { accountClassService } from '@/services/accountClassService'
 import type { AccountClassRecord } from '@/types/accountClass'
 import { Modal } from '@/components/shared/Modal'
-import AccountClassForm from '../components/AccountClass/AccountClassForm'
+import AccountClassForm from '@/modules/Finance/components/AccountClass/AccountClassForm'
 
 const statCards = [
   { id: 1, label: "Total Classes",    count: 9,   textColor: "text-[#0B4D8C]"  },

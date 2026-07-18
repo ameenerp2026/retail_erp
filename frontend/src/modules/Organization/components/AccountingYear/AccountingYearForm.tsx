@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast'
 import { accountingYearSchema, AccountingYearFormData } from '@/components/forms/validate.schema'
 import z from 'zod'
 import { X } from 'lucide-react'
-
+import apiClient from '../../../../services/apiClient'
 type Props = {
   onClose: () => void
   onSubmit?: (data: AccountingYearFormData) => void
@@ -19,6 +19,14 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
   })
   const [errors, setErrors] = useState<Errors>({})
 
+  const getYearName = (fromDate: string, toDate: string) => {
+  const fromYear = new Date(fromDate).getFullYear();
+  const toYear = new Date(toDate).getFullYear().toString().slice(-2);
+  console.log('toDate',new Date(fromDate).getFullYear().toString())
+
+  return `FY ${fromYear}-${toYear}`;
+};
+
   const handleChange = (field: keyof AccountingYearFormData, value: string) => {
     setFormData(prev => ({...prev, [field]: value }))
     if (errors[field]) setErrors(prev => ({...prev, [field]: undefined }))
@@ -31,7 +39,23 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
   try {
     // Validate with Zod
    const validatedData = accountingYearSchema.parse(formData)
-console.log(validatedData);
+console.log('validatedData',validatedData);
+const payload = {
+    fromDate: formData.fromDate,
+    toDate: formData.toDate,
+    yearName: getYearName(validatedData.fromDate, validatedData.toDate),
+  };
+console.log('payload',payload)
+  const res =  await apiClient.post('/api/accountingYear/accounting-Year',payload) 
+       
+
+      if (res.status !== 201) {
+  throw new Error("Save failed");
+}
+
+
+      const result = await res.data;
+      console.log('API Response:', result)
 
     // Call API
     // const res = await fetch('/api/accounting-years', {

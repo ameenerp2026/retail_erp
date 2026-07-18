@@ -99,20 +99,20 @@ function OrganizationGroup() {
   return (
     <form onSubmit={handleSubmit(onSave, (errors) => {
       console.log(errors);
-    })}>
-      <div className="flex items-start justify-between mb-6">
+    })} className="page-shell">
+      <div className="page-header">
         <div>
-          <h2 className="text-[24px] text-[#043793] font-bold">
+          <h2 className="page-title">
             Org Group — Company Master
           </h2>
-          <p className="text-[13px] text-[#94A3B8]">Core company identity and registration details</p>
+          <p className="page-subtitle">Core company identity and registration details</p>
         </div>
-        <div className="flex gap-3">
+        <div className="page-actions">
           {isLocked ? (
             <button
               type='button'
               onClick={handleUnlock}
-              className="flex items-center bg-amber-500 text-white rounded-2xl border border-amber-600 text- gap-2 px-6 py-4"
+              className="flex items-center gap-2 rounded-xl border border-amber-600 bg-amber-500 px-4 py-2.5 text-sm font-medium text-white"
             >
               <Unlock size={14} /> <span>Unlock Record</span>
             </button>
@@ -120,26 +120,26 @@ function OrganizationGroup() {
             <button
               type='button'
               onClick={handleLock}
-              className="h-10 px-4 rounded-lg bg-[linear-gradient(#F3F4F6,#E5E7EB)] text-gray-700 flex items-center gap-1.5 text-sm font-medium hover:bg-gray-300 transition border border-gray-300"
+              className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4"
             >
-              <Lock size={14} /> <span>Lock Record</span>
+              <Lock size={14} /> <span className="hidden sm:inline">Lock Record</span>
             </button>
           )}
 
           <button
             type='submit'
             disabled={isLocked}
-            className="h-10 px-4 rounded-xl bg-[linear-gradient(#093055,#043793)] text-white flex items-center gap-2 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+            className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 sm:px-4"
           >
             <Save size={14} /><span>Save Changes</span>
           </button>
         </div>
       </div>
-      <fieldset disabled={isLocked} className="disabled:opacity-60 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <fieldset disabled={isLocked} className="space-y-4 disabled:opacity-60 sm:space-y-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-4">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm h-full">
-              <h4 className="text-[15px] text-[#043793] font-bold">Company Identity</h4>
+            <div className="section-card h-full">
+              <h4 className="section-title text-[#043793]">Company Identity</h4>
               <div className="flex items-center justify-center my-4">
                 <div className="flex justify-center items-center bg-[linear-gradient(#043793,#093055)] w-25 h-25 rounded-2xl">
                   <p className="flex text-center text-[#FFFFFF]">RS</p>
@@ -195,10 +195,10 @@ function OrganizationGroup() {
             </div>
           </div>
           <div className="lg:col-span-8">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm h-full">
+            <div className="section-card h-full">
               <div className="flex flex-col gap-3">
-                <p className="text-[#043793] text-[15px] font-bold">Company Details</p>
-                <div className="grid grid-cols-2 gap-4">
+                <p className="section-title text-[#043793]">Company Details</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormInput
                     label='Company Name'
                     required
@@ -254,7 +254,7 @@ function OrganizationGroup() {
                     error={errors.address?.message}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormInput
                     label="State"
                     type='select'

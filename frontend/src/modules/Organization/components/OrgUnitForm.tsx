@@ -42,7 +42,7 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
       <div className="px-6 pt-6 pb-4 border-b border-gray-200 shrink-0">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold text-[#043793]">
+            <h2 className="text-lg font-semibold text-[#043793]">
               {editData? 'Edit Org Unit' : 'Create Org Unit'}
             </h2>
             <p className="text-[#94A3B8] text-sm mt-1">
