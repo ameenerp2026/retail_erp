@@ -19,7 +19,7 @@ export default function StatCards({ cards, onCardClick }: StatCardsProps) {
   if (!cards.length) return null
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="mb-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       {cards.map((card) => (
         <div
           key={card.id}

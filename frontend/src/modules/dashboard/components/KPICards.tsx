@@ -15,19 +15,19 @@ function KpiCard({ title, value, icon: Icon, change, description, badgeColor , i
   const isPositive = change >= 0;
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200 min-w-50 min-h-33.75">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-500">{title}</p>
-          <h3 className="mt-2 text-3xl font-bold text-slate-900">{value}</h3>
+    <div className="min-h-[7.5rem] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-slate-500">{title}</p>
+          <h3 className="stat-value mt-1.5 text-slate-900">{value}</h3>
         </div>
 
-        <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${badgeColor}`} >
-          <Icon size={22} className={iconColor} />
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${badgeColor}`} >
+          <Icon size={20} className={iconColor} />
         </div>
       </div>
 
-      <div className="mt-5 flex items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2 sm:mt-5">
         <span
           className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
             isPositive

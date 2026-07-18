@@ -130,24 +130,23 @@ function OrganizationUnit() {
   }
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h2 className="text-[24px] text-[#043793] font-bold">Org Unit</h2>
-          <p className="text-[13px] text-[#94A3B8]">
+          <h2 className="page-title">Org Unit</h2>
+          <p className="page-subtitle">
             {filteredUnits.length} {filteredUnits.length === 1? 'unit' : 'units'} across all groups
           </p>
         </div>
-        <div className="flex gap-3">
-          <button className="h-10 px-4 rounded-lg bg-[linear-gradient(#F3F4F6,#E5E7EB)] text-gray-700 flex items-center gap-1.5 text-sm font-medium hover:bg-gray-300 transition border border-gray-300">
+        <div className="page-actions">
+          <button className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4">
             <Download size={16} />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </button>
           <button
             onClick={handleAddClick}
             disabled={loading}
-            className="h-10 px-4 rounded-xl bg-[linear-gradient(#093055,#043793)] text-white flex items-center gap-2 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+            className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 sm:px-4"
           >
             <Plus size={18} />
             {loading? 'Adding...' : 'Add Org Unit'}
@@ -155,9 +154,8 @@ function OrganizationUnit() {
         </div>
       </div>
 
-      {/* Search + Filters */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative w-full max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
@@ -196,12 +194,14 @@ function OrganizationUnit() {
         <div className="text-center py-12 text-gray-500">No org units match your filters</div>
       ) : (
         <>
-          <OrgUnitTable
-            units={currentUnits}
-            onEdit={handleEditClick}
-            onDelete={handleDeleteClick}
-            loading={loading}
-          />
+          <div className="overflow-x-auto">
+            <OrgUnitTable
+              units={currentUnits}
+              onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
+              loading={loading}
+            />
+          </div>
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

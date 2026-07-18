@@ -47,29 +47,29 @@ const inventoryCards = stats.map((stat) => ({
  // ← track which card was clicked
   const [activeDrawer, setActiveDrawer] = useState<string | null>(null)
     return (
-        <div className="p-6 bg-slate-50 min-h-screen w-full">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="page-shell">
+            <div className="page-header">
                 <div>
-                    <h1 className="text-[24px] text-[#043793] font-bold">Inventory Months</h1>
-                    <p className="text-sm text-gray-500 mt-1 sm:whitespace-nowrap">
+                    <h1 className="page-title">Inventory Months</h1>
+                    <p className="page-subtitle">
                         Manage and monitor inventory period status across all organization units
                     </p>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                    <button className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 bg-white rounded-full hover:bg-gray-50 text-[#1A2332]">
-                        <RefreshCw size={12} /> Refresh
+                <div className="page-actions">
+                    <button type="button" className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-[#1A2332] hover:bg-gray-50 sm:px-4">
+                        <RefreshCw size={12} /> <span className="hidden sm:inline">Refresh</span>
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 bg-white rounded-full hover:bg-gray-50 text-[#1A2332]">
-                        <Lock size={12} /> Close Month
+                    <button type="button" className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-[#1A2332] hover:bg-gray-50 sm:px-4">
+                        <Lock size={12} /> <span className="hidden sm:inline">Close Month</span>
                     </button>
                     <button
-                        onClick={() => navigate('/organization/recalculate-cogs')} 
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-[#043793] text-white rounded-full cursor-pointer">
-                        <BarChart2 size={12} /> Recalculate COGS
+                        type="button"
+                        onClick={() => navigate('/organization/recalculate-cogs')}
+                        className="flex cursor-pointer items-center gap-2 rounded-full bg-[#043793] px-3 py-2 text-sm text-white sm:px-4">
+                        <BarChart2 size={12} /> <span className="hidden xs:inline sm:inline">Recalculate COGS</span>
                     </button>
                 </div>
-            </div>   
+            </div>
             {/* Stat Cards */}
             <StatCards cards={inventoryCards} onCardClick={(key) => {
     console.log('Key:', key) // ← Add this. Does it log 'Unposted'?
@@ -90,18 +90,16 @@ const inventoryCards = stats.map((stat) => ({
             {/* Filters */}
             <FilterBar fields={PERIOD_FILTER_FIELDS} onApply={setFilters} />
             {/* Table + Side Panel */}
-            <div className="flex gap-4 w-full">
-                {/* Table — takes all remaining space */}
-                <div className="flex-1 min-w-0">
+            <div className="flex w-full flex-col gap-4 xl:flex-row">
+                <div className="min-w-0 flex-1 overflow-x-auto">
                     <InventoryTable
                         periods={filteredItems}
                         onRowClick={setSelectedPeriod}
                         onHistoryClick={setCogsHistoryPeriod}
                     />
                 </div>
-                {/* Side panel — only renders when a row is clicked */}
                         {selectedPeriod && (
-                          <div className="w-[320px] flex-shrink-0 max-h-[calc(100vh-100px)] overflow-y-auto">
+                          <div className="w-full shrink-0 overflow-y-auto xl:max-h-[calc(100vh-100px)] xl:w-[320px]">
                             <InventoryDetailPanel
                               period={selectedPeriod}
                               onClose={() => setSelectedPeriod(null)}

@@ -35,21 +35,22 @@ export default function AccountingYearPage() {
   }
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen">
-      <div className="flex justify-between items-start mb-6">
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h1 className="text-[24px] text-[#043793] font-bold">Accounting Year</h1>
-          <p className="text-[13px] text-[#94A3B8]">Fiscal year setup and period configuration</p>
+          <h1 className="page-title">Accounting Year</h1>
+          <p className="page-subtitle">Fiscal year setup and period configuration</p>
         </div>
-        <button 
+        <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
-          className="bg-slate-800 text-white px-4 py-2.5 rounded-xl bg-[linear-gradient(#093055,#043793)] text-sm font-medium flex items-center gap-2"
+          className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
         >
           <span>+</span> New Accounting Year
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-6">
         <div className="space-y-3">
           {years.map((year) => (
             <YearListItem

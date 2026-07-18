@@ -1,3 +1,4 @@
+// components/shared/ActiveInactiveBadge.tsx
 type Props = { status: 'Active' | 'Inactive' }
 
 export default function ActiveInactiveBadge({ status }: Props) {

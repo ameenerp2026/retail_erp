@@ -1,20 +1,22 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["user","organization", "finance"]
+  schemas  = ["public", "user", "organization", "finance"]
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  password  String
-  role      Roles    @default(EMPLOYEE)
+  id                     Int              @id @default(autoincrement())
+  email                  String           @unique
+  createdAt              DateTime         @default(now())
+  password               String
+  role                   Roles            @default(EMPLOYEE)
+  createdAccountingYears AccountingYear[] @relation("CreatedAccountingYears")
+  updatedAccountingYears AccountingYear[] @relation("UpdatedAccountingYears")
 
   @@schema("user")
 }
@@ -22,91 +24,109 @@ model User {
 enum Roles {
   ADMIN
   EMPLOYEE
+
   @@schema("user")
 }
 
-
 model OrganizationGroup {
-  id              Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  shortName       String
-   logoUrl         String?
-  financialYear   String
-  currency        String
+  shortName     String
+  logoUrl       String?
+  financialYear String
+  currency      String
 
-  companyName     String
-  cinNumber       String
-  panNumber       String
-  email           String
-  phoneNumber     String
-  website         String?
-  address         String
+  companyName String
+  cinNumber   String
+  panNumber   String
+  email       String
+  phoneNumber String
+  website     String?
+  address     String
 
-  state           String
-  country         String
-  pinCode         String
+  state   String
+  country String
+  pinCode String
 
-  status          String   @default("DRAFT")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  status    String   @default("DRAFT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-   @@schema("organization")
+  @@schema("organization")
 }
 
-model OrganizationUnit{
-   id               Int      @id @default(autoincrement())
- unitId             String
- organizationUnit   String
- branchName         String
- gstIn              String
- manager            String
- status             String     @default("Active")
-  createdAt         DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-   @@schema("organization")
-}
-model AccountingYear{
+model OrganizationUnit {
   id               Int      @id @default(autoincrement())
-  fromDate         DateTime
-  toDate           DateTime
-  yearName         String
+  unitId           String
+  organizationUnit String
+  branchName       String
+  gstIn            String
+  manager          String
+  status           String   @default("Active")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-   @@schema("organization")
+  @@schema("organization")
 }
 
-model FinanceMonth{
-  id               Int      @id @default(autoincrement())
+model AccountingYear {
+  id       Int        @id @default(autoincrement())
+  fromDate DateTime
+  toDate   DateTime
+  yearName String
+  status   YearStatus @default(OPEN)
 
-   period         String
-   startDate      DateTime
-   endDate        DateTime
-  financeStatus   String
-  invoiceStatus   String
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  financeMonths FinanceMonth[]
+  createdById   Int
+  createdBy     User           @relation("CreatedAccountingYears", fields: [createdById], references: [id])
 
-   @@schema("organization")
+  updatedById Int?
+  updatedBy   User? @relation("UpdatedAccountingYears", fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("organization")
 }
 
-model GSTMangement{
-  id                      Int      @id @default(autoincrement())
-  gstin                   String   @unique
-  state                   String
-  organizationUnit        String
-  type                    GstType
-  status                  GstStatus
+enum YearStatus {
+  OPEN
+  CLOSED
 
-  lastVerified            DateTime?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-
-   @@schema("organization")
+  @@schema("organization")
 }
 
+model FinanceMonth {
+  id Int @id @default(autoincrement())
+
+  period        String
+  startDate     DateTime
+  endDate       DateTime
+  financeStatus String
+
+  accountingYearId Int
+  accountingYear   AccountingYear @relation(fields: [accountingYearId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("organization")
+}
+
+model GSTMangement {
+  id               Int       @id @default(autoincrement())
+  gstin            String    @unique
+  state            String
+  organizationUnit String
+  type             GstType
+  status           GstStatus
+
+  lastVerified DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@schema("organization")
+}
 
 enum GstType {
   REGULAR
