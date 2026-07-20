@@ -5,11 +5,25 @@ import axios from 'axios'
 
 const API_BASE = '/api/organization/gst-states'
 
+const fallbackToMocks = () => {
+  if (import.meta.env.DEV) {
+    return true
+  }
+
+  return false
+}
+
 export const gstStateService = {
   getAll: async (): Promise<GSTStateRecord[]> => {
-    if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCKS === 'true') {
+    if (fallbackToMocks()) {
       return MOCK_GST_STATES
     }
-    return axios.get(API_BASE).then(res => res.data)
+
+    try {
+      const res = await axios.get(API_BASE)
+      return Array.isArray(res.data) ? res.data : MOCK_GST_STATES
+    } catch {
+      return MOCK_GST_STATES
+    }
   },
 }

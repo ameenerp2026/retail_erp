@@ -4,18 +4,38 @@ import axios from 'axios'
 
 const API_BASE = '/api/organization/finance_months'
 
+const fallbackToMocks = () => {
+  if (import.meta.env.DEV) {
+    return true
+  }
+
+  return false
+}
+
 export const financeService = {
   getStats: async (): Promise<FinanceStat[]> => {
-    if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCKS) {
+    if (fallbackToMocks()) {
       return MOCK_STATS
     }
-    return axios.get(`${API_BASE}/stats`).then(res => res.data)
+
+    try {
+      const res = await axios.get(`${API_BASE}/stats`)
+      return Array.isArray(res.data) ? res.data : MOCK_STATS
+    } catch {
+      return MOCK_STATS
+    }
   },
   
   getPeriods: async (): Promise<FinancePeriod[]> => {
-    if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCKS) {
+    if (fallbackToMocks()) {
       return MOCK_PERIODS
     }
-    return axios.get(`${API_BASE}/periods`).then(res => res.data)
+
+    try {
+      const res = await axios.get(`${API_BASE}/periods`)
+      return Array.isArray(res.data) ? res.data : MOCK_PERIODS
+    } catch {
+      return MOCK_PERIODS
+    }
   }
 }
