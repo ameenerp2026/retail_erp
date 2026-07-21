@@ -103,3 +103,31 @@ export const accountClassSchema = z.object({
 })
 
 export type AccountClassFormData = z.infer<typeof accountClassSchema>
+// ── Currency ───────────────────────────────────────────────────
+export const currencySchema = z.object({
+  code: z.string()
+    .trim()
+    .toUpperCase()
+    .min(1, 'Currency code is required')
+    .length(3, 'Currency code must be exactly 3 letters')
+    .regex(/^[A-Z]{3}$/, 'Use the 3-letter ISO code (e.g. USD)'),
+
+  name: z.string()
+    .trim()
+    .min(1, 'Currency name is required')
+    .min(3, 'Currency name must be at least 3 characters')
+    .max(50, 'Currency name must be under 50 characters'),
+
+  symbol: z.string()
+    .trim()
+    .min(1, 'Symbol is required')
+    .max(4, 'Symbol must be under 4 characters'),
+
+  exchangeRate: z
+    .number({ message: 'Exchange rate is required' })
+    .positive('Exchange rate must be greater than 0'),
+
+  isBase: z.boolean(),
+})
+
+export type CurrencyFormData = z.infer<typeof currencySchema>
