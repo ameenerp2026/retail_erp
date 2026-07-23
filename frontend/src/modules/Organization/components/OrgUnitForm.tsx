@@ -92,7 +92,10 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
                 GSTIN <span className="text-red-500">*</span>
               </label>
               <input
-                {...register('gstin')}
+                {...register('gstin', {
+                  onChange: (e) => { e.target.value = e.target.value.toUpperCase() }
+                })}
+                maxLength={15}
                 className={`${inputClass} ${errors.gstin? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#043793]'}`}
                 placeholder="27AABCS1429B1ZB"
               />
@@ -110,12 +113,15 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
             </div>
 
             <div>
-              <label className={labelClass}>Group</label>
+              <label className={labelClass}>
+                Group <span className="text-red-500">*</span>
+              </label>
               <input
                 {...register('group')}
-                className={`${inputClass} border-gray-300 focus:border-[#043793]`}
+                className={`${inputClass} ${errors.group? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#043793]'}`}
                 placeholder="retailshop-india"
               />
+              {errors.group && <p className={errorClass}>{errors.group.message}</p>}
             </div>
 
             <div>
