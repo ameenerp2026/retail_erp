@@ -13,10 +13,13 @@ const LEVEL_LEGEND = [
 function AccountGroup() {
   // const [search, setSearch] = useState('')
 
-  const { data: groups = [] } = useQuery({
+  const { data } = useQuery({
     queryKey: ['account-groups'],
     queryFn: accountGroupService.getAll,
   })
+
+  // Guard against non-array responses (e.g. API error payloads) so the page never crashes
+  const groups = Array.isArray(data) ? data : []
 
   return (
      <div className="p-6 bg-slate-50 min-h-screen">

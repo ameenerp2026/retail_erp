@@ -6,35 +6,33 @@ import { Modal } from '@/components/shared/Modal'
 import { OrgUnitForm } from "../components/OrgUnitForm"
 import { DeleteConfirmForm } from "../components/DeleteConfirmForm"
 import { OrgUnitFormData } from "@/components/forms/validate.schema"
+import apiClient from '../../../services/apiClient'
 import toast from "react-hot-toast"
 
-export interface OrgUnit extends OrgUnitFormData {
-  id: string
-  subtext: string
-  status: 'Active' | 'Inactive'
+export interface OrganizationUnit {
+  id: number;
+  organizationUnit: string;
+  unitType: string;
+  gstIn: string;
+  manager: string;
+  organizationGroupId: number;
+  state: string;
+  address: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+
+  organizationGroup: {
+    id: number;
+    shortName: string;
+  };
 }
 
-const orgUnits: OrgUnit[] = [
-  { id: 'ORG-001', name: 'HQ - Mumbai', subtext: 'RetailShop India', type: 'Head Office', group: 'retailshop-india', gstin: '27AABCS1429B1ZB', manager: 'Raj Kumar', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-002', name: 'Delhi North', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '07AABCS1429B1ZC', manager: 'Priya Sharma', status: 'Active', state: 'TN', address: 'Chennai' },
-  { id: 'ORG-003', name: 'Bangalore Central', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '29AABCS1429B1ZD', manager: 'Arun Patel', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-004', name: 'Chennai South', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '33AABCS1429B1ZE', manager: 'Meena Joshi', status: 'Inactive', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-005', name: 'Hyderabad Central', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '36AABCS1429B1ZF', manager: 'Suresh Reddy', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-006', name: 'Pune West', subtext: 'RetailShop India', type: 'Regional Office', group: 'retailshop-india', gstin: '27AABCS1429B1ZG', manager: 'Anita Shah', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-007', name: 'Kolkata East', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '19AABCS1429B1ZH', manager: 'Bikash Roy', status: 'Inactive', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-008', name: 'HQ - Mumbai', subtext: 'RetailShop India', type: 'Head Office', group: 'retailshop-india', gstin: '27AABCS1429B1ZB', manager: 'Raj Kumar', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-009', name: 'Delhi North', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '07AABCS1429B1ZC', manager: 'Priya Sharma', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-010', name: 'Bangalore Central', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '29AABCS1429B1ZD', manager: 'Arun Patel', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-011', name: 'Chennai South', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '33AABCS1429B1ZE', manager: 'Meena Joshi', status: 'Inactive', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-012', name: 'Hyderabad Central', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '36AABCS1429B1ZF', manager: 'Suresh Reddy', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-013', name: 'Pune West', subtext: 'RetailShop India', type: 'Regional Office', group: 'retailshop-india', gstin: '27AABCS1429B1ZG', manager: 'Anita Shah', status: 'Active', state: 'KA', address: 'Bangalore' },
-  { id: 'ORG-014', name: 'Kolkata East', subtext: 'RetailShop India', type: 'Branch', group: 'retailshop-india', gstin: '19AABCS1429B1ZH', manager: 'Bikash Roy', status: 'Inactive', state: 'KA', address: 'Bangalore' },
-]
 
 type StatusFilter = "all" | "Active" | "Inactive"
 
 function OrganizationUnit() {
-  const [units, setUnits] = useState<OrgUnit[]>(orgUnits)
+  const [units, setUnits] =  useState<OrganizationUnit[]>([]);
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [currentPage, setCurrentPage] = useState(1)
@@ -42,11 +40,12 @@ function OrganizationUnit() {
 
   // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [unitToDelete, setUnitToDelete] = useState<OrgUnit | null>(null)
+  const [unitToDelete, setUnitToDelete] = useState<OrganizationUnit | null>(null)
+  
 
   // Create/Edit modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingUnit, setEditingUnit] = useState<OrgUnitFormData | null>(null)
+  const [editingUnit, setEditingUnit] = useState<OrganizationUnit | null>(null)
   const [loading, setLoading] = useState(false)
 
   const filteredUnits = useMemo(() => {
@@ -54,12 +53,14 @@ function OrganizationUnit() {
       const matchesStatus = statusFilter === "all" || unit.status === statusFilter
       const term = searchTerm.toLowerCase().trim()
       const matchesSearch =!term || [
-        unit.name,
-        unit.gstin,
-        unit.type,
+        unit.organizationUnit,
+        unit.gstIn,
+        unit.unitType,
         unit.manager,
-        unit.group,
-        unit.state
+        unit.organizationGroup.shortName,
+        unit.state,
+         unit.state,
+    unit.address
       ].some(field => field?.toLowerCase().includes(term))
       return matchesStatus && matchesSearch
     })
@@ -68,6 +69,15 @@ function OrganizationUnit() {
   useEffect(() => {
     setCurrentPage(1)
   }, [searchTerm, statusFilter])
+const fetchUnits = async () => {
+    const res = await apiClient.get("/api/organizationUnit/org-unit");
+    setUnits(res.data.data);
+  };
+
+  useEffect(() => {
+  
+  fetchUnits();
+}, []);
 
   const totalPages = Math.ceil(filteredUnits.length / rowsPerPage)
   const startIndex = (currentPage - 1) * rowsPerPage
@@ -78,7 +88,7 @@ function OrganizationUnit() {
     setIsModalOpen(true)
   }
 
-  const handleEditClick = (row: OrgUnit) => {
+  const handleEditClick = (row: OrganizationUnit) => {
     setEditingUnit(row)
     setIsModalOpen(true)
   }
@@ -90,14 +100,24 @@ function OrganizationUnit() {
 
   const handleSaveUnit = async (data: OrgUnitFormData) => {
     setLoading(true)
-    const isEdit =!!data.id
+    const isEdit = editingUnit !== null;
     try {
-      // TODO: API call
+      console.log('OrgUnitFormData',data)
       if (isEdit) {
-        setUnits(prev => prev.map(u => u.id === data.id? {...u,...data } : u))
-      } else {
-        setUnits(prev => [...prev, {...data, id: `ORG-${Date.now()}`, subtext: 'RetailShop India', status: 'Active' }])
-      }
+        await apiClient.put(
+    `/api/organizationUnit/org-unit/${editingUnit.id}`,
+    data
+  );
+     toast.error('Failed to save')
+    }
+      
+       else {
+        await apiClient.post(
+    "/api/organizationUnit/org-unit",
+    data
+  );
+    }
+      fetchUnits();
       toast.success(`Org unit ${isEdit? 'updated' : 'created'} successfully!`)
       setIsModalOpen(false)
       setEditingUnit(null)
@@ -108,46 +128,57 @@ function OrganizationUnit() {
     }
   }
 
-  const handleDeleteClick = (row: OrgUnit) => {
+  const handleDeleteClick = (row: OrganizationUnit) => {
+    console.log('deleteOrganizationUnit',OrganizationUnit)
     setUnitToDelete(row)
     setDeleteModalOpen(true)
   }
 
   const handleConfirmDelete = async () => {
-    if (!unitToDelete) return
-    setLoading(true)
-    try {
-      // TODO: API call
-      setUnits(prev => prev.filter(u => u.id!== unitToDelete.id))
-      toast.success(`${unitToDelete.name} deleted successfully`)
-      setDeleteModalOpen(false)
-      setUnitToDelete(null)
-    } catch (error) {
-      toast.error('Failed to delete org unit')
-    } finally {
-      setLoading(false)
-    }
+     if (!unitToDelete) return;
+
+  setLoading(true);
+
+  try {
+    await apiClient.delete(
+      `/api/organizationUnit/org-unit/${unitToDelete.id}`
+    );
+
+    // Refresh table
+    await fetchUnits();
+
+    toast.success(
+      `${unitToDelete.organizationUnit} deleted successfully`
+    );
+
+    setDeleteModalOpen(false);
+    setUnitToDelete(null);
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to delete org unit");
+  } finally {
+    setLoading(false);
+  }
   }
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h2 className="text-[24px] text-[#043793] font-bold">Org Unit</h2>
-          <p className="text-[13px] text-[#94A3B8]">
+          <h2 className="page-title">Org Unit</h2>
+          <p className="page-subtitle">
             {filteredUnits.length} {filteredUnits.length === 1? 'unit' : 'units'} across all groups
           </p>
         </div>
-        <div className="flex gap-3">
-          <button className="h-10 px-4 rounded-lg bg-[linear-gradient(#F3F4F6,#E5E7EB)] text-gray-700 flex items-center gap-1.5 text-sm font-medium hover:bg-gray-300 transition border border-gray-300">
+        <div className="page-actions">
+          <button className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4">
             <Download size={16} />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </button>
           <button
             onClick={handleAddClick}
             disabled={loading}
-            className="h-10 px-4 rounded-xl bg-[linear-gradient(#093055,#043793)] text-white flex items-center gap-2 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+            className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 sm:px-4"
           >
             <Plus size={18} />
             {loading? 'Adding...' : 'Add Org Unit'}
@@ -155,9 +186,8 @@ function OrganizationUnit() {
         </div>
       </div>
 
-      {/* Search + Filters */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative w-full max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
@@ -196,12 +226,14 @@ function OrganizationUnit() {
         <div className="text-center py-12 text-gray-500">No org units match your filters</div>
       ) : (
         <>
-          <OrgUnitTable
-            units={currentUnits}
-            onEdit={handleEditClick}
-            onDelete={handleDeleteClick}
-            loading={loading}
-          />
+          <div className="overflow-x-auto">
+            <OrgUnitTable
+              units={currentUnits}
+              onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
+              loading={loading}
+            />
+          </div>
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -226,7 +258,7 @@ function OrganizationUnit() {
       {/* DELETE MODAL */}
       <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} maxWidth="md">
   <DeleteConfirmForm
-    unitName={unitToDelete?.name || ''}
+    unitName={unitToDelete?.organizationUnit || ''}
     loading={loading}
     onClose={() => setDeleteModalOpen(false)}
     onConfirm={handleConfirmDelete}

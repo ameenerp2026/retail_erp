@@ -21,6 +21,9 @@ export const createOrganizationGroup = async (data: any) => {
     },
   });
 };
+export const getOrganizationGroup = async () => {
+  return prisma.organizationGroup.findMany();
+};
 
 export const getOrganizationGroupById = async (id: number) => {
   return prisma.organizationGroup.findUnique({

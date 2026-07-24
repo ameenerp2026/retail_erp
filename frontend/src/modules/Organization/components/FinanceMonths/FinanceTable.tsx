@@ -1,20 +1,18 @@
-import { getPeriodColumns } from "./FinanceColumns"
-import type { FinancePeriod } from "@/types/finance"
-import ReusableTable from "@/components/shared/ReusableTable"
+import type { FinancePeriod } from '@/types/finance'
+import ReusableTable from '@/components/shared/ReusableTable'
+import { getFinanceSetupColumns } from './FinanceColumns'
 
 type PeriodTableProps = {
   periods: FinancePeriod[]
-  onRowClick: (period: FinancePeriod) => void
+  loading?: boolean
 }
 
-export default function PeriodTable({ periods = [], onRowClick }: PeriodTableProps) {
-
-  const columns = getPeriodColumns(onRowClick)
+export default function PeriodTable({ periods = [], loading = false }: PeriodTableProps) {
+  const columns = getFinanceSetupColumns()
 
   return (
-    <div className="w-full h-full">
-      {/* ← onApply updates filters in PeriodTable */}
-       <ReusableTable columns={columns} data={periods} rowKey="id" />
+    <div className="w-full overflow-x-auto">
+      <ReusableTable columns={columns} data={periods} rowKey="id" loading={loading} />
     </div>
   )
 }

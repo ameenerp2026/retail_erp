@@ -1,17 +1,13 @@
 import { Pencil, Trash2 ,CheckCircle2, XCircle} from "lucide-react"
-import type { OrgUnitFormData } from "@/components/forms/validate.schema"
+//import type { OrgUnitFormData } from "@/components/forms/validate.schema"
 
-export interface OrgUnit extends OrgUnitFormData {
-  id: string
-  subtext: string
-  status: 'Active' | 'Inactive'
-}
+import type { OrganizationUnit } from "../pages/OrganizationUnit";
 
 interface OrgUnitTableProps {
-  units: OrgUnit[]
-  onEdit: (row: OrgUnit) => void // Must match units type
-  onDelete: (row: OrgUnit) => void
-  loading?: boolean
+  units: OrganizationUnit[];
+  onEdit: (row: OrganizationUnit) => void;
+  onDelete: (row: OrganizationUnit) => void;
+  loading?: boolean;
 }
 export default function OrgUnitTable({ units,onEdit,onDelete,loading }: OrgUnitTableProps) {
   return (
@@ -53,16 +49,16 @@ export default function OrgUnitTable({ units,onEdit,onDelete,loading }: OrgUnitT
                   {unit.id}
                 </td>
                 <td className="px-4 py-3">
-                  <div className="text-sm font-semibold text-[#043793]">{unit.name}</div>
-                  <div className="text-xs text-[#94A3B8]">{unit.subtext}</div>
+                  <div className="text-sm font-semibold text-[#043793]">{unit.organizationUnit}</div>
+                  <div className="text-xs text-[#94A3B8]">{unit.organizationGroup.shortName}</div>
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">
                   <span className="px-2.5 py-1 rounded-md bg-blue-50 text-[#043793] text-xs font-medium">
-                    {unit.type}
+                    {unit.unitType}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-500 font-mono">
-                  {unit.gstin}
+                  {unit.gstIn}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700 font-medium">
                   {unit.manager}

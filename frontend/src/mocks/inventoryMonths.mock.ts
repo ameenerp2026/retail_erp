@@ -110,25 +110,32 @@ export const MOCK_COGS: COGSRun[] = [
   { id: "8", month: "SEP-25", startTime: "01 Oct 2025 09:00", endTime: "01 Oct 2025 09:02", runtime: "2m 18s", status: "Completed", runBy: "Finance Admin"  },
 ]
 
-// Mock data recalcute COGS months
-export const summaryItems = [
+export const MOCK_COGS_SUMMARY_CARDS = [
+  { id: '1', label: 'Total Runs', count: 8, iconKey: 'clock' as const, iconBgColor: 'bg-[#EFF6FF]', iconColor: 'text-blue-500' },
+  { id: '2', label: 'Completed', count: 6, iconKey: 'check' as const, iconBgColor: 'bg-[#ECFDF5]', iconColor: 'text-green-500' },
+  { id: '3', label: 'Failed', count: 1, iconKey: 'x' as const, iconBgColor: 'bg-[#FEF2F2]', iconColor: 'text-red-500' },
+  { id: '4', label: 'Avg. Runtime', count: '2m 58s', iconKey: 'clock' as const, iconBgColor: 'bg-[#FFFBEB]', iconColor: 'text-orange-500' },
+  { id: '5', label: 'Success Rate', count: '75%', iconKey: 'trending' as const, iconBgColor: 'bg-[#F5F3FF]', iconColor: 'text-purple-500' },
+]
+
+export const MOCK_RECALCULATE_SUMMARY = [
   { label: 'Selected Year', value: 'FY 2025-26' },
   { label: 'Organization', value: 'HQ - Mumbai' },
   { label: 'Total Months', value: '12 Months' },
   { label: 'Pending Months', value: '2 Selected' },
-];
+]
 
-export const Recalculate_COGS_months = [
-  { id: "1", month: 'APR-26', period: 'Apr 2026', status: 'Running' },
-  { id: "2", month: 'MAR-26', period: 'Mar 2026', status: 'Pending' },
-  { id: "3", month: 'FEB-26', period: 'Feb 2026', status: 'Completed' },
-  { id: "4", month: 'JAN-26', period: 'Jan 2026', status: 'Completed' },
-  { id: "5", month: 'DEC-25', period: 'Dec 2025', status: 'Completed' },
-  { id: "6", month: 'NOV-25', period: 'Nov 2025', status: 'Pending' },
-  { id: "7", month: 'OCT-25', period: 'Oct 2025', status: 'Pending' },
-];
+export const MOCK_RECALCULATE_MONTHS = [
+  { id: '1', month: 'APR-26', period: 'Apr 2026', status: 'Running' },
+  { id: '2', month: 'MAR-26', period: 'Mar 2026', status: 'Pending' },
+  { id: '3', month: 'FEB-26', period: 'Feb 2026', status: 'Completed' },
+  { id: '4', month: 'JAN-26', period: 'Jan 2026', status: 'Completed' },
+  { id: '5', month: 'DEC-25', period: 'Dec 2025', status: 'Completed' },
+  { id: '6', month: 'NOV-25', period: 'Nov 2025', status: 'Pending' },
+  { id: '7', month: 'OCT-25', period: 'Oct 2025', status: 'Pending' },
+]
 
-export const logEntries = [
+export const MOCK_RECALCULATE_LOGS = [
   { time: '09:14:02', level: '[INFO]', message: 'COGS recalculation job initiated' },
   { time: '09:14:03', level: '[INFO]', message: 'Loading inventory transactions for APR-26' },
   { time: '09:14:05', level: '[INFO]', message: 'Processing 12,847 transactions...' },
@@ -137,34 +144,15 @@ export const logEntries = [
   { time: '09:14:16', level: '[INFO]', message: 'Updating GL entries for cost of goods sold' },
   { time: '09:14:17', level: '[WARN]', message: '3 items with negative stock detected — skipped' },
   { time: '09:14:18', level: '[INFO]', message: 'Generating journal entries for APR-26' },
-];
-//Unposted Documents mock data
-export const documents = [
-  {
-    id: '1',
-    site: 'Store - Andheri',
-    entryType: 'Retail Sale',
-    documentNumber: 'RS-2026-04-0831',
-    documentDate: '28 Apr 2026',
-    status: 'Pending',
-   
-  },
-  {
-    id: '2',
-    site: 'Store - Bandra',
-    entryType: 'Purchase',
-    documentNumber: 'PO-2026-04-0198',
-    documentDate: '27 Apr 2026',
-    status: 'Pending',
-    
-  },
-  {
-    id: '3',
-    site: 'Store - Thane',
-    entryType: 'Retail Sale',
-    documentNumber: 'RS-2026-04-0792',
-    documentDate: '26 Apr 2026',
-    status: 'Pending',
-   
-  },
-];
+]
+
+export const MOCK_UNPOSTED_DOCUMENTS = [
+  { id: '1', site: 'Store - Andheri', entryType: 'Retail Sale', documentNumber: 'RS-2026-04-0831', documentDate: '28 Apr 2026', status: 'Pending' },
+  { id: '2', site: 'Store - Bandra', entryType: 'Purchase', documentNumber: 'PO-2026-04-0198', documentDate: '27 Apr 2026', status: 'Pending' },
+  { id: '3', site: 'Store - Thane', entryType: 'Retail Sale', documentNumber: 'RS-2026-04-0792', documentDate: '26 Apr 2026', status: 'Pending' },
+]
+
+export const summaryItems = MOCK_RECALCULATE_SUMMARY
+export const Recalculate_COGS_months = MOCK_RECALCULATE_MONTHS
+export const logEntries = MOCK_RECALCULATE_LOGS
+export const documents = MOCK_UNPOSTED_DOCUMENTS

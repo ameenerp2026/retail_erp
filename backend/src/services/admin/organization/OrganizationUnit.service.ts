@@ -4,20 +4,38 @@ import prisma from '../../../config/prisma.js'
 export const createOrganizationUnit = async(data:any)=>{
     return prisma.organizationUnit.create({
         data:{
-            unitId : data.unitId,
-            organizationUnit:data.organizationUnit,
-            branchName:data.branchName,
-            gstIn: data.gstIn,
+            organizationUnit : data.name,
+            unitType:data.type,
+            gstIn: data.gstin,
             manager: data.manager,
-            status: data.status,
+            organizationGroupId:Number(data.group),
+            state:data.state,
+            address:data.address,
+           
         }
     })
 }
+export const getOrganizationUnit = async () => {
+  return prisma.organizationUnit.findMany({
+    include :{
+        organizationGroup:{
+            select:{
+                id: true,
+                shortName:true
+            }
+        }
+    },
+     orderBy: {
+    createdAt: 'desc',
+  },
+  });
+};
 
-export const getOrganizationUnit =async(id:number)=>{
+export const getOrganizationUnitById =async(id:number)=>{
     return prisma.organizationUnit.findUnique({
         where:{
-            id,
+            id
+             
         }
     })
 }
@@ -38,13 +56,14 @@ export const updateOrganizationUnit = async(
         where:{
             id,
         },
-         data:{
-            unitId : data.unitID,
-            organizationUnit:data.organizationUnit,
-            branchName:data.branchName,
-            gstIn: data.gstIn,
-            manager: data.manager,
-            status: data.status,
-        }
+         data: {
+      organizationUnit: data.name,
+      unitType: data.type,
+      gstIn: data.gstin,
+      manager: data.manager,
+      organizationGroupId: Number(data.group),
+      state: data.state,
+      address: data.address,
+    },
     })
 }

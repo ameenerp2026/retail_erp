@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   createOrganizationUnit,
   getOrganizationUnit,
+  getOrganizationUnitById,
   deleteOrganizationUnit,
   updateOrganizationUnit
 } from "../../../services/admin/organization/OrganizationUnit.service.js";
@@ -11,7 +12,7 @@ export const createOrgUnitController = async (
   res: Response
 ) => {
   try {
-    
+    console.log('createOrganizationUnit',req.body)
     const result = await createOrganizationUnit(req.body);
 
     return res.status(201).json({
@@ -28,6 +29,32 @@ export const createOrgUnitController = async (
   }
 };
 
+export const getOrgUnitController = async (
+  req: Request,
+  res: Response
+) => {
+   try {
+     const units = await getOrganizationUnit();
+
+  if (!units) {
+      return res.status(404).json({
+        message: "Organization unit not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Organization units fetched successfully",
+      data: units,
+    });
+  }
+   catch (error: any) {
+    return res.status(500).json({
+      message: "Failed to fetch organization units",
+      error: error.message,
+    });
+  }
+   
+}
 export const getOrgUnitByIdController = async (
   req: Request,
   res: Response
@@ -36,7 +63,7 @@ export const getOrgUnitByIdController = async (
     
     const id = Number(req.params.id);
 
-    const result = await getOrganizationUnit(id);
+    const result = await getOrganizationUnitById(id);
 
     if (!result) {
       return res.status(404).json({
@@ -60,7 +87,6 @@ export const updateOrgUnitController = async (
   req: Request,
   res: Response
 ) => {
-    console.log('Body',res)
   try {
     
     const id = Number(req.params.id);

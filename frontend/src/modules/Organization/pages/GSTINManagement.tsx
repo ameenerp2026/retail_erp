@@ -33,21 +33,20 @@ export default function GSTINManagement() {
   const columns = getGSTINColumns(handleReVerify)
 
     return (
-        <div className="p-6 bg-slate-50 min-h-screen w-full">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="page-shell">
+            <div className="page-header">
                 <div>
-                    <h1 className="text-[24px] text-[#043793] font-bold">GSTIN Management</h1>
-                    <p className="text-sm text-gray-500 mt-1 sm:whitespace-nowrap">GST registration, verification and compliance tracking</p>
+                    <h1 className="page-title">GSTIN Management</h1>
+                    <p className="page-subtitle">GST registration, verification and compliance tracking</p>
                 </div>
-                <button 
-                    className="bg-slate-800 text-white px-4 py-2.5 rounded-xl bg-[linear-gradient(#093055,#043793)] text-sm font-medium flex items-center gap-2"
+                <button
+                    type="button"
+                    className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
                 >
                     <span><Plus size={18} /></span> Add GSTIN
                 </button>
             </div>
-            {/* Stat Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                 {GSTIN_STAT_CARDS.map((card) => (
                     <SimpleStatCard
                         key={card.id}

@@ -24,7 +24,7 @@ export const login = async (req : Request, res : Response ) =>{
     try{
          const {email, password} = req.body;
           const users = await  prisma.user.findMany()
-          console.log('users',{email, password})
+          //console.log('users',{email, password})
 
 
     const user = await  prisma.user.findUnique({

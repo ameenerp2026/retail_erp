@@ -16,14 +16,18 @@ type AuthProviderProps = {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+ 
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'))
   const navigate = useNavigate()
 
   const login = (newToken: string, user: any) => {
+     console.log("Login called");
     localStorage.setItem('token', newToken)
     localStorage.setItem('user', JSON.stringify(user))
+    console.log("Before navigate:", window.location.pathname);
     setToken(newToken)
     navigate('/dashboard', { replace: true })
+    console.log("Before navigate:", window.location.pathname);
   }
 
   const logout = () => {
@@ -34,7 +38,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, isLoggedIn: !token }}>
+    <AuthContext.Provider value={{ token, login, logout, isLoggedIn: !!token }}>
       {children}
     </AuthContext.Provider>
   )
