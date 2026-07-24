@@ -52,19 +52,27 @@ model OrganizationGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+    organizationUnits OrganizationUnit[]
+
+
   @@schema("organization")
 }
 
 model OrganizationUnit {
   id               Int      @id @default(autoincrement())
-  unitId           String
   organizationUnit String
-  branchName       String
+  unitType         String
   gstIn            String
   manager          String
+  organizationGroupId Int
+
+   organizationGroup OrganizationGroup @relation(fields: [organizationGroupId],references: [id])
+  state             String
+  address           String
   status           String   @default("Active")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  
 
   @@schema("organization")
 }
