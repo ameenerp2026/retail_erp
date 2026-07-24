@@ -20,6 +20,9 @@ import GSTStateDetails from "@/modules/Organization/pages/GSTStateDetails"
 
 export default function AppRoutes() {
 const { isLoggedIn } = useAuth() 
+
+//console.log("Token:", token);
+console.log("isLoggedIn:", isLoggedIn);
   
   return (
   <Routes>

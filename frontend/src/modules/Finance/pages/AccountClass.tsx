@@ -20,10 +20,11 @@ function AccountClass() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
 
-  const { data: classes = [] } = useQuery({
+  const { data } = useQuery({
     queryKey: ['account-classes'],
     queryFn: accountClassService.getAll,
   })
+  const classes = Array.isArray(data) ? data : []
   const filteredClasses = useMemo(() => {
     if (!search) return classes
     return classes.filter((c: AccountClassRecord) =>

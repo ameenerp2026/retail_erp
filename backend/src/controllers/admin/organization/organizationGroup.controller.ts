@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
   createOrganizationGroup,
+  getOrganizationGroup,
   getOrganizationGroupById,
   updateOrganizationGroup
 } from "../../../services/admin/organization/organizationGroup.service.js";
@@ -27,7 +28,32 @@ export const createOrgGroupController = async (
     });
   }
 };
+export const getOrgGroupController = async (
+  req: Request,
+  res: Response
+) => {
+   try {
+     const groups = await getOrganizationGroup();
 
+  if (!groups) {
+      return res.status(404).json({
+        message: "Organization group not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Organization group fetched successfully",
+      data: groups,
+    });
+  }
+   catch (error: any) {
+    return res.status(500).json({
+      message: "Failed to fetch organization group",
+      error: error.message,
+    });
+  }
+   
+}
 export const getOrgGroupByIdController = async (
   req: Request,
   res: Response

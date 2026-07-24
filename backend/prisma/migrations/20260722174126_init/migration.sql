@@ -1,13 +1,15 @@
-/*
-  Warnings:
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "finance";
 
-  - You are about to drop the `AccountingYear` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `AccountingYear` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `OrganizationGroup` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `OrganizationUnit` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "organization";
 
-*/
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "user";
+
+-- CreateEnum
+CREATE TYPE "user"."Roles" AS ENUM ('ADMIN', 'EMPLOYEE');
+
 -- CreateEnum
 CREATE TYPE "organization"."YearStatus" AS ENUM ('OPEN', 'CLOSED');
 
@@ -17,23 +19,58 @@ CREATE TYPE "organization"."GstType" AS ENUM ('REGULAR', 'COMPOSITION');
 -- CreateEnum
 CREATE TYPE "organization"."GstStatus" AS ENUM ('VERIFIED', 'PENDING', 'FAILED');
 
--- DropTable
-DROP TABLE "finance"."AccountingYear";
+-- CreateTable
+CREATE TABLE "user"."User" (
+    "id" SERIAL NOT NULL,
+    "email" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "password" TEXT NOT NULL,
+    "role" "user"."Roles" NOT NULL DEFAULT 'EMPLOYEE',
 
--- DropTable
-DROP TABLE "public"."AccountingYear";
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
--- DropTable
-DROP TABLE "public"."OrganizationGroup";
+-- CreateTable
+CREATE TABLE "organization"."OrganizationGroup" (
+    "id" SERIAL NOT NULL,
+    "shortName" TEXT NOT NULL,
+    "logoUrl" TEXT,
+    "financialYear" TEXT NOT NULL,
+    "currency" TEXT NOT NULL,
+    "companyName" TEXT NOT NULL,
+    "cinNumber" TEXT NOT NULL,
+    "panNumber" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "phoneNumber" TEXT NOT NULL,
+    "website" TEXT,
+    "address" TEXT NOT NULL,
+    "state" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "pinCode" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'DRAFT',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
--- DropTable
-DROP TABLE "public"."OrganizationUnit";
+    CONSTRAINT "OrganizationGroup_pkey" PRIMARY KEY ("id")
+);
 
--- DropTable
-DROP TABLE "public"."User";
+-- CreateTable
+CREATE TABLE "organization"."OrganizationUnit" (
+    "id" SERIAL NOT NULL,
+    "organizationUnit" TEXT NOT NULL,
+    "unitType" TEXT NOT NULL,
+    "gstIn" TEXT NOT NULL,
+    "manager" TEXT NOT NULL,
+    "branchName" TEXT NOT NULL,
+    "OrganizationGroup" INTEGER NOT NULL,
+    "state" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'Active',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
--- DropEnum
-DROP TYPE "public"."Roles";
+    CONSTRAINT "OrganizationUnit_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "organization"."AccountingYear" (
@@ -78,6 +115,9 @@ CREATE TABLE "organization"."GSTMangement" (
 
     CONSTRAINT "GSTMangement_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "user"."User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "GSTMangement_gstin_key" ON "organization"."GSTMangement"("gstin");

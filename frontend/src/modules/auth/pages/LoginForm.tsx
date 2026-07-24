@@ -13,9 +13,10 @@ function LoginForm() {
   const handleLogin = async (e: SyntheticEvent) => {
     e.preventDefault()
     setLoading(true)
+    console.log(' email, password ', email, password )
     try {
       const response = await apiClient.post('/api/auth/login', { email, password })
-
+      console.log('email, password',email, password)
       if (response.status === 200 && response.data.token) {
         toast.success('Login successful!')
         login(response.data.token, response.data.user)
