@@ -158,7 +158,10 @@ useEffect(() => {
                 GSTIN <span className="text-red-500">*</span>
               </label>
               <input
-                {...register('gstin')}
+                {...register('gstin', {
+                  onChange: (e) => { e.target.value = e.target.value.toUpperCase() }
+                })}
+                maxLength={15}
                 className={`${inputClass} ${errors.gstin? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#043793]'}`}
                 placeholder="27AABCS1429B1ZB"
               />
@@ -174,24 +177,34 @@ useEffect(() => {
               />
               {errors.manager && <p className={errorClass}>{errors.manager.message}</p>}
             </div>
+<div>
+  <label className={labelClass}>
+    Group <span className="text-red-500">*</span>
+  </label>
 
-            <div>
-              <label className={labelClass}>Group</label>
-              <select
-                {...register('group')}
-                className={`${inputClass} border-gray-300 focus:border-[#043793]`}
-                
-              >
-              <option value='' disabled>Select org-group</option>
-              {groups && groups.map((group:any)=>(
-                  <option key={group.id}value={group.id}>
-                    {group.shortName}
-                    </option>
-                ))
-              }
-              </select>
-            </div>
+  <select
+    {...register("group")}
+    className={`${inputClass} ${
+      errors.group
+        ? "border-red-500 focus:ring-red-500"
+        : "border-gray-300 focus:border-[#043793]"
+    }`}
+  >
+    <option value="" disabled>
+      Select org-group
+    </option>
 
+    {groups.map((group: any) => (
+      <option key={group.id} value={group.id}>
+        {group.shortName}
+      </option>
+    ))}
+  </select>
+
+  {errors.group && (
+    <p className={errorClass}>{errors.group.message}</p>
+  )}
+</div>
             <div>
               <label className={labelClass}>State</label>
               <input
