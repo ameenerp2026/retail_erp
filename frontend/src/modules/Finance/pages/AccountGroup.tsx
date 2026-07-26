@@ -22,23 +22,21 @@ function AccountGroup() {
   const groups = Array.isArray(data) ? data : []
 
   return (
-     <div className="p-6 bg-slate-50 min-h-screen">
-       <div className="flex justify-between items-start mb-6">
+     <div className="page-shell">
+       <div className="page-header">
         <div>
-          <h1 className="text-[24px] text-[#043793] font-bold">Account Group</h1>
-          <p className="text-[13px] text-[#94A3B8]">Tree-based account structure management</p>
+          <h1 className="page-title">Account Group</h1>
+          <p className="page-subtitle">Tree-based account structure management</p>
         </div>
-        <button 
-          className="bg-slate-800 text-white px-4 py-2.5 rounded-xl bg-[linear-gradient(#093055,#043793)] text-sm font-medium flex items-center gap-2"
+        <button
+          type="button"
+          className="page-actions flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
         >
           <span>+</span> Add Root Group
         </button>
       </div>
-      {/* Tree card */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-
-        {/* Level legend */}
-        <div className="flex items-center gap-4 px-4 py-3 border-b border-slate-100">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-4 py-3 sm:gap-4">
           {LEVEL_LEGEND.map((level) => (
             <div key={level.label} className="flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${level.color}`} />

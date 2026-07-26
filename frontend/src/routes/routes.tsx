@@ -7,9 +7,9 @@ import OrganizationGroup from '../modules/Organization/pages/OrganizationGroup'
 import OrganizationUnit from '../modules/Organization/pages/OrganizationUnit';
 import AccountGroup from '../modules/Finance/pages/AccountGroup';
 import AccountClass from '../modules/Finance/pages/AccountClass';
-import Ledger from '../modules/Finance/Ledger';
-import SubLedger from '../modules/Finance/SubLedger';
-import Currency from '../modules/Finance/Currency';
+import Ledger from '../modules/Finance/pages/Ledger';
+import SubLedger from '../modules/Finance/pages/SubLedger';
+import Currency from '../modules/Finance/pages/Currency';
 import Finance from '../modules/Finance/Finance'
 import AccountingYearPage from "@/modules/Organization/pages/AccountingYearPage"
 import FinanceMonths from "@/modules/Organization/pages/FinanceMonths"
