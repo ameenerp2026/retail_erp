@@ -14,17 +14,17 @@ export type FinanceStat = {
 export type FinancePeriodStatus = Extract<StatusType, 'Open' | 'Closed' | 'Future' | 'Provisional'>
 
 export type FinancePeriod = {
-  id: string
+  id: number
   periodId: string
   period: string
   startDate: string
   endDate: string
   financeStatus: FinancePeriodStatus
-  transactions: number
-  lastClosedBy: string | null
+  // transactions: number
+  // lastClosedBy: string | null
   lastUpdated: string
   /** Kept for shared period filters used by inventory screens */
-  invStatus?: StatusType
-  cogsStatus?: StatusType
-  lastModified?: string
+  // invStatus?: StatusType
+  // cogsStatus?: StatusType
+  // lastModified?: string
 }

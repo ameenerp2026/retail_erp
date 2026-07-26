@@ -50,7 +50,6 @@ function OrganizationGroup() {
         }
       })
       console.log('formData',formData)
-      //TODO: replace with API call
       const res =  await apiClient.post('/api/organization/org-group',data) 
        
 

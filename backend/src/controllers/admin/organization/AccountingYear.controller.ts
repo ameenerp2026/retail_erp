@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import {createAccountingYear,getAccountingYear} from '../../../services/admin/organization/AccountingYear.service.js'
+import {createAccountingYear,getAccountingYear,getAccountingYearById} from '../../../services/admin/organization/AccountingYear.service.js'
 
 
 export const createAccountingYearController = async (
@@ -9,8 +9,8 @@ export const createAccountingYearController = async (
 ) => {
   console.log('createAccountingYearController',req.body)
   try {
-    
-    const result = await createAccountingYear(req.body);
+    const userId = (req as any).user.id;;
+    const result = await createAccountingYear(req.body,userId);
 
     return res.status(201).json({
       message: "Accounting Year created successfully",
@@ -30,11 +30,38 @@ export const getAccountingYearController = async (
   req: Request,
   res: Response
 ) => {
+   try {
+     const years = await getAccountingYear();
+
+  if (!years) {
+      return res.status(404).json({
+        message: "Accounting year not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Accounting year  fetched successfully",
+      data: years,
+    });
+  }
+   catch (error: any) {
+    return res.status(500).json({
+      message: "Failed to fetch Accounting year ",
+      error: error.message,
+    });
+  }
+   
+}
+
+export const getAccountingYearByIdController = async (
+  req: Request,
+  res: Response
+) => {
   try {
     
     const id = Number(req.params.id);
 
-    const result = await getAccountingYear(id);
+    const result = await getAccountingYearById(id);
 
     if (!result) {
       return res.status(404).json({

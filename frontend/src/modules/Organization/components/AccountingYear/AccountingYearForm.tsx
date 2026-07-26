@@ -15,7 +15,6 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
   const [formData, setFormData] = useState<AccountingYearFormData>({
     fromDate: '',
     toDate: '',
-    yearName: ''
   })
   const [errors, setErrors] = useState<Errors>({})
 
@@ -148,7 +147,7 @@ console.log('payload',payload)
                     </div>
                 </div>
 
-                <div>
+                {/* <div>
                     <label className="block text-sm text-slate-400 mb-1">Year Name</label>
                     <input
                         type="text"
@@ -161,7 +160,7 @@ console.log('payload',payload)
                     />
                     {errors.yearName && <p className="text-xs text-red-500 mt-1">{errors.yearName}</p>}
                 </div>
-            
+             */}
         </form>
         {/*footer*/}
         <div className="px-6 py-4 bg-slate-50 border-t border-gray-200 flex justify-end gap-3 shrink-0">

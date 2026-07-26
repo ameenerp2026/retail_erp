@@ -80,22 +80,22 @@ useEffect(() => {
 
   const onSubmit = async(data: OrgUnitFormData) => {
     onSave(data )
-//     try{
-//     const res = await apiClient.post('/api/organizationUnit/org-unit',data)
+    try{
+    const res = await apiClient.post('/api/organizationUnit/org-unit',data)
     
-//       if (res.status !== 201) {
-//   throw new Error("Save failed");
-// }
+      if (res.status !== 201) {
+  throw new Error("Save failed");
+}
 
 
-//       const result = await res.data;
-//       console.log('API Response:', result)
+      const result = await res.data;
+      console.log('API Response:', result)
 
      
-//     } catch (err) {
-//       console.error(err)
-//     //  toast.error('Failed to save')
-//     }
+    } catch (err) {
+      console.error(err)
+    //  toast.error('Failed to save')
+    }
   }
 
   const inputClass = "mt-1.5 w-full h-10 px-3 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#043793] transition"
@@ -158,10 +158,7 @@ useEffect(() => {
                 GSTIN <span className="text-red-500">*</span>
               </label>
               <input
-                {...register('gstin', {
-                  onChange: (e) => { e.target.value = e.target.value.toUpperCase() }
-                })}
-                maxLength={15}
+                {...register('gstin')}
                 className={`${inputClass} ${errors.gstin? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#043793]'}`}
                 placeholder="27AABCS1429B1ZB"
               />
@@ -177,34 +174,24 @@ useEffect(() => {
               />
               {errors.manager && <p className={errorClass}>{errors.manager.message}</p>}
             </div>
-<div>
-  <label className={labelClass}>
-    Group <span className="text-red-500">*</span>
-  </label>
 
-  <select
-    {...register("group")}
-    className={`${inputClass} ${
-      errors.group
-        ? "border-red-500 focus:ring-red-500"
-        : "border-gray-300 focus:border-[#043793]"
-    }`}
-  >
-    <option value="" disabled>
-      Select org-group
-    </option>
+            <div>
+              <label className={labelClass}>Group</label>
+              <select
+                {...register('group')}
+                className={`${inputClass} border-gray-300 focus:border-[#043793]`}
+                
+              >
+              <option value='' disabled>Select org-group</option>
+              {groups && groups.map((group:any)=>(
+                  <option key={group.id}value={group.id}>
+                    {group.shortName}
+                    </option>
+                ))
+              }
+              </select>
+            </div>
 
-    {groups.map((group: any) => (
-      <option key={group.id} value={group.id}>
-        {group.shortName}
-      </option>
-    ))}
-  </select>
-
-  {errors.group && (
-    <p className={errorClass}>{errors.group.message}</p>
-  )}
-</div>
             <div>
               <label className={labelClass}>State</label>
               <input

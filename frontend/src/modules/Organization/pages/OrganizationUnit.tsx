@@ -70,8 +70,18 @@ function OrganizationUnit() {
     setCurrentPage(1)
   }, [searchTerm, statusFilter])
 const fetchUnits = async () => {
+    try {
+    setLoading(true);
+
     const res = await apiClient.get("/api/organizationUnit/org-unit");
+
     setUnits(res.data.data);
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to fetch organization units");
+  } finally {
+    setLoading(false);
+  }
   };
 
   useEffect(() => {

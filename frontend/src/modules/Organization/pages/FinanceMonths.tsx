@@ -1,19 +1,30 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState,useEffect} from 'react'
 import { Calendar, Download, Plus, RefreshCw, Search, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import PeriodTable from '../components/FinanceMonths/FinanceTable'
 //import FinanceSetupStatCards from '../components/FinanceMonths/FinanceSetupStatCards'
 import { financeService } from '@/services/financeService'
 import type { FinancePeriodStatus } from '@/types/finance'
-
+import toast from 'react-hot-toast' // or your toast lib
+import apiClient from '../../../services/apiClient'
 type StatusTab = 'All' | FinancePeriodStatus
 
 const STATUS_TABS: StatusTab[] = ['All', 'Open', 'Closed', 'Future']
-
+export type FinancePeriod = {
+  id: number;          // <-- change from string to number
+  periodId: string;
+  period: string;
+  startDate: string;
+  endDate: string;
+  financeStatus: FinancePeriodStatus;
+  lastUpdated: string;
+};
 export default function FinanceMonths() {
   const [statusTab, setStatusTab] = useState<StatusTab>('All')
   const [search, setSearch] = useState('')
   const [dateFilter, setDateFilter] = useState('')
+  const[finance,setFinance]=useState<FinancePeriod[]>([])
+const [loading, setLoading] = useState(false)
 
   const { data: periods = [], isLoading: periodsLoading } = useQuery({
     queryKey: ['finance-periods'],
@@ -25,8 +36,49 @@ export default function FinanceMonths() {
     queryFn: financeService.getStats,
   })
 
+    const fetchFinanceMonths = async () => {
+      try {
+      setLoading(true);
+  
+      const financeData = await apiClient.get("/api/financeMonth/finance-month");
+        const formattedFinance:FinancePeriod[] = financeData.data.data.map((period: any) => ({
+    ...period,
+    periodId: `P${String(period.id).padStart(2, "0")}`, 
+     startDate: new Date(period.startDate).toLocaleDateString("en-GB", {
+    timeZone: "UTC",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }),
+
+  endDate: new Date(period.endDate).toLocaleDateString("en-GB", {
+    timeZone: "UTC",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }),
+    lastUpdated:new Date(period.updatedAt).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
+  }));
+      setFinance(formattedFinance)
+      console.log('financeData',formattedFinance)
+} catch (error) {
+      console.error(error);
+      toast.error("Failed to fetch organization units");
+    } finally {
+      setLoading(false);
+    }
+    };
+     useEffect(() => {
+        
+        fetchFinanceMonths();
+      }, []);
+
   const filteredPeriods = useMemo(() => {
-    return periods.filter((period) => {
+    return finance.filter((period) => {
       if (statusTab !== 'All' && period.financeStatus !== statusTab) return false
       if (
         search &&
@@ -35,6 +87,7 @@ export default function FinanceMonths() {
       ) {
         return false
       }
+      
       if (dateFilter) {
         const needle = dateFilter.toLowerCase()
         if (
@@ -60,16 +113,6 @@ export default function FinanceMonths() {
   if (statsLoading || periodsLoading) {
     return <div className="page-shell text-sm text-slate-500">Loading...</div>
   }
-  console.log('stats',stats)
-// const financeCards = stats.map((stat) => ({
-//   id:          stat.id,
-//   label:       stat.label,
-//   count:       stat.count,
-//   logo:        CARD_CONFIG[stat.type].logo,
-//   logoBgColor: CARD_CONFIG[stat.type].logoBgColor,
-// }))
-  
-    
   return (
     <div className="page-shell">
       <div className="page-header">

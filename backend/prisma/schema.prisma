@@ -110,7 +110,7 @@ model FinanceMonth {
   period        String
   startDate     DateTime
   endDate       DateTime
-  financeStatus String
+  financeStatus FinanceStatus @default(Open)
 
   accountingYearId Int
   accountingYear   AccountingYear @relation(fields: [accountingYearId], references: [id], onDelete: Cascade)
@@ -120,7 +120,13 @@ model FinanceMonth {
 
   @@schema("organization")
 }
+enum FinanceStatus {
+  Open
+  Closed
+  Provisional
 
+  @@schema("organization")
+}
 model GSTMangement {
   id               Int       @id @default(autoincrement())
   gstin            String    @unique
