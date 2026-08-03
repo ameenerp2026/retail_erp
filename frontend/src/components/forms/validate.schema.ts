@@ -67,6 +67,57 @@ export const orgUnitSchema = z.object({
 export type OrgUnitFormData = z.infer<typeof orgUnitSchema> & {
   id?: string
 }
+
+
+export const businessLocationSchema = z.object({
+  locationName: z.string().min(1, 'Location Name is required'),
+  locationCode: z.string().min(1, 'Location Code is required'),
+  parentOrganizationUnit: z.string().min(1, 'Select organization unit'),
+  locationType: z.string().min(1, 'Select location Type'),
+   businessCategory: z.string().min(1, 'Select Business Category'),
+   addressLine1: z.string().min(1, 'Address Line1 is required'),
+   addressLine2: z.string().min(1, 'Address Line2 is required'),
+   landmark: z.string().min(1, 'Landmark is required'),
+   city: z.string().min(1, 'City Name is required'),
+   state: z.string().min(1, 'Select location State'),
+   country: z.string().min(1, 'Select Business Country'),
+pinCode: z.string()
+  .trim()
+  .length(6, "PIN Code must be 6 digits")
+  .regex(/^[1-9]\d{5}$/, "Invalid PIN Code format"),
+   contactPerson: z.string().min(1, 'Contact Person is required'),
+  phoneNumber: z.string()
+  .trim()
+  .optional()
+  .refine(val => !val || /^[0-9]{10}$/.test(val), {
+    message: "Phone number must be 10 digits"
+  }),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+emergencyContact: z.string()
+  .trim()
+  .optional()
+  .refine(val => !val || /^[0-9]{10}$/.test(val), {
+    message: "Emergency Contact must be 10 digits"
+  }),
+ 
+  linkedGSTIN: z.string().min(1, 'Select Linked GSTIN'),
+  registrationType: z.string().min(1, 'Select Registration Type'),
+ defaultBillingLocation:z.boolean(),
+ defaultStockLocation:z.boolean(),
+ allowSales:z.boolean(),
+  allowPurchase:z.boolean(),
+ allowInventory:z.boolean(),
+ allowDispatch:z.boolean(),
+ allowPOS:z.boolean(),
+ status:z.boolean(),
+ defaultWarehouse: z.string().min(1, 'Select Warehouse'),
+ parentWarehouse: z.string().min(1, 'Select Parent Warehouse'),
+})
+
+export type businessLocationFormData = z.infer<typeof businessLocationSchema>
+
+
+
 export const accountingYearSchema = z.object({
   fromDate: z.string().min(1, 'Start date is required'),
   toDate: z.string().min(1, 'End date is required'),

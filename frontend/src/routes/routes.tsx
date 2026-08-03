@@ -5,6 +5,7 @@ import DashBoardLayout from "../layouts/DashBoardLayout"
 import DashBoard from "../modules/dashboard/pages/DashBoard"
 import OrganizationGroup from '../modules/Organization/pages/OrganizationGroup'
 import OrganizationUnit from '../modules/Organization/pages/OrganizationUnit';
+import BusinessLocationPage from '../modules/Organization/businessLocation/BusinessLocationPage'
 import AccountGroup from '../modules/Finance/pages/AccountGroup';
 import AccountClass from '../modules/Finance/pages/AccountClass';
 import Ledger from '../modules/Finance/pages/Ledger';
@@ -53,6 +54,7 @@ console.log("isLoggedIn:", isLoggedIn);
       <Route path="/organization">
         <Route path="org-group" element={<OrganizationGroup />} />
         <Route path="org-unit" element={<OrganizationUnit />} />
+        <Route path='businessLocation' element={<BusinessLocationPage />} />
         <Route path="accounting-year" element={<AccountingYearPage />} />
         <Route path="finance-month" element={<FinanceMonths />} />
         <Route path="inventory-month" element={<InventoryMonths />} />

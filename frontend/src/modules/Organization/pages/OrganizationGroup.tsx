@@ -4,7 +4,7 @@ import { Lock, Save, Upload, Unlock } from "lucide-react"
 import { useState } from 'react'
 import FormInput from '../../../components/forms/FormInput'
 import { organizationSchema, type OrganizationFormData } from '../../../components/forms/validate.schema'
-import toast from 'react-hot-toast' // or your toast lib
+import toast from 'react-hot-toast' 
 import apiClient from "../../../services/apiClient";
 type RecordStatus = 'DRAFT' | 'LOCKED' | 'ACTIVE'
 
