@@ -8,15 +8,29 @@ type Options = {
 type FormInputProps = {
   label: string
   error?: string
-  type?: "text" | "email" | "password" | "date" | "textarea" | "select"|"file"
+  type?: "text" | "email" | "password" | "date" | "textarea" | "select"|"file" | "toggle"
   required?: boolean
   readOnly?: boolean
   options?: Options[]
   buttonText?: string
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, 'name'>
 
 const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement, FormInputProps>(
-  ({ label, error, type = "text", required, readOnly, options = [],buttonText = "Choose File",...rest }, ref) => {
+  ({ 
+ label,
+    error,
+    type = "text",
+    required,
+    readOnly,
+    options = [],
+    buttonText = "Choose File",
+    checked,
+    onCheckedChange,
+
+    ...rest},
+   ref) => {
     
     const baseClass = `w-full border rounded-xl px-4 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#043793] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500 ${
       error ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'
@@ -81,7 +95,52 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextArea
               </option>
             ))}
           </select>
-        ) : (
+        ) :type === 'toggle' ?(
+        <label className="flex items-center justify-between w-full cursor-pointer">
+    <span className="text-sm text-slate-600">
+      {checked ? "Active" : "Inactive"}
+    </span>
+
+    <div className="relative">
+      <input
+        ref={ref as React.Ref<HTMLInputElement>}
+        type="checkbox"
+          checked={checked}
+  onChange={(e) => onCheckedChange?.(e.target.checked)}
+        className="sr-only peer"
+        disabled={readOnly}
+      />
+
+      <div
+        className="
+          w-12
+          h-6
+          rounded-full
+          bg-gray-300
+          peer-checked:bg-[#043793]
+          transition-colors
+          duration-300
+        "
+      />
+
+      <div
+        className="
+          absolute
+          top-[2px]
+          left-[2px]
+          w-5
+          h-5
+          rounded-full
+          bg-white
+          shadow-md
+          transition-transform
+          duration-300
+          peer-checked:translate-x-6
+        "
+      />
+    </div>
+  </label>
+        ) :(
           <input
             ref={ref as React.Ref<HTMLInputElement>}
             type={type}

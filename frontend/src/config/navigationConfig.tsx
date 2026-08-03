@@ -33,6 +33,7 @@ export const MODULE_ROUTES: ModuleRoute[] = [
     tabs: [
       { label: "Org Group", path: "org-group" },
       { label: "Org Unit", path: "org-unit" },
+      { label: "Business Location", path: "businessLocation" },
       { label: "Accounting Year", path: "accounting-year" },
       { label: "Finance Month", path: "finance-month" },
       { label: "Inventory Month", path: "inventory-month" },
