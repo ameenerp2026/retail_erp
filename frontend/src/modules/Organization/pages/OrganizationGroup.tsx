@@ -6,6 +6,8 @@ import FormInput from '../../../components/forms/FormInput'
 import { organizationSchema, type OrganizationFormData } from '../../../components/forms/validate.schema'
 import toast from 'react-hot-toast' 
 import apiClient from "../../../services/apiClient";
+import { getCountries, getStates } from '../../../services/location.service'
+
 type RecordStatus = 'DRAFT' | 'LOCKED' | 'ACTIVE'
 
 function OrganizationGroup() {
@@ -14,10 +16,11 @@ function OrganizationGroup() {
   const {
     register,
     handleSubmit,
-    //watch,
+    watch,
     formState: { errors },
     getValues
   } = useForm<OrganizationFormData>({
+
     resolver: zodResolver(organizationSchema),
     defaultValues: {
       shortName: '',
@@ -95,7 +98,12 @@ function OrganizationGroup() {
  // const logoFiles = watch('logo')
   //const fileName = logoFiles?.[0]?.name
 
+  const selectedCountry = watch('country')
+  const countries = getCountries()
+  const states = selectedCountry ? getStates(selectedCountry) : []
+
   return (
+
     <form onSubmit={handleSubmit(onSave, (errors) => {
       console.log(errors);
     })} className="page-shell">
@@ -255,28 +263,20 @@ function OrganizationGroup() {
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormInput
-                    label="State"
-                    type='select'
-                    required
-                    options={[
-                      { label: "Karnataka", value: "KA" },
-                      { label: "Maharashtra", value: "MH" },
-                      { label: "Delhi", value: "DL" }
-                    ]}
-                    {...register('state')}
-                    error={errors.state?.message}
-                  />
-                  <FormInput
                     label="Country"
                     type='select'
                     required
-                    options={[
-                      { label: "India", value: "IN" },
-                      { label: "USA", value: "US" },
-                      { label: "UAE", value: "AE" }
-                    ]}
+                    options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
                     {...register('country')}
                     error={errors.country?.message}
+                  />
+                  <FormInput
+                    label="State"
+                    type='select'
+                    required
+                    options={states.map((s) => ({ label: s.name, value: s.isoCode }))}
+                    {...register('state')}
+                    error={errors.state?.message}
                   />
                   <FormInput
                     label='Pin Code'
@@ -285,6 +285,7 @@ function OrganizationGroup() {
                     error={errors.pinCode?.message}
                   />
                 </div>
+
               </div>
             </div>
           </div>
