@@ -1,6 +1,6 @@
 import type { StatusType } from '@/components/shared/StatusTags'
 
-export type FinanceStatType = 'activeFy' | 'open' | 'closed' | 'entries'
+export type FinanceStatType = 'activeFy' | 'open' | 'closed' | 'provisional' | 'entries'
 
 export type FinanceStat = {
   id: string

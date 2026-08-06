@@ -5,10 +5,11 @@ import { getFinanceSetupColumns } from './FinanceColumns'
 type PeriodTableProps = {
   periods: FinancePeriod[]
   loading?: boolean
+  onSelect?: (period: FinancePeriod) => void
 }
 
-export default function PeriodTable({ periods = [], loading = false }: PeriodTableProps) {
-  const columns = getFinanceSetupColumns()
+export default function PeriodTable({ periods = [], loading = false, onSelect }: PeriodTableProps) {
+  const columns = getFinanceSetupColumns({ onSelect })
 
   return (
     <div className="w-full overflow-x-auto">

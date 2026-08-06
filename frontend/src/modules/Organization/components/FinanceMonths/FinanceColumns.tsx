@@ -1,94 +1,59 @@
 import type { ColumnsType } from 'antd/es/table'
 import type { FinancePeriod } from '@/types/finance'
 import StatusTag from '@/components/shared/StatusTags'
-import { MoreVertical } from 'lucide-react'
 
-const MAX_TXNS = 4500
+type ColumnOptions = {
+  onSelect?: (period: FinancePeriod) => void
+}
 
-export function getFinanceSetupColumns(): ColumnsType<FinancePeriod> {
+export function getFinanceSetupColumns({ onSelect }: ColumnOptions = {}): ColumnsType<FinancePeriod> {
   return [
     {
-      title: 'PERIOD NAME',
+      title: 'PERIOD',
       dataIndex: 'period',
       key: 'period',
+      sorter: (a, b) => a.period.localeCompare(b.period),
       render: (_text, record) => (
-        <div className="min-w-[100px]">
-          <p className="text-sm font-semibold text-[#043793]">{record.period}</p>
-          <p className="text-[11px] text-slate-400">ID: {record.periodId}</p>
-        </div>
+        <button
+          type="button"
+          onClick={() => onSelect?.(record)}
+          className="text-sm font-semibold text-[#043793] hover:underline"
+        >
+          {record.period}
+        </button>
       ),
     },
     {
       title: 'START DATE',
       dataIndex: 'startDate',
       key: 'startDate',
+      sorter: (a, b) => a.startDate.localeCompare(b.startDate),
       render: (text) => <span className="text-sm text-[#1A2332]">{text}</span>,
     },
     {
       title: 'END DATE',
       dataIndex: 'endDate',
       key: 'endDate',
+      sorter: (a, b) => a.endDate.localeCompare(b.endDate),
       render: (text) => <span className="text-sm text-[#1A2332]">{text}</span>,
     },
     {
-      title: 'Finance STATUS',
+      title: 'FINANCE STATUS',
       dataIndex: 'financeStatus',
       key: 'financeStatus',
+      sorter: (a, b) => a.financeStatus.localeCompare(b.financeStatus),
       render: (status: FinancePeriod['financeStatus']) => (
-        <StatusTag status={status} variant="icon" />
+        <StatusTag status={status} variant="dot" />
       ),
     },
-    // {
-    //   title: 'TRANSACTIONS',
-    //   dataIndex: 'transactions',
-    //   key: 'transactions',
-    //   render: (count: number) => {
-    //     const pct = Math.min(100, Math.round((count / MAX_TXNS) * 100))
-    //     return (
-    //       <div className="min-w-[88px]">
-    //         <p className="text-sm font-medium text-[#043793]">
-    //           {count > 0 ? count.toLocaleString() : '—'}
-    //         </p>
-    //         {count > 0 && (
-    //           <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-    //             <div
-    //               className="h-full rounded-full bg-[#3B82F6]"
-    //               style={{ width: `${pct}%` }}
-    //             />
-    //           </div>
-    //         )}
-    //       </div>
-    //     )
-    //   },
-    // },
-    // {
-    //   title: 'LAST CLOSED BY',
-    //   dataIndex: 'lastClosedBy',
-    //   key: 'lastClosedBy',
-    //   render: (name: string | null) => (
-    //     <span className="text-sm text-[#1A2332]">{name ?? '—'}</span>
-    //   ),
-    // },
     {
-      title: 'LAST UPDATED',
-      dataIndex: 'lastUpdated',
-      key: 'lastUpdated',
-      render: (text) => <span className="text-sm text-[#1A2332]">{text}</span>,
+      title: 'LAST MODIFIED',
+      dataIndex: 'lastModified',
+      key: 'lastModified',
+      sorter: (a, b) => (a.lastModified ?? '').localeCompare(b.lastModified ?? ''),
+      render: (text, record) => (
+        <span className="text-sm text-slate-400">{text ?? record.lastUpdated}</span>
+      ),
     },
-    // {
-    //   title: 'ACTIONS',
-    //   key: 'action',
-    //   width: 64,
-    //   align: 'center',
-    //   render: () => (
-    //     <button
-    //       type="button"
-    //       className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-    //       aria-label="Row actions"
-    //     >
-    //       <MoreVertical size={16} />
-    //     </button>
-    //   ),
-    // },
   ]
 }

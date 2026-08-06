@@ -8,6 +8,7 @@ type Options = {
 type FormInputProps = {
   label: string
   error?: string
+  hint?: string
   type?: "text" | "email" | "password" | "date" | "textarea" | "select"|"file" | "toggle"
   required?: boolean
   readOnly?: boolean
@@ -21,6 +22,7 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextArea
   ({ 
  label,
     error,
+    hint,
     type = "text",
     required,
     readOnly,
@@ -31,6 +33,7 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextArea
 
     ...rest},
    ref) => {
+
     
     const baseClass = `w-full border rounded-xl px-4 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#043793] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500 ${
       error ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'
@@ -149,7 +152,8 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextArea
             {...rest}
           />
         )}
-        
+
+        {hint && !error && <p className="text-[11px] text-[#94A3B8] mt-1">{hint}</p>}
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       </div>
     )

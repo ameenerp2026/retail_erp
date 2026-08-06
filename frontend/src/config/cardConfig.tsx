@@ -1,4 +1,4 @@
-import { Calendar, Lock, Unlock, TrendingUp } from 'lucide-react'
+import { Calendar, Lock, TrendingUp, Clock } from 'lucide-react'
 import type { FinanceStatType } from '@/types/finance'
 
 type CardConfig = {
@@ -14,14 +14,19 @@ export const CARD_CONFIG: Record<FinanceStatType, CardConfig> = {
     valueColor: 'text-[#0B4D8C]',
   },
   open: {
-    logo: <Unlock size={18} className="text-[#22C55E]" />,
-    logoBgColor: 'bg-[rgba(34,197,94,0.09)]',
-    valueColor: 'text-[#22C55E]',
+    logo: <Calendar size={18} className="text-[#2B7FFF]" />,
+    logoBgColor: 'bg-[rgba(43,127,255,0.09)]',
+    valueColor: 'text-[#1A2332]',
   },
   closed: {
     logo: <Lock size={18} className="text-[#EF4444]" />,
     logoBgColor: 'bg-[rgba(239,68,68,0.09)]',
-    valueColor: 'text-[#EF4444]',
+    valueColor: 'text-[#1A2332]',
+  },
+  provisional: {
+    logo: <Clock size={18} className="text-[#FE9A00]" />,
+    logoBgColor: 'bg-[rgba(254,154,0,0.09)]',
+    valueColor: 'text-[#1A2332]',
   },
   entries: {
     logo: <TrendingUp size={18} className="text-[#14B8A6]" />,
