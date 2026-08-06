@@ -189,9 +189,9 @@ return(
                     type='select'
                     required
                     options={[
-                      { label: "India", value: "IN" },
-                      { label: "USA", value: "US" },
-                      { label: "UAE", value: "AE" }
+                      { label: "Store", value: "store" },
+                      { label: "Wherehouse", value: "wherehouse" },
+                      { label: "Branch", value: "branch" }
                     ]}
                     {...register('locationType')}
                     error={errors.locationType?.message}
@@ -201,9 +201,9 @@ return(
                     type='select'
                     required
                     options={[
-                      { label: "India", value: "IN" },
-                      { label: "USA", value: "US" },
-                      { label: "UAE", value: "AE" }
+                      { label: "Lifestyle", value: "lifestyle" },
+                      { label: "Fashion", value: "fashion" },
+                      { label: "FMCG", value: "FMCG" }
                     ]}
                     {...register('businessCategory')}
                     error={errors.businessCategory?.message}
