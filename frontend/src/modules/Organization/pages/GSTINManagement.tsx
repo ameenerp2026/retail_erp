@@ -3,18 +3,29 @@ import { GSTIN_STAT_CARDS } from "@/config/gstinCardConfig";
 import SimpleStatCard from "@/components/shared/SimpleStatCard";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { getGSTINColumns } from "../components/GSTINManagement/GSTINColumns";
+import GSTINModal from "../components/GSTINManagement/GSTINModal";
 import { GSTINRecord } from "@/types/gstin";
+import type { GstinFormData } from "@/components/forms/validate.schema";
 import ReusableTable from "@/components/shared/ReusableTable";
 import { gstinService } from "@/services/gstinService";
 
 export default function GSTINManagement() {
     const [search, setSearch] = useState('')
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
   const { data: records = [] } = useQuery({
     queryKey: ['gstin-records'],
     queryFn: gstinService.getAll,
   })
+
+  function handleAddGSTIN(data: GstinFormData) {
+    console.log("Add GSTIN", data)
+    toast.success("GSTIN added")
+    // TODO: call API to persist and refetch
+  }
+
 
   const filteredRecords = useMemo(() => {
     if (!search) return records
@@ -41,11 +52,13 @@ export default function GSTINManagement() {
                 </div>
                 <button
                     type="button"
+                    onClick={() => setIsModalOpen(true)}
                     className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
                 >
                     <span><Plus size={18} /></span> Add GSTIN
                 </button>
             </div>
+
             <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                 {GSTIN_STAT_CARDS.map((card) => (
                     <SimpleStatCard
@@ -73,6 +86,15 @@ export default function GSTINManagement() {
                 data={filteredRecords}
                 rowKey="id"
             />
+
+            {/* Add GSTIN modal */}
+            <GSTINModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleAddGSTIN}
+            />
         </div>
     )
 }
+
+

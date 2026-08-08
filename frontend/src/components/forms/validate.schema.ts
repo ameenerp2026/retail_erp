@@ -184,3 +184,24 @@ export const currencySchema = z.object({
 })
 
 export type CurrencyFormData = z.infer<typeof currencySchema>
+// ── GSTIN ──────────────────────────────────────────────────────
+export const gstinSchema = z.object({
+  gstin: z.string()
+    .trim()
+    .toUpperCase()
+    .min(1, 'GSTIN is required')
+    .length(15, 'GSTIN must be 15 characters')
+    .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid GSTIN format'),
+
+  state: z.string().min(1, 'State is required'),
+
+  orgUnit: z.string().min(1, 'Org Unit is required'),
+
+  type: z.enum(['Regular', 'Composition'], {
+    message: 'Type is required'
+  }),
+})
+
+export type GstinFormData = z.infer<typeof gstinSchema>
+
+
