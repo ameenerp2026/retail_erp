@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { OrgUnitFormData, orgUnitSchema } from '@/components/forms/validate.schema'
 import apiClient from "../../../services/apiClient";
+import { getCountries, getStates } from '../../../services/location.service'
+
 interface OrganizationUnit {
   id: number;
   organizationUnit: string;
@@ -35,6 +37,7 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors }
   } = useForm<OrgUnitFormData>({
     resolver: zodResolver(orgUnitSchema),
@@ -44,10 +47,16 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
     gstin: '',
     manager: '',
     group: '',
+    country: '',
     state: '',
     address: '',
   },
   })
+
+  const selectedCountry = watch('country')
+  const countries = getCountries()
+  const states = selectedCountry ? getStates(selectedCountry) : []
+
 
   useEffect(() => {
      console.log('editData',editData);
@@ -193,13 +202,35 @@ useEffect(() => {
             </div>
 
             <div>
+              <label className={labelClass}>Country</label>
+              <select
+                {...register('country')}
+                className={`${inputClass} border-gray-300 focus:border-[#043793]`}
+              >
+                <option value=''>Select country</option>
+                {countries.map((c) => (
+                  <option key={c.isoCode} value={c.isoCode}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
               <label className={labelClass}>State</label>
-              <input
+              <select
                 {...register('state')}
                 className={`${inputClass} border-gray-300 focus:border-[#043793]`}
-                placeholder="KA"
-              />
+              >
+                <option value=''>Select state</option>
+                {states.map((s) => (
+                  <option key={s.isoCode} value={s.isoCode}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
             </div>
+
 
             <div className="col-span-2">
               <label className={labelClass}>Address</label>
