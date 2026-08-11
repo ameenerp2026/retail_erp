@@ -38,7 +38,6 @@ const GSTIN_OPTIONS = [
 const GST_REGISTRATION_OPTIONS = [
   { label: 'Regular', value: 'REGULAR' },
   { label: 'Composition', value: 'COMPOSITION' },
-  { label: 'Unregistered', value: 'UNREGISTERED' },
   { label: 'SEZ', value: 'SEZ' },
 ]
 
@@ -59,7 +58,7 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
     resolver: zodResolver(businessLocationSchema),
     defaultValues: {
       locationName: '',
-      locationCode: '',
+      //locationCode: '',
       parentOrganizationUnit: '',
       locationType: '',
       businessCategory: '',
@@ -91,7 +90,7 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
 
   const country = watch('country')
   const state = watch('state')
-  const locationCode = watch('locationCode')
+ // const locationCode = watch('locationCode')
 
   const countries = getCountries()
   const states = country ? getStates(country) : []
@@ -157,16 +156,16 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
           <div className="section-card h-full">
             <h4 className="section-title text-[#043793]">Location Summary</h4>
 
-            <div className="my-5 flex flex-col items-center">
+            {/* <div className="my-5 flex flex-col items-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[linear-gradient(#093055,#043793)] text-white">
                 <MapPin size={26} />
               </div>
               <span className="mt-2 text-sm font-semibold text-[#043793]">
                 {locationCode || 'BL'}
               </span>
-            </div>
-
-            <FormInput label="Location Code" readOnly {...register('locationCode')} />
+            </div> */}
+{/* 
+          //  <FormInput label="Location Code" readOnly {...register('locationCode')} /> */}
 
             <FormInput
               label="Location Type"
@@ -225,14 +224,14 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
                 {...register('locationName')}
                 error={errors.locationName?.message}
               />
-              <FormInput
+              {/* <FormInput
                 label="Location Code"
                 required
                 placeholder="e.g. BL001"
                 hint="Location Code must be unique."
                 {...register('locationCode')}
                 error={errors.locationCode?.message}
-              />
+              /> */}
               <FormInput
                 label="Parent Organization Unit"
                 type="select"

@@ -11,12 +11,14 @@ datasource db {
 
 model User {
   id                     Int              @id @default(autoincrement())
+  name                   String
   email                  String           @unique
   createdAt              DateTime         @default(now())
   password               String
   role                   Roles            @default(EMPLOYEE)
   createdAccountingYears AccountingYear[] @relation("CreatedAccountingYears")
   updatedAccountingYears AccountingYear[] @relation("UpdatedAccountingYears")
+  createdGSTINs GSTIN[]  @relation("UserCreatedGSTINs")
 
   @@schema("user")
 }
@@ -67,13 +69,15 @@ model OrganizationUnit {
   organizationGroupId Int
 
    organizationGroup OrganizationGroup @relation(fields: [organizationGroupId],references: [id])
+
   state             String
   address           String
-  status           String   @default("Active")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  status            String   @default("Active")
+  gstins            GSTIN[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
   
-
+businessLocations BusinessLocation[]
   @@schema("organization")
 }
 
@@ -127,6 +131,132 @@ enum FinanceStatus {
 
   @@schema("organization")
 }
+
+
+
+model GSTIN {
+  id                  Int      @id @default(autoincrement())
+
+  gstin               String   @unique
+
+  state               String
+
+ organizationUnitId  Int
+  organizationUnit   OrganizationUnit @relation(fields: [organizationUnitId], references: [id])
+       
+  registrationType    RegistrationType
+
+  status GSTINStatus @default(PENDING)
+  createdById         Int
+  createdBy          User @relation("UserCreatedGSTINs", fields: [createdById], references: [id])
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  businessLocations   BusinessLocation[]
+
+  @@schema("organization")
+}
+
+
+enum RegistrationType {
+  REGULAR
+  COMPOSITION
+  SEZ
+   @@schema("organization")
+
+}
+
+enum GSTINStatus {
+  VERIFIED
+  FAILED
+  PENDING
+
+  @@schema("organization")
+}
+
+model BusinessLocation {
+  id Int @id @default(autoincrement())
+
+  // BASIC INFORMATION
+  locationName String
+  locationCode String @unique
+
+  parentOrganizationUnitId Int
+  parentOrganizationUnit OrganizationUnit @relation(fields: [parentOrganizationUnitId],references: [id])
+
+  locationType LocationType
+  businessCategory BusinessCategory
+
+  // ADDRESS
+  addressLine1 String
+  addressLine2 String?
+  landmark String?
+  city String
+  state String
+  country String
+  pinCode String
+
+  // CONTACT
+  contactPerson String
+  phoneNumber String?
+  email String?
+  emergencyContact String?
+
+  // GST
+  linkedGSTINId Int
+  linkedGSTIN GSTIN @relation(fields: [linkedGSTINId],references: [id])
+
+  registrationType RegistrationType
+
+  // DEFAULT LOCATIONS
+  defaultBillingLocation Boolean @default(false)
+  defaultStockLocation Boolean @default(false)
+
+  // OPERATIONAL SETTINGS
+  allowSales Boolean @default(false)
+  allowPurchase Boolean @default(false)
+  allowInventory Boolean @default(false)
+  allowDispatch Boolean @default(false)
+  allowPOS Boolean @default(false)
+
+  //defaultWarehouseId Int?
+  //parentWarehouseId Int?
+
+  // STATUS
+  status LocationStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("organization")
+}
+
+enum LocationType {
+  HEAD_OFFICE
+  BRANCH
+  WAREHOUSE
+  STORE
+
+  @@schema("organization")
+}
+
+enum BusinessCategory {
+  RETAIL
+  WHOLESALE
+  DISTRIBUTION
+  MANUFACTURING
+  
+  @@schema("organization")
+}
+
+enum LocationStatus {
+  ACTIVE
+  INACTIVE
+
+  @@schema("organization")
+}
+
 model GSTMangement {
   id               Int       @id @default(autoincrement())
   gstin            String    @unique
@@ -145,7 +275,7 @@ model GSTMangement {
 enum GstType {
   REGULAR
   COMPOSITION
-
+  SEZ
   @@schema("organization")
 }
 

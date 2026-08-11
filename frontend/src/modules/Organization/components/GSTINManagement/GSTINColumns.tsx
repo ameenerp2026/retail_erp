@@ -1,6 +1,5 @@
 // components/GSTINManagement/GSTINColumns.tsx
 import type { ColumnsType } from 'antd/es/table'
-import { RotateCw } from 'lucide-react'
 import StatusTag from '@/components/shared/StatusTags'
 import type { GSTINRecord } from '@/types/gstin'
 
@@ -15,11 +14,11 @@ export function getGSTINColumns(
       render: (text) => <span className="text-[#4FC3F7] font-medium">{text}</span>,
     },
     { title: "STATE",    dataIndex: "state",   key: "state"   },
-    { title: "ORG UNIT", dataIndex: "orgUnit", key: "orgUnit" },
+    { title: "ORG UNIT", dataIndex: ["organizationUnit", "organizationUnit"], key: "organizationUnit" },
     {
       title: "TYPE",
-      dataIndex: "type",
-      key: "type",
+      dataIndex: "registrationType",
+      key: "registrationType",
       render: (type) => (
         <span className="rounded-full text-[#4FC3F7] bg-[#4FC3F71A] text-xs">{type}</span>
       ),
@@ -32,24 +31,19 @@ export function getGSTINColumns(
     },
     {
       title: "LAST VERIFIED",
-      dataIndex: "lastVerified",
-      key: "lastVerified",
+      dataIndex: "createdAt",
+      key: "createdAt",
       render: (val) => (
-        <span className="text-[#94A3B8]">{val ?? "—"}</span>
+        <span className="text-[#94A3B8]"> {val
+        ? new Date(val).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })
+        : "—"}</span>
       ),
     },
-    {
-      title: "ACTIONS",
-      key: "actions",
-      render: (_, record) => (
-        <button
-          onClick={() => onReVerify(record)}
-          className="flex items-center gap-1.5 text-xs text-[#21B6A8] bg-[#21B6A81A] hover:bg-[#21B6A81A] px-3 py-1.5 rounded-full transition"
-        >
-          <RotateCw size={12} />
-          Re-verify
-        </button>
-      ),
-    },
+     { title: "Created By", dataIndex: ["createdBy", "name"], key: "createdBy" },
+    
   ]
 }

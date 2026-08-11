@@ -18,7 +18,9 @@ function LoginForm() {
       const response = await apiClient.post('/api/auth/login', { email, password })
       console.log('email, password',email, password)
       if (response.status === 200 && response.data.token) {
+        console.log('response.data',response.data)
         toast.success('Login successful!')
+
         login(response.data.token, response.data.user)
         
       }

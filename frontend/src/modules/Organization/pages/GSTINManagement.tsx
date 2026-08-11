@@ -2,36 +2,68 @@ import { Plus, Search} from "lucide-react";
 import { GSTIN_STAT_CARDS } from "@/config/gstinCardConfig";
 import SimpleStatCard from "@/components/shared/SimpleStatCard";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+//import { useQuery } from "@tanstack/react-query";
 import { getGSTINColumns } from "../components/GSTINManagement/GSTINColumns";
 import { GSTINRecord } from "@/types/gstin";
 import ReusableTable from "@/components/shared/ReusableTable";
-import { gstinService } from "@/services/gstinService";
-
+//import { gstinService } from "@/services/gstinService";
+import {useGSTINs} from '../../../hooks/useGSTIN' 
 export default function GSTINManagement() {
     const [search, setSearch] = useState('')
-
-  const { data: records = [] } = useQuery({
-    queryKey: ['gstin-records'],
-    queryFn: gstinService.getAll,
-  })
+    const { data: gstins = [] } = useGSTINs();
 
   const filteredRecords = useMemo(() => {
-    if (!search) return records
-    return records.filter((r: GSTINRecord) =>
+    if (!search) return gstins
+    return gstins.filter((r: GSTINRecord) =>
       r.gstin.toLowerCase().includes(search.toLowerCase()) ||
       r.state.toLowerCase().includes(search.toLowerCase()) ||
-      r.orgUnit.toLowerCase().includes(search.toLowerCase())
+      r.organizationUnit?.organizationUnit
+      ?.toLowerCase().includes(search.toLowerCase())
     )
-  }, [search, records])
+  }, [search, gstins])
 
-  function handleReVerify(record: GSTINRecord) {
-    console.log("Re-verify", record.gstin)
-    // call API to re-verify
+ function handleReVerify(record: GSTINRecord) {
+   console.log("Re-verify", record.gstin)
+//     // call API to re-verify
   }
 
   const columns = getGSTINColumns(handleReVerify)
+ const totalGSTINs = gstins.length;
 
+//  const verifiedCount = gstins.filter(
+//     (item) => item.status === "Verified"
+//   ).length;
+
+//   const pendingCount = gstins.filter(
+//     (item) => item.status === "Pending"
+//   ).length;
+
+//   const failedCount = gstins.filter(
+//     (item) => item.status === "Failed"
+//   ).length;
+
+
+
+  const statCards = [
+    {
+      ...GSTIN_STAT_CARDS[0],
+      count: totalGSTINs,
+    },
+    {
+      ...GSTIN_STAT_CARDS[1],
+      count:0
+      //count: verifiedCount,
+    },
+    // {
+    //   ...GSTIN_STAT_CARDS[2],
+    //   count: pendingCount,
+    // },
+    {
+      ...GSTIN_STAT_CARDS[2],
+      //count: failedCount,
+      count:0
+    },
+  ];
     return (
         <div className="page-shell">
             <div className="page-header">
@@ -47,7 +79,7 @@ export default function GSTINManagement() {
                 </button>
             </div>
             <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-                {GSTIN_STAT_CARDS.map((card) => (
+                {statCards.map((card) => (
                     <SimpleStatCard
                         key={card.id}
                         count={card.count}

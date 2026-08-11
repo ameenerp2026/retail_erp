@@ -17,6 +17,8 @@ export default function ReusableTable<T extends object>({
   rowKey = "id",
   loading = false,
 }: ReusableTableProps<T>) {
+  console.log('columns',columns)
+  console.log('DATA',data)
     return(
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full">
             <div className=" [&_.ant-table-thead_th]:text-[#6B7A99]

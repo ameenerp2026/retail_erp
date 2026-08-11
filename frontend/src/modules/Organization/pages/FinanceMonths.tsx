@@ -8,7 +8,7 @@ import FinanceFilters, {
   DEFAULT_FINANCE_FILTERS,
   type FinanceFilterState,
 } from '../components/FinanceMonths/FinanceFilters'
-import { financeService } from '@/services/financeService'
+import { financeService } from '@/services/admin/organization/financeService'
 
 export default function FinanceMonths() {
   // Draft filters (edited in the UI) vs. applied filters (committed on "Apply Filters")

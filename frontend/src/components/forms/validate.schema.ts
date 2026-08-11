@@ -71,7 +71,7 @@ export type OrgUnitFormData = z.infer<typeof orgUnitSchema> & {
 
 export const businessLocationSchema = z.object({
   locationName: z.string().min(1, 'Location Name is required'),
-  locationCode: z.string().min(1, 'Location Code is required'),
+  //locationCode: z.string().min(1, 'Location Code is required'),
   parentOrganizationUnit: z.string().min(1, 'Select organization unit'),
   locationType: z.string().min(1, 'Select location Type'),
    businessCategory: z.string().min(1, 'Select Business Category'),
