@@ -15,7 +15,7 @@ dist-ssr
 *.local
 
 # Env files 
-.env
+backend/.env
 .env.*
 !.env.example
 
@@ -29,3 +29,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+frontend/tsconfig.tsbuildinfo

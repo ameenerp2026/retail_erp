@@ -1,3 +1,4 @@
+// components/Ledger/LedgerColumns.tsx
 import type { ColumnsType } from 'antd/es/table'
 import { CheckCircle2, Pencil, Trash2, XCircle } from 'lucide-react'
 import StatusTag from '@/components/shared/StatusTags'
@@ -10,7 +11,12 @@ const GROUP_PILL: Record<LedgerAccountGroup, string> = {
   Expenses: 'bg-amber-50 text-amber-700',
 }
 
-export function getLedgerColumns(): ColumnsType<Ledger> {
+type GetLedgerColumnsArgs = {
+  onEdit?: (ledger: Ledger) => void
+  onDelete?: (ledger: Ledger) => void
+}
+
+export function getLedgerColumns({ onEdit, onDelete }: GetLedgerColumnsArgs = {}): ColumnsType<Ledger> {
   return [
     {
       title: 'LEDGER ID',
@@ -32,14 +38,16 @@ export function getLedgerColumns(): ColumnsType<Ledger> {
       title: 'CLASS',
       dataIndex: 'accountClass',
       key: 'accountClass',
-      render: (text: string) => <span className="text-sm text-slate-600">{text}</span>,
+      render: (accountClass: { id: number; className: string } | null) => (
+        <span className="text-sm text-slate-600">{accountClass?.className ?? '-'}</span>
+      ),
     },
     {
       title: 'ACCOUNT GROUP',
       dataIndex: 'accountGroup',
       key: 'accountGroup',
       render: (group: LedgerAccountGroup) => (
-        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${GROUP_PILL[group]}`}>
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${GROUP_PILL[group] ?? 'bg-slate-50 text-slate-600'}`}>
           {group}
         </span>
       ),
@@ -88,12 +96,20 @@ export function getLedgerColumns(): ColumnsType<Ledger> {
     {
       title: 'ACTIONS',
       key: 'actions',
-      render: () => (
+      render: (_: unknown, record: Ledger) => (
         <div className="flex items-center gap-2">
-          <button type="button" className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50">
+          <button
+            type="button"
+            onClick={() => onEdit?.(record)}
+            className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50"
+          >
             <Pencil size={14} />
           </button>
-          <button type="button" className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50">
+          <button
+            type="button"
+            onClick={() => onDelete?.(record)}
+            className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50"
+          >
             <Trash2 size={14} />
           </button>
         </div>

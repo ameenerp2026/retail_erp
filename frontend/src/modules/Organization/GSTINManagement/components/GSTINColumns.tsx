@@ -44,6 +44,18 @@ export function getGSTINColumns(
       ),
     },
      { title: "Created By", dataIndex: ["createdBy", "name"], key: "createdBy" },
-    
+    {
+      title: "ACTIONS",
+      key: "actions",
+      render: (_: unknown, record) => (
+        <button
+          type="button"
+          onClick={() => onReVerify(record)}
+          className="rounded-lg px-2.5 py-1 text-xs font-semibold text-[#4FC3F7] hover:bg-[#4FC3F71A]"
+        >
+          Re-verify
+        </button>
+      ),
+    },
   ]
 }

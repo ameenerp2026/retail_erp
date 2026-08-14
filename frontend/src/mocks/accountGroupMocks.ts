@@ -1,56 +1,34 @@
-import type { AccountGroupNode } from '@/types/accountGroup'
+import type { AccountGroupRow } from '@/types/accountGroup'
 
-export const MOCK_ACCOUNT_GROUPS: AccountGroupNode[] = [
-  {
-    id: "1", code: "AG001", name: "Assets", level: 1,
-    children: [
-      {
-        id: "2", code: "AG002", name: "Current Assets", level: 2,
-        children: [
-          { id: "3",  code: "AG003", name: "Cash & Cash Equivalents", level: 3 },
-          { id: "4",  code: "AG006", name: "Bank Accounts",           level: 3 },
-          { id: "5",  code: "AG007", name: "Accounts Receivable",     level: 3 },
-        ]
-      },
-      {
-        id: "6", code: "AG063", name: "Fixed Assets", level: 2,
-        children: [
-          { id: "7",  code: "AG006", name: "Land & Building",   level: 3 },
-          { id: "8",  code: "AG009", name: "Plant & Machinery", level: 3 },
-        ]
-      },
-    ]
-  },
-  {
-    id: "9", code: "AG016", name: "Liabilities", level: 1,
-    children: [
-      {
-        id: "10", code: "AG017", name: "Current Liabilities", level: 2,
-        children: [
-          { id: "11", code: "AG014", name: "Accounts Payable", level: 3 },
-          { id: "12", code: "AG015", name: "GST Payable",      level: 3 },
-        ]
-      },
-      { id: "13", code: "AG013", name: "Long-term Liabilities", level: 2 },
-    ]
-  },
-  {
-    id: "14", code: "AG016", name: "Income", level: 1,
-    children: [
-      {
-        id: "15", code: "AG017", name: "Revenue", level: 2,
-        children: [
-          { id: "16", code: "AG019", name: "Sales - Retail",   level: 3 },
-          { id: "17", code: "AG020", name: "Service Income",   level: 3 },
-        ]
-      },
-    ]
-  },
-  {
-    id: "18", code: "AG021", name: "Expenses", level: 1,
-    children: [
-      { id: "19", code: "AG023", name: "Direct Expenses", level: 2 },
-      { id: "20", code: "AG024", name: "Indirect Expenses", level: 2 },
-    ]
-  },
+export const MOCK_ACCOUNT_GROUPS: AccountGroupRow[] = [
+  { id: 3, rootGroupName: "Cash & Cash Equivalents", groupCode: "AG003",
+    group: { groupName: "Assets", groupCode: "AG001" },
+    subGroup: { subGroupName: "Current Assets", subGroupCode: "AG002" } },
+  { id: 4, rootGroupName: "Bank Accounts", groupCode: "AG006",
+    group: { groupName: "Assets", groupCode: "AG001" },
+    subGroup: { subGroupName: "Current Assets", subGroupCode: "AG002" } },
+  { id: 5, rootGroupName: "Accounts Receivable", groupCode: "AG007",
+    group: { groupName: "Assets", groupCode: "AG001" },
+    subGroup: { subGroupName: "Current Assets", subGroupCode: "AG002" } },
+
+  { id: 7, rootGroupName: "Land & Building", groupCode: "AG008",
+    group: { groupName: "Assets", groupCode: "AG001" },
+    subGroup: { subGroupName: "Fixed Assets", subGroupCode: "AG063" } },
+  { id: 8, rootGroupName: "Plant & Machinery", groupCode: "AG009",
+    group: { groupName: "Assets", groupCode: "AG001" },
+    subGroup: { subGroupName: "Fixed Assets", subGroupCode: "AG063" } },
+
+  { id: 11, rootGroupName: "Accounts Payable", groupCode: "AG014",
+    group: { groupName: "Liabilities", groupCode: "AG016" },
+    subGroup: { subGroupName: "Current Liabilities", subGroupCode: "AG017" } },
+  { id: 12, rootGroupName: "GST Payable", groupCode: "AG015",
+    group: { groupName: "Liabilities", groupCode: "AG016" },
+    subGroup: { subGroupName: "Current Liabilities", subGroupCode: "AG017" } },
+
+  { id: 16, rootGroupName: "Sales - Retail", groupCode: "AG019",
+    group: { groupName: "Income", groupCode: "AG016" },
+    subGroup: { subGroupName: "Revenue", subGroupCode: "AG017" } },
+  { id: 17, rootGroupName: "Service Income", groupCode: "AG020",
+    group: { groupName: "Income", groupCode: "AG016" },
+    subGroup: { subGroupName: "Revenue", subGroupCode: "AG017" } },
 ]

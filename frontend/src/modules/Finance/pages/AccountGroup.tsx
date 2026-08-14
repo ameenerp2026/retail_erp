@@ -1,7 +1,11 @@
 //import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import TreeRow from '../components/AccountGroup/TreeRow'
-import { accountGroupService } from '@/services/accountGroupService'
+import { accountGroupService } from '@/services/admin/finance/accountGroupService'
+import { useState } from 'react'
+import AccountGroupForm from '../components/AccountGroup/AccountGroupForm'
+import { Modal } from '@/components/shared/Modal'
+import { buildAccountGroupTree } from '@/utils/buildAccountGroupTree'
 
 // Level legend
 const LEVEL_LEGEND = [
@@ -17,10 +21,16 @@ function AccountGroup() {
     queryKey: ['account-groups'],
     queryFn: accountGroupService.getAll,
   })
+  const { data: groups = [] } = useQuery({
+  queryKey: ["groups"],
+  queryFn: accountGroupService.getGroups,
+});
+
 
   // Guard against non-array responses (e.g. API error payloads) so the page never crashes
-  const groups = Array.isArray(data) ? data : []
-
+  const account_groups = Array.isArray(data) ? data : []
+  const tree = buildAccountGroupTree(account_groups)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   return (
      <div className="page-shell">
        <div className="page-header">
@@ -29,7 +39,7 @@ function AccountGroup() {
           <p className="page-subtitle">Tree-based account structure management</p>
         </div>
         <button
-          type="button"
+          onClick={() => setIsModalOpen(true)}
           className="page-actions flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
         >
           <span>+</span> Add Root Group
@@ -47,11 +57,14 @@ function AccountGroup() {
 
         {/* Tree rows */}
         <div className="divide-y divide-slate-50">
-          {groups.map((group) => (
-            <TreeRow key={group.id} node={group} />
+          {tree.map((node) => (
+            <TreeRow key={node.id} node={node} />
           ))}
         </div>
       </div>
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <AccountGroupForm groups={groups} onClose={() => setIsModalOpen(false)} />
+        </Modal>
      </div>
   )
 }

@@ -1,0 +1,5 @@
+
+@baseUrl = http://localhost:5000/api/organizationUnit
+### Get active organization units (for dropdown)
+GET {{baseUrl}}/org-unit
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODY1MTY1OTMsImV4cCI6MTc4NjYwMjk5M30.ghrZhquh7kW7-D1K2NouRv29wbAf8SomwlCZYHA_Lfs

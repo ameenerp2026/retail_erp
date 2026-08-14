@@ -1,0 +1,84 @@
+@baseUrl = http://localhost:5000/api/finance
+
+### Get active account groups (for dropdown)
+GET {{baseUrl}}/account-groups/active
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODYzNTI1ODYsImV4cCI6MTc4NjQzODk4Nn0.LBbDhLqFtWT1GTFZaBfOwYxEbtTHEJAnQauaLdklh3w
+
+### Create account class - happy path
+POST {{baseUrl}}/account-class
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODYzNTI1ODYsImV4cCI6MTc4NjQzODk4Nn0.LBbDhLqFtWT1GTFZaBfOwYxEbtTHEJAnQauaLdklh3w
+Content-Type: application/json
+
+{
+  "className": "Cash & Bank",
+  "accountGroupId": 1,
+  "description": "Test class",
+  "status": "active"
+}
+
+
+### Create account class - missing className (expect 422)
+POST {{baseUrl}}/account-classes
+Content-Type: application/json
+
+{
+  "accountGroupId": 1
+}
+
+
+### Create account class - missing accountGroupId (expect 422)
+POST {{baseUrl}}/account-classes
+Content-Type: application/json
+
+{
+  "className": "Test Class"
+}
+
+
+### Create account class - invalid accountGroupId (expect 422, FK error)
+POST {{baseUrl}}/account-classes
+Content-Type: application/json
+
+{
+  "className": "Test Class",
+  "accountGroupId": 999999
+}
+
+
+### Create account class - duplicate (run twice, expect 409 on second run)
+POST {{baseUrl}}/account-classes
+Content-Type: application/json
+
+{
+  "className": "Duplicate Test",
+  "accountGroupId": 1,
+  "status": "active"
+}
+
+
+### List all account classes
+GET {{baseUrl}}/account-class
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODYzNTI1ODYsImV4cCI6MTc4NjQzODk4Nn0.LBbDhLqFtWT1GTFZaBfOwYxEbtTHEJAnQauaLdklh3w
+
+
+### Get single account class by id
+GET {{baseUrl}}/account-class/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODU0MDY5NjQsImV4cCI6MTc4NTQ5MzM2NH0.dqihb-YxeFriILazxSlL8cre7GezxdulVao9hySbLDw
+
+### Update account class
+PATCH {{baseUrl}}/account-class/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODU0MDY5NjQsImV4cCI6MTc4NTQ5MzM2NH0.dqihb-YxeFriILazxSlL8cre7GezxdulVao9hySbLDw
+Content-Type: application/json
+
+{
+  "status": "inactive"
+}
+
+
+### Delete (soft delete) account class
+DELETE {{baseUrl}}/account-class/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODU0MDY5NjQsImV4cCI6MTc4NTQ5MzM2NH0.dqihb-YxeFriILazxSlL8cre7GezxdulVao9hySbLDw
+
+#### Get account classes by group
+GET {{baseUrl}}/account-class/by-group/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODY1MTY1OTMsImV4cCI6MTc4NjYwMjk5M30.ghrZhquh7kW7-D1K2NouRv29wbAf8SomwlCZYHA_Lfs

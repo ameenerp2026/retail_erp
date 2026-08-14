@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { Modal } from '@/components/shared/Modal'
+import { subLedgerService } from '@/services/admin/finance/subLedgerService'
 import type { SubLedgerStatus, SubLedgerType } from '@/types/subLedger'
 
 export type CreateSubLedgerFormValues = {
   name: string
-  linkedLedger: string
+  linkedLedgerId: number | ''
   type: SubLedgerType | ''
   openingBalance: string
   balanceType: 'Debit' | 'Credit'
@@ -17,14 +19,17 @@ type Props = {
   isOpen: boolean
   onClose: () => void
   onSubmit: (values: CreateSubLedgerFormValues) => void
-  linkedLedgerOptions?: string[]
+  isSubmitting?: boolean
+  mode?: 'create' | 'edit'
+  subLedgerCode?: string
+  initialValues?: CreateSubLedgerFormValues
 }
 
 const TYPES: SubLedgerType[] = ['Customer', 'Vendor', 'Employee']
 
 const EMPTY: CreateSubLedgerFormValues = {
   name: '',
-  linkedLedger: '',
+  linkedLedgerId: '',
   type: '',
   openingBalance: '',
   balanceType: 'Debit',
@@ -33,40 +38,51 @@ const EMPTY: CreateSubLedgerFormValues = {
 }
 
 const fieldClass =
-  'h-10 w-full rounded-[10px] border border-slate-200 bg-[#F5F7FB] px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400/70 focus:border-[#043793]/40 focus:ring-2 focus:ring-[#043793]/10'
+  'h-10 w-full rounded-[10px] border border-slate-200 bg-[#F5F7FB] px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400/70 focus:border-[#043793]/40 focus:ring-2 focus:ring-[#043793]/10 disabled:opacity-60'
 const labelClass = 'mb-1.5 block text-xs font-semibold text-slate-400'
 
 export default function AddSubLedgerModal({
   isOpen,
   onClose,
   onSubmit,
-  linkedLedgerOptions = [
-    'Trade Receivables',
-    'Trade Payables',
-    'Employee Advances',
-  ],
+  isSubmitting,
+  mode = 'create',
+  subLedgerCode,
+  initialValues,
 }: Props) {
   const [form, setForm] = useState<CreateSubLedgerFormValues>(EMPTY)
 
   useEffect(() => {
-    if (isOpen) setForm(EMPTY)
-  }, [isOpen])
+    if (isOpen) {
+      setForm(mode === 'edit' && initialValues ? initialValues : EMPTY)
+    }
+  }, [isOpen, mode, initialValues])
+
+  const { data: ledgerOptions = [], isLoading: loadingLedgers } = useQuery({
+    queryKey: ['ledger-options'],
+    queryFn: subLedgerService.getLedgerOptions,
+    enabled: isOpen,
+  })
 
   const canSubmit =
-    Boolean(form.name.trim()) && Boolean(form.linkedLedger) && Boolean(form.type)
+    Boolean(form.name.trim()) &&
+    form.linkedLedgerId !== '' &&
+    Boolean(form.type) &&
+    !isSubmitting
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!canSubmit) return
     onSubmit(form)
-    onClose()
   }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="xl">
       <form onSubmit={handleSubmit} className="flex max-h-[90vh] flex-col">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
-          <h2 className="text-base font-bold text-[#043793] sm:text-lg">Add Sub Ledger</h2>
+          <h2 className="text-base font-bold text-[#043793] sm:text-lg">
+            {mode === 'edit' ? 'Edit Sub Ledger' : 'Add Sub Ledger'}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -77,6 +93,13 @@ export default function AddSubLedgerModal({
         </div>
 
         <div className="space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
+          {mode === 'edit' && (
+            <label className="block">
+              <span className={labelClass}>Sub Ledger Code</span>
+              <input type="text" value={subLedgerCode ?? ''} disabled className={fieldClass} />
+            </label>
+          )}
+
           <label className="block">
             <span className={labelClass}>
               Sub Ledger Name <span className="text-rose-500">*</span>
@@ -96,14 +119,20 @@ export default function AddSubLedgerModal({
                 Linked Ledger <span className="text-rose-500">*</span>
               </span>
               <select
-                value={form.linkedLedger}
-                onChange={(e) => setForm((f) => ({ ...f, linkedLedger: e.target.value }))}
+                value={form.linkedLedgerId}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    linkedLedgerId: e.target.value ? Number(e.target.value) : '',
+                  }))
+                }
+                disabled={loadingLedgers}
                 className={fieldClass}
               >
-                <option value="">Select ledger</option>
-                {linkedLedgerOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
+                <option value="">{loadingLedgers ? 'Loading…' : 'Select ledger'}</option>
+                {ledgerOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.name}
                   </option>
                 ))}
               </select>
@@ -212,7 +241,9 @@ export default function AddSubLedgerModal({
                 : 'cursor-not-allowed bg-slate-200 text-slate-400'
             }`}
           >
-            Add Sub Ledger
+            {isSubmitting
+              ? mode === 'edit' ? 'Updating…' : 'Adding…'
+              : mode === 'edit' ? 'Update Sub Ledger' : 'Add Sub Ledger'}
           </button>
         </div>
       </form>

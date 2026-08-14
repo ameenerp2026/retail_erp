@@ -1,0 +1,11 @@
+### Get Groups
+GET http://localhost:5000/api/finance/account-groups/groups
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODUyMjc1OTIsImV4cCI6MTc4NTMxMzk5Mn0.j3ghPz4wQijHLv2eGfnzgPvgtN9PFa44VGPcms6FjCQ 
+
+### Get account groups
+GET http://localhost:5000/api/finance/account-groups
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODUzMjA5MzUsImV4cCI6MTc4NTQwNzMzNX0.EukZvVu0qKoW7An1mK1v7We0LGAjCD5QInKooCWZ3MU
+
+### Get active account groups
+GET http://localhost:5000/api/finance/account-groups/?status=active
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwibWFpbCI6InNoaXZsZWVsYUBnbWFpbC5jb20iLCJpYXQiOjE3ODYzNDE3MDYsImV4cCI6MTc4NjQyODEwNn0.eXvDs_JaCWIjNp6qTUrHUNP15HR6w7tXDwRQluKzDf0
