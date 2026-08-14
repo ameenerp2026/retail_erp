@@ -1,4 +1,4 @@
-import { Calendar, Lock, TrendingUp, Clock } from 'lucide-react'
+import { Calendar, Lock, Clock } from 'lucide-react'
 import type { FinanceStatType } from '@/types/finance'
 
 type CardConfig = {
