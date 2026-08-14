@@ -1,7 +1,7 @@
 import { Pencil, Trash2 ,CheckCircle2, XCircle} from "lucide-react"
 //import type { OrgUnitFormData } from "@/components/forms/validate.schema"
 
-import type { OrganizationUnit } from "../pages/OrganizationUnit";
+import type { OrganizationUnit } from "../OrganizationUnit";
 
 interface OrgUnitTableProps {
   units: OrganizationUnit[];

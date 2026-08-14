@@ -1,10 +1,10 @@
 import { Download, RefreshCw, Search } from "lucide-react";
-import GSTStateDetailDrawer from '../components/GSTStateDetails/GSTStateDetailDrawer'
+import GSTStateDetailDrawer from './components/GSTStateDetailDrawer'
 import { GST_STATE_STAT_CARDS } from "@/config/gstinCardConfig";
 import SimpleStatCard from "@/components/shared/SimpleStatCard";
 import { useMemo, useState } from "react";
 import { GSTStateRecord } from "@/types/gstState";
-import { getGSTStateColumns } from "../components/GSTStateDetails/GSTStateColumns";
+import { getGSTStateColumns } from "./components/GSTStateColumns";
 import { useQuery } from "@tanstack/react-query";
 import ReusableTable from "@/components/shared/ReusableTable";
 import { gstStateService } from "@/services/gstStateService";

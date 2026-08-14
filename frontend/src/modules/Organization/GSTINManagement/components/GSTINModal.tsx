@@ -6,7 +6,7 @@ import { Modal } from '@/components/shared/Modal'
 import FormInput from '@/components/forms/FormInput'
 import { gstinSchema, type GstinFormData } from '@/components/forms/validate.schema'
 import { getStates } from '@/services/location.service'
-import { useOrganizationUnits } from '@/hooks/useOrganizationUnits'
+import { useOrganizationUnits } from '@/hooks/admin/organization/useOrganizationUnits'
 
 type GSTINModalProps = {
   isOpen: boolean
@@ -18,6 +18,7 @@ type GSTINModalProps = {
 const TYPE_OPTIONS = [
   { label: 'Regular', value: 'Regular' },
   { label: 'Composition', value: 'Composition' },
+  { label: 'Sez', value: 'Sez' },
 ]
 
 export default function GSTINModal({ isOpen, onClose, onSave, loading }: GSTINModalProps) {
@@ -49,7 +50,7 @@ export default function GSTINModal({ isOpen, onClose, onSave, loading }: GSTINMo
   const orgUnitOptions = organizationUnits.map(
     (unit: { id: number; organizationUnit: string }) => ({
       label: unit.organizationUnit,
-      value: unit.organizationUnit,
+      value: String(unit.id),
     })
   )
 

@@ -3,8 +3,8 @@ import { useState,useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { OrgUnitFormData, orgUnitSchema } from '@/components/forms/validate.schema'
-import apiClient from "../../../services/apiClient";
-import { getCountries, getStates } from '../../../services/location.service'
+import apiClient from "@/services/apiClient";
+import { getCountries, getStates } from '@/services/location.service'
 
 interface OrganizationUnit {
   id: number;

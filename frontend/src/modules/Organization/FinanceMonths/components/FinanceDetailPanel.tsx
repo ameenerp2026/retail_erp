@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import DetailPanel, { type DetailRow } from '@/components/shared/DetailPanel'
 import StatusTag from '@/components/shared/StatusTags'
 import type { FinancePeriod } from '@/types/finance'
-import { financeService } from '@/services/admin/organization/financeService'
+import { financeService } from '@/services/admin/organization/finance.service'
 
 type Props = {
   period: FinancePeriod

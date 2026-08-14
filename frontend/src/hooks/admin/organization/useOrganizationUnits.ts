@@ -1,7 +1,7 @@
 // hooks/useOrganizationUnits.ts
 
 import { useQuery } from "@tanstack/react-query";
-import apiClient from "../services/apiClient";
+import apiClient from "../../../services/apiClient";
 
 export const useOrganizationUnits = () => {
   return useQuery({

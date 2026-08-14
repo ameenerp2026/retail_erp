@@ -3,8 +3,8 @@ import { useAuth } from "../context/AuthContext"
 import LoginForm from "../modules/auth/pages/LoginForm"
 import DashBoardLayout from "../layouts/DashBoardLayout"
 import DashBoard from "../modules/dashboard/pages/DashBoard"
-import OrganizationGroup from '../modules/Organization/pages/OrganizationGroup'
-import OrganizationUnit from '../modules/Organization/pages/OrganizationUnit';
+import OrganizationGroup from '../modules/Organization/OrganizationGroup/OrganizationGroup'
+import OrganizationUnit from '../modules/Organization/OrganizationUnit/OrganizationUnit';
 import BusinessLocationPage from '../modules/Organization/businessLocation/BusinessLocationPage'
 import AccountGroup from '../modules/Finance/pages/AccountGroup';
 import AccountClass from '../modules/Finance/pages/AccountClass';
@@ -12,12 +12,12 @@ import Ledger from '../modules/Finance/pages/Ledger';
 import SubLedger from '../modules/Finance/pages/SubLedger';
 import Currency from '../modules/Finance/pages/Currency';
 import Finance from '../modules/Finance/Finance'
-import AccountingYearPage from "@/modules/Organization/pages/AccountingYearPage"
-import FinanceMonths from "@/modules/Organization/pages/FinanceMonths"
+import AccountingYearPage from "@/modules/Organization/AccountingYear/AccountingYearPage"
+import FinanceMonths from "@/modules/Organization/FinanceMonths/FinanceMonths"
 import InventoryMonths from "@/modules/Organization/pages/InventoryMonths"
 import RecalculateCOGS from "@/modules/Organization/components/InventoryMonths/RecalculateCOGS"
-import GSTINManagement from "@/modules/Organization/pages/GSTINManagement"
-import GSTStateDetails from "@/modules/Organization/pages/GSTStateDetails"
+import GSTINManagement from "@/modules/Organization/GSTINManagement/GSTINManagement"
+import GSTStateDetails from "@/modules/Organization/GSTStateDetails/GSTStateDetails"
 import Utilities from "@/modules/Utilities/Utilities"
 import DataImport from "@/modules/Utilities/pages/DataImport"
 import EInvoice from "@/modules/Utilities/pages/EInvoice"

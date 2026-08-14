@@ -17,7 +17,7 @@ export const DEFAULT_FINANCE_FILTERS: FinanceFilterState = {
 
 const FY_OPTIONS = ['FY 2025-26', 'FY 2024-25', 'FY 2023-24']
 const ORG_OPTIONS = ['RetailShop India', 'RetailShop UAE', 'RetailShop KSA']
-const STATUS_OPTIONS: FinanceFilterState['status'][] = ['All', 'Open', 'Closed', 'Provisional', 'Future']
+//const STATUS_OPTIONS: FinanceFilterState['status'][] = ['All', 'Open', 'Closed', 'Provisional', 'Future']
 
 type Props = {
   /** Draft filter values (controlled by the parent) */
@@ -79,7 +79,7 @@ export default function FinanceFilters({ value, onChange, onApply }: Props) {
         />
 
         {/* Status */}
-        <select
+        {/* <select
           value={value.status}
           onChange={(e) => set('status', e.target.value as FinanceFilterState['status'])}
           className={`${selectClass} lg:w-40`}
@@ -89,7 +89,7 @@ export default function FinanceFilters({ value, onChange, onApply }: Props) {
               {status === 'All' ? 'All Status' : status}
             </option>
           ))}
-        </select>
+        </select> */}
 
         {/* Apply */}
         <button

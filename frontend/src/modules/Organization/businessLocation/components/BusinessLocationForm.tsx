@@ -7,7 +7,7 @@ import {
   businessLocationSchema,
   type businessLocationFormData,
 } from '../../../../components/forms/validate.schema'
-import { useOrganizationUnits } from '../../../../hooks/useOrganizationUnits'
+import { useOrganizationUnits } from '../../../../hooks/admin/organization/useOrganizationUnits'
 import { getCountries, getStates, getCities } from '@/services/location.service'
 
 type BusinessLocationFormProps = {

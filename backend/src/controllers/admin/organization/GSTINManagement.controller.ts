@@ -1,21 +1,32 @@
-import { Request, Response } from "express";
+import { Response } from "express";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
 import {
  createGST,
   getGSTDetails,
 } from "../../../services/admin/organization/GSTINManagement.service.js";
 
 export const creategstDetailsController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   console.log('createGST',req.body)
   try {
-    
-    const result = await createGST(req.body);
 
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+    
+    const result = await createGST({
+      ...req.body,
+      createdById: req.user.id,
+    });
+   
     return res.status(201).json({
       message: "GST details saved successfully",
       data: result,
+      
     });
   } catch (error) {
     console.error(error);

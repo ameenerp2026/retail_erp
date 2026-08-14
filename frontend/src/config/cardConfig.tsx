@@ -8,11 +8,11 @@ type CardConfig = {
 }
 
 export const CARD_CONFIG: Record<FinanceStatType, CardConfig> = {
-  activeFy: {
-    logo: <Calendar size={18} className="text-[#0B4D8C]" />,
-    logoBgColor: 'bg-[rgba(11,77,140,0.09)]',
-    valueColor: 'text-[#0B4D8C]',
-  },
+  // activeFy: {
+  //   logo: <Calendar size={18} className="text-[#0B4D8C]" />,
+  //   logoBgColor: 'bg-[rgba(11,77,140,0.09)]',
+  //   valueColor: 'text-[#0B4D8C]',
+  // },
   open: {
     logo: <Calendar size={18} className="text-[#2B7FFF]" />,
     logoBgColor: 'bg-[rgba(43,127,255,0.09)]',
@@ -28,9 +28,9 @@ export const CARD_CONFIG: Record<FinanceStatType, CardConfig> = {
     logoBgColor: 'bg-[rgba(254,154,0,0.09)]',
     valueColor: 'text-[#1A2332]',
   },
-  entries: {
-    logo: <TrendingUp size={18} className="text-[#14B8A6]" />,
-    logoBgColor: 'bg-[rgba(20,184,166,0.09)]',
-    valueColor: 'text-[#14B8A6]',
-  },
+  // entries: {
+  //   logo: <TrendingUp size={18} className="text-[#14B8A6]" />,
+  //   logoBgColor: 'bg-[rgba(20,184,166,0.09)]',
+  //   valueColor: 'text-[#14B8A6]',
+  // },
 }

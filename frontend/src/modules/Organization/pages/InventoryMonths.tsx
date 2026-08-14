@@ -3,7 +3,7 @@ import StatCards from '@/components/shared/StatCards'
 import { INVENTORY_CARD_CONFIG } from '@/config/inventoryCardConfig'
 import { useQuery } from "@tanstack/react-query";
 import { inventoryService } from "@/services/inventoryService";
-import { usePeriodFilter } from "@/hooks/usePeriodFilter";
+import { usePeriodFilter } from "@/hooks/admin/organization/usePeriodFilter";
 import { PERIOD_FILTER_FIELDS } from "@/config/filterConfig";
 import FilterBar from "@/components/shared/FilterBar";
 import InventoryTable from "../components/InventoryMonths/InventoryTable";
