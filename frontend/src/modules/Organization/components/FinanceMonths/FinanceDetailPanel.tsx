@@ -10,15 +10,15 @@ type Props = {
 }
 
 export default function PeriodDetailPanel({ period, onClose }: Props) {
-  const { data: activityItems = [] } = useQuery({
-    queryKey: ['finance-activity', period.id],
-    queryFn: () => financeService.getActivity(period.id),
-  })
+ const { data: activityItems = [] } = useQuery({
+  queryKey: ['finance-activity', period.periodId],
+  queryFn: () => financeService.getActivity(period.periodId),
+})
 
   const rows: DetailRow[] = [
     { label: 'Finance Status', type: 'badge', value: period.financeStatus, badgeComponent: <StatusTag status={period.financeStatus} /> },
-    { label: 'Transactions', type: 'number', value: period.transactions.toLocaleString(), numberColor: 'text-[#043793]' },
-    { label: 'Last Closed By', type: 'text', value: period.lastClosedBy ?? '—', textColor: 'text-[#1A2332]' },
+    //{ label: 'Transactions', type: 'number', value: period.transactions.toLocaleString(), numberColor: 'text-[#043793]' },
+    //{ label: 'Last Closed By', type: 'text', value: period.lastClosedBy ?? '—', textColor: 'text-[#1A2332]' },
     { label: 'Last Updated', type: 'text', value: period.lastUpdated, textColor: 'text-[#1A2332]' },
   ]
 

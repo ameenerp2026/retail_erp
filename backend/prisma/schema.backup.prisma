@@ -39,20 +39,35 @@ model OrganizationGroup {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  organizationUnits OrganizationUnit[]
+
+  @@map("organization_groups")
   @@schema("organization")
 }
 
 model OrganizationUnit {
-  id               Int      @id @default(autoincrement())
-  unitId           String
-  organizationUnit String
-  branchName       String
-  gstIn            String
-  manager          String
-  status           String   @default("Active")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                   Int               @id @default(autoincrement())
+  unitId               String            @unique
+  organizationUnit     String
+  branchName           String
+  unitType             String?           @map("unit_type")
 
+  organizationGroupId  Int               @map("organization_group_id")
+  organizationGroup    OrganizationGroup @relation(fields: [organizationGroupId], references: [id], onDelete: Restrict)
+
+  gstIn                String            @unique
+  manager              String
+  state                String?
+  address              String?
+
+  status               String            @default("Active")
+
+  createdAt            DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  ledgers              Ledger[]
+
+  @@map("organization_units")
   @@schema("organization")
 }
 

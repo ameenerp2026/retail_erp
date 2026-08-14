@@ -50,7 +50,7 @@ export function getFinanceSetupColumns({ onSelect }: ColumnOptions = {}): Column
       title: 'LAST MODIFIED',
       dataIndex: 'lastModified',
       key: 'lastModified',
-      sorter: (a, b) => (a.lastModified ?? '').localeCompare(b.lastModified ?? ''),
+      sorter: (a, b) => (a.lastUpdated ?? '').localeCompare(b.lastUpdated ?? ''),
       render: (text, record) => (
         <span className="text-sm text-slate-400">{text ?? record.lastUpdated}</span>
       ),

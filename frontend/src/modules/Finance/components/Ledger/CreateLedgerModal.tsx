@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { Modal } from '@/components/shared/Modal'
-import type { LedgerAccountGroup, LedgerBalanceType } from '@/types/ledger'
+import { ledgerService } from '@/services/admin/finance/ledgerService'
+import type { LedgerBalanceType } from '@/types/ledger'
 
 export type CreateLedgerFormValues = {
   name: string
-  accountGroup: LedgerAccountGroup | ''
-  accountClass: string
+  accountGroupId: number | ''
+  accountClassId: number | ''
   balanceType: LedgerBalanceType | ''
   openingBalance: string
-  orgUnit: string
+  organizationUnitId: number | ''
   gstEnabled: boolean
 }
 
@@ -17,64 +19,92 @@ type Props = {
   isOpen: boolean
   onClose: () => void
   onSubmit: (values: CreateLedgerFormValues) => void
+  isSubmitting?: boolean
+  mode?: 'create' | 'edit'
+  // system-generated code, shown read-only in edit mode; ignored in create mode
+  ledgerId?: string
+  // pre-fills the form when opening in edit mode
+  initialValues?: CreateLedgerFormValues
 }
-
-const ACCOUNT_GROUPS: LedgerAccountGroup[] = [
-  'Assets',
-  'Liabilities',
-  'Income',
-  'Expenses',
-]
-
-const ACCOUNT_CLASSES = [
-  'Current Assets',
-  'Current Liabilities',
-  'Revenue',
-  'Direct Expenses',
-  'Indirect Expenses',
-]
-
-const ORG_UNITS = ['All Units', 'HQ - Mumbai', 'Delhi North', 'Bengaluru South']
 
 const EMPTY: CreateLedgerFormValues = {
   name: '',
-  accountGroup: '',
-  accountClass: '',
+  accountGroupId: '',
+  accountClassId: '',
   balanceType: '',
   openingBalance: '',
-  orgUnit: 'All Units',
+  organizationUnitId: '',
   gstEnabled: false,
 }
 
 const fieldClass =
-  'h-10 w-full rounded-[10px] border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400/70 focus:border-[#043793]/40 focus:ring-2 focus:ring-[#043793]/10'
+  'h-10 w-full rounded-[10px] border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400/70 focus:border-[#043793]/40 focus:ring-2 focus:ring-[#043793]/10 disabled:opacity-60'
 const labelClass = 'mb-1.5 block text-xs font-semibold text-slate-400'
 
-export default function CreateLedgerModal({ isOpen, onClose, onSubmit }: Props) {
+export default function CreateLedgerModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  isSubmitting,
+  mode = 'create',
+  ledgerId,
+  initialValues,
+}: Props) {
   const [form, setForm] = useState<CreateLedgerFormValues>(EMPTY)
 
   useEffect(() => {
-    if (isOpen) setForm(EMPTY)
-  }, [isOpen])
+    if (isOpen) {
+      setForm(mode === 'edit' && initialValues ? initialValues : EMPTY)
+    }
+  }, [isOpen, mode, initialValues])
+
+  const { data: accountGroups = [], isLoading: loadingGroups } = useQuery({
+    queryKey: ['account-groups'],
+    queryFn: ledgerService.getAccountGroups,
+    enabled: isOpen,
+  })
+
+  const { data: accountClasses = [], isLoading: loadingClasses } = useQuery({
+    queryKey: ['account-classes', 'by-group', form.accountGroupId],
+    queryFn: () => ledgerService.getAccountClassesByGroup(form.accountGroupId as number),
+    enabled: isOpen && form.accountGroupId !== '',
+  })
+
+  const { data: orgUnits = [], isLoading: loadingOrgUnits } = useQuery({
+    queryKey: ['org-units'],
+    queryFn: ledgerService.getOrgUnits,
+    enabled: isOpen,
+  })
 
   const canSubmit =
     Boolean(form.name.trim()) &&
-    Boolean(form.accountGroup) &&
-    Boolean(form.accountClass) &&
-    Boolean(form.balanceType)
+    form.accountGroupId !== '' &&
+    form.accountClassId !== '' &&
+    Boolean(form.balanceType) &&
+    !isSubmitting
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleGroupChange = (value: string) => {
+    // changing group invalidates whatever class was picked, since classes are scoped to a group
+    setForm((f) => ({
+      ...f,
+      accountGroupId: value ? Number(value) : '',
+      accountClassId: '',
+    }))
+  }
+
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!canSubmit) return
     onSubmit(form)
-    onClose()
   }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="2xl">
       <form onSubmit={handleSubmit} className="flex max-h-[90vh] flex-col">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
-          <h2 className="text-base font-bold text-[#043793] sm:text-lg">Create Ledger</h2>
+          <h2 className="text-base font-bold text-[#043793] sm:text-lg">
+            {mode === 'edit' ? 'Edit Ledger' : 'Create Ledger'}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -86,6 +116,18 @@ export default function CreateLedgerModal({ isOpen, onClose, onSubmit }: Props) 
 
         <div className="overflow-y-auto px-5 py-5 sm:px-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {mode === 'edit' && (
+              <label className="block">
+                <span className={labelClass}>Ledger ID</span>
+                <input
+                  type="text"
+                  value={ledgerId ?? ''}
+                  disabled
+                  className={fieldClass}
+                />
+              </label>
+            )}
+
             <label className="block">
               <span className={labelClass}>
                 Ledger Name <span className="text-rose-500">*</span>
@@ -104,19 +146,15 @@ export default function CreateLedgerModal({ isOpen, onClose, onSubmit }: Props) 
                 Account Group <span className="text-rose-500">*</span>
               </span>
               <select
-                value={form.accountGroup}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    accountGroup: e.target.value as LedgerAccountGroup | '',
-                  }))
-                }
+                value={form.accountGroupId}
+                onChange={(e) => handleGroupChange(e.target.value)}
+                disabled={loadingGroups}
                 className={fieldClass}
               >
-                <option value="">Select group</option>
-                {ACCOUNT_GROUPS.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
+                <option value="">{loadingGroups ? 'Loading…' : 'Select group'}</option>
+                {accountGroups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.rootGroupName}
                   </option>
                 ))}
               </select>
@@ -127,14 +165,26 @@ export default function CreateLedgerModal({ isOpen, onClose, onSubmit }: Props) 
                 Account Class <span className="text-rose-500">*</span>
               </span>
               <select
-                value={form.accountClass}
-                onChange={(e) => setForm((f) => ({ ...f, accountClass: e.target.value }))}
+                value={form.accountClassId}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    accountClassId: e.target.value ? Number(e.target.value) : '',
+                  }))
+                }
+                disabled={form.accountGroupId === '' || loadingClasses}
                 className={fieldClass}
               >
-                <option value="">Assets / Liabilities...</option>
-                {ACCOUNT_CLASSES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                <option value="">
+                  {form.accountGroupId === ''
+                    ? 'Select account group first'
+                    : loadingClasses
+                    ? 'Loading…'
+                    : 'Select account class'}
+                </option>
+                {accountClasses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.className}
                   </option>
                 ))}
               </select>
@@ -174,13 +224,20 @@ export default function CreateLedgerModal({ isOpen, onClose, onSubmit }: Props) 
             <label className="block">
               <span className={labelClass}>Org Unit</span>
               <select
-                value={form.orgUnit}
-                onChange={(e) => setForm((f) => ({ ...f, orgUnit: e.target.value }))}
+                value={form.organizationUnitId}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    organizationUnitId: e.target.value ? Number(e.target.value) : '',
+                  }))
+                }
+                disabled={loadingOrgUnits}
                 className={fieldClass}
               >
-                {ORG_UNITS.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
+                <option value="">All Units</option>
+                {orgUnits.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.organizationUnit}
                   </option>
                 ))}
               </select>
@@ -219,7 +276,9 @@ export default function CreateLedgerModal({ isOpen, onClose, onSubmit }: Props) 
             disabled={!canSubmit}
             className="h-10 rounded-[14px] bg-[linear-gradient(#093055,#043793)] px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Create Ledger
+            {isSubmitting
+              ? mode === 'edit' ? 'Updating…' : 'Creating…'
+              : mode === 'edit' ? 'Update Ledger' : 'Create Ledger'}
           </button>
         </div>
       </form>

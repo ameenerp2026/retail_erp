@@ -1,3 +1,4 @@
+import { FinanceStatus } from '@prisma/client';
 import prisma from '../../../config/prisma.js'
 
 export const createAccountingYear = async (
@@ -60,7 +61,7 @@ while (current <= toDate) {
     }),
     startDate,
     endDate,
-    financeStatus: "Open", // or FinanceStatus.Open
+    financeStatus: FinanceStatus.Open
   });
 
   current = new Date(current.getFullYear(), current.getMonth() + 1, 1);

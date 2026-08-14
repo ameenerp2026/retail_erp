@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["public", "user", "organization", "finance"]
+  schemas  = ["finance", "organization", "public", "user"]
 }
 
 model User {
@@ -18,7 +18,7 @@ model User {
   role                   Roles            @default(EMPLOYEE)
   createdAccountingYears AccountingYear[] @relation("CreatedAccountingYears")
   updatedAccountingYears AccountingYear[] @relation("UpdatedAccountingYears")
-  createdGSTINs GSTIN[]  @relation("UserCreatedGSTINs")
+  createdGSTINs          GSTIN[]          @relation("UserCreatedGSTINs")
 
   @@schema("user")
 }
@@ -54,8 +54,7 @@ model OrganizationGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-    organizationUnits OrganizationUnit[]
-
+  organizationUnits OrganizationUnit[]
 
   @@schema("organization")
 }
@@ -66,18 +65,19 @@ model OrganizationUnit {
   unitType         String
   gstIn            String
   manager          String
-  organizationGroupId Int
 
-   organizationGroup OrganizationGroup @relation(fields: [organizationGroupId],references: [id])
+  organizationGroupId Int
+  organizationGroup   OrganizationGroup @relation(fields: [organizationGroupId], references: [id])
 
   state             String
   address           String
   status            String   @default("Active")
   gstins            GSTIN[]
+  businessLocations BusinessLocation[]
+  ledgers           Ledger[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  
-businessLocations BusinessLocation[]
+
   @@schema("organization")
 }
 
@@ -124,6 +124,7 @@ model FinanceMonth {
 
   @@schema("organization")
 }
+
 enum FinanceStatus {
   Open
   Closed
@@ -132,39 +133,36 @@ enum FinanceStatus {
   @@schema("organization")
 }
 
-
-
 model GSTIN {
-  id                  Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  gstin               String   @unique
+  gstin String @unique
 
-  state               String
+  state String
 
- organizationUnitId  Int
+  organizationUnitId Int
   organizationUnit   OrganizationUnit @relation(fields: [organizationUnitId], references: [id])
-       
-  registrationType    RegistrationType
 
-  status GSTINStatus @default(PENDING)
-  createdById         Int
-  createdBy          User @relation("UserCreatedGSTINs", fields: [createdById], references: [id])
+  registrationType RegistrationType
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  status      GSTINStatus @default(PENDING)
+  createdById Int
+  createdBy   User        @relation("UserCreatedGSTINs", fields: [createdById], references: [id])
 
-  businessLocations   BusinessLocation[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  businessLocations BusinessLocation[]
 
   @@schema("organization")
 }
-
 
 enum RegistrationType {
   REGULAR
   COMPOSITION
   SEZ
-   @@schema("organization")
 
+  @@schema("organization")
 }
 
 enum GSTINStatus {
@@ -183,45 +181,42 @@ model BusinessLocation {
   locationCode String @unique
 
   parentOrganizationUnitId Int
-  parentOrganizationUnit OrganizationUnit @relation(fields: [parentOrganizationUnitId],references: [id])
+  parentOrganizationUnit   OrganizationUnit @relation(fields: [parentOrganizationUnitId], references: [id])
 
-  locationType LocationType
+  locationType     LocationType
   businessCategory BusinessCategory
 
   // ADDRESS
   addressLine1 String
   addressLine2 String?
-  landmark String?
-  city String
-  state String
-  country String
-  pinCode String
+  landmark     String?
+  city         String
+  state        String
+  country      String
+  pinCode      String
 
   // CONTACT
-  contactPerson String
-  phoneNumber String?
-  email String?
+  contactPerson    String
+  phoneNumber      String?
+  email            String?
   emergencyContact String?
 
   // GST
   linkedGSTINId Int
-  linkedGSTIN GSTIN @relation(fields: [linkedGSTINId],references: [id])
+  linkedGSTIN   GSTIN @relation(fields: [linkedGSTINId], references: [id])
 
   registrationType RegistrationType
 
   // DEFAULT LOCATIONS
   defaultBillingLocation Boolean @default(false)
-  defaultStockLocation Boolean @default(false)
+  defaultStockLocation   Boolean @default(false)
 
   // OPERATIONAL SETTINGS
-  allowSales Boolean @default(false)
-  allowPurchase Boolean @default(false)
+  allowSales     Boolean @default(false)
+  allowPurchase  Boolean @default(false)
   allowInventory Boolean @default(false)
-  allowDispatch Boolean @default(false)
-  allowPOS Boolean @default(false)
-
-  //defaultWarehouseId Int?
-  //parentWarehouseId Int?
+  allowDispatch  Boolean @default(false)
+  allowPOS       Boolean @default(false)
 
   // STATUS
   status LocationStatus @default(ACTIVE)
@@ -246,7 +241,7 @@ enum BusinessCategory {
   WHOLESALE
   DISTRIBUTION
   MANUFACTURING
-  
+
   @@schema("organization")
 }
 
@@ -276,6 +271,7 @@ enum GstType {
   REGULAR
   COMPOSITION
   SEZ
+
   @@schema("organization")
 }
 
@@ -285,4 +281,188 @@ enum GstStatus {
   FAILED
 
   @@schema("organization")
+}
+
+model Group {
+  id            Int            @id @default(autoincrement())
+  groupName     String         @unique @map("group_name") @db.VarChar(150)
+  groupCode     String?        @unique @map("group_code") @db.VarChar(30)
+  status        Status         @default(active)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  accountGroups AccountGroup[]
+  subGroups     SubGroup[]
+
+  @@map("groups")
+  @@schema("finance")
+}
+
+model SubGroup {
+  id            Int            @id @default(autoincrement())
+  subGroupName  String         @map("sub_group_name") @db.VarChar(150)
+  subGroupCode  String?        @unique @map("sub_group_code") @db.VarChar(30)
+  groupId       Int            @map("group_id")
+  status        Status         @default(active)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  accountGroups AccountGroup[]
+  group         Group          @relation(fields: [groupId], references: [id])
+
+  @@unique([subGroupName, groupId])
+  @@map("sub_groups")
+  @@schema("finance")
+}
+
+model AccountGroup {
+  id             Int            @id @default(autoincrement())
+  rootGroupName  String         @map("root_group_name") @db.VarChar(150)
+  groupId        Int            @map("group_id")
+  subGroupId     Int            @map("sub_group_id")
+  groupCode      String?        @unique @map("group_code") @db.VarChar(30)
+  status         Status         @default(active)
+  createdBy      Int?           @map("created_by")
+  updatedBy      Int?           @map("updated_by")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  accountClasses AccountClass[]
+  group          Group          @relation(fields: [groupId], references: [id])
+  subGroup       SubGroup       @relation(fields: [subGroupId], references: [id])
+  ledgers        Ledger[]
+
+  @@unique([rootGroupName, groupId, subGroupId])
+  @@map("account_groups")
+  @@schema("finance")
+}
+
+model AccountClass {
+  id             Int          @id @default(autoincrement())
+  className      String       @map("class_name") @db.VarChar(150)
+  accountGroupId Int          @map("account_group_id")
+  description    String?
+  status         Status       @default(active)
+  createdBy      Int?         @map("created_by")
+  updatedBy      Int?         @map("updated_by")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  deletedAt      DateTime?    @map("deleted_at")
+  deletedBy      Int?         @map("deleted_by")
+  accountGroup   AccountGroup @relation(fields: [accountGroupId], references: [id])
+  ledgers        Ledger[]
+
+  @@unique([className, accountGroupId])
+  @@map("account_classes")
+  @@schema("finance")
+}
+
+model Ledger {
+  id                 Int               @id @default(autoincrement())
+  ledgerName         String            @map("ledger_name") @db.VarChar(150)
+  ledgerCode         String?           @unique @map("ledger_code") @db.VarChar(30)
+  accountClassId     Int               @map("account_class_id")
+  accountGroupId     Int               @map("account_group_id")
+  balanceType        BalanceType       @map("balance_type")
+  openingBalance     Decimal           @default(0) @map("opening_balance") @db.Decimal(18, 2)
+  currencyId         Int?              @map("currency_id")
+  organizationUnitId Int?              @map("organization_unit_id")
+  gstApplicable      Boolean           @default(false) @map("gst_applicable")
+  status             Status            @default(active)
+  createdBy          Int?              @map("created_by")
+  updatedBy          Int?              @map("updated_by")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+  deletedAt          DateTime?         @map("deleted_at")
+  deletedBy          Int?              @map("deleted_by")
+  accountClass       AccountClass      @relation(fields: [accountClassId], references: [id])
+  accountGroup       AccountGroup      @relation(fields: [accountGroupId], references: [id])
+  currency           Currency?         @relation(fields: [currencyId], references: [id], onDelete: Restrict)
+  organizationUnit   OrganizationUnit? @relation(fields: [organizationUnitId], references: [id], onDelete: Restrict)
+
+  subLedgers         SubLedger[]
+
+  @@unique([ledgerName, accountClassId])
+  @@map("ledgers")
+  @@schema("finance")
+}
+
+model SubLedgerType {
+  id         Int         @id @default(autoincrement())
+  typeName   String      @unique @map("type_name") @db.VarChar(100)
+  status     Status      @default(active)
+  createdBy      Int?         @map("created_by")
+  updatedBy      Int?         @map("updated_by")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  deletedAt          DateTime?         @map("deleted_at")
+  deletedBy          Int?              @map("deleted_by")
+
+  subLedgers SubLedger[]
+
+  @@map("sub_ledger_types")
+  @@schema("finance")
+}
+
+model SubLedger {
+  id              Int           @id @default(autoincrement())
+  subLedgerName   String        @map("sub_ledger_name") @db.VarChar(150)
+  ledgerId        Int           @map("ledger_id")
+  subLedgerTypeId Int           @map("sub_ledger_type_id")
+  balanceType     BalanceType   @default(debit) @map("balance_type")
+  openingBalance  Decimal       @default(0) @map("opening_balance") @db.Decimal(18, 2)
+  creditLimit     Decimal?      @map("credit_limit") @db.Decimal(18, 2)
+  status          Status        @default(active)
+  createdBy       Int?          @map("created_by")
+  updatedBy       Int?          @map("updated_by")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  deletedAt          DateTime?         @map("deleted_at")
+  deletedBy          Int?              @map("deleted_by")
+  ledger          Ledger        @relation(fields: [ledgerId], references: [id])
+  subLedgerType   SubLedgerType @relation(fields: [subLedgerTypeId], references: [id])
+
+  @@unique([subLedgerName, ledgerId])
+  @@map("sub_ledgers")
+  @@schema("finance")
+}
+
+model Currency {
+  id            Int       @id @default(autoincrement())
+  countryName   String?   @map("country_name") @db.VarChar(100)
+  currencyCode  String    @unique @map("currency_code") @db.VarChar(10)
+  currencyName  String    @map("currency_name") @db.VarChar(100)
+  symbol        String    @db.VarChar(10)
+  exchangeRate  Decimal   @default(1) @map("exchange_rate") @db.Decimal(18, 4)
+  isBase        Boolean   @default(false) @map("is_base")
+  status        Status    @default(active)
+  createdBy     Int?      @map("created_by")
+  updatedBy     Int?      @map("updated_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+  deletedBy     Int?      @map("deleted_by")
+  ledgers       Ledger[]
+
+  @@map("currencies")
+  @@schema("finance")
+}
+
+enum public_Roles {
+  ADMIN
+  EMPLOYEE
+
+  @@map("Roles")
+  @@schema("public")
+}
+
+enum Status {
+  active
+  inactive
+
+  @@schema("finance")
+}
+
+enum BalanceType {
+  debit
+  credit
+
+  @@schema("finance")
 }

@@ -205,3 +205,27 @@ export const gstinSchema = z.object({
 export type GstinFormData = z.infer<typeof gstinSchema>
 
 
+//Account group schema
+export const accountGroupSchema = z.object({
+  groupId: z
+    .number({
+      error: 'Group is required',
+    })
+    .int()
+    .positive('Group is required'),
+
+  subGroupId: z
+    .number({
+      error: 'Sub Group is required',
+    })
+    .int()
+    .positive('Sub Group is required'),
+
+  rootGroupName: z
+    .string({ error: 'Root Group Name is required' })
+    .trim()
+    .min(2, 'Root Group Name must be at least 2 characters')
+    .max(150, 'Root Group Name must be under 150 characters'),
+})
+
+export type AccountGroupFormData = z.infer<typeof accountGroupSchema>

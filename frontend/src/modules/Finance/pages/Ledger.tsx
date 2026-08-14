@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Download, Filter, Plus, Search } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-hot-toast'
 import ReusableTable from '@/components/shared/ReusableTable'
-import { ledgerService } from '@/services/ledgerService'
+import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import { ledgerService } from '@/services/admin/finance/ledgerService'
 import type { Ledger, LedgerAccountGroup } from '@/types/ledger'
 import { getLedgerColumns } from '../components/Ledger/LedgerColumns'
 import CreateLedgerModal, {
@@ -16,20 +18,59 @@ const GROUP_DOT: Record<LedgerAccountGroup, string> = {
   Expenses: 'bg-amber-500',
 }
 
+type LedgerGroupStat = {
+  id: string
+  group: LedgerAccountGroup
+  value: string
+  ledgerCount: number
+}
+
 export default function LedgerPage() {
   const [search, setSearch] = useState('')
-  const [createOpen, setCreateOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editingLedger, setEditingLedger] = useState<Ledger | null>(null)
+  const [deletingLedger, setDeletingLedger] = useState<Ledger | null>(null)
   const queryClient = useQueryClient()
-
-  const { data: stats = [], isLoading: statsLoading } = useQuery({
-    queryKey: ['ledger-stats'],
-    queryFn: ledgerService.getStats,
-  })
 
   const { data: ledgers = [], isLoading: ledgersLoading } = useQuery({
     queryKey: ['ledgers'],
     queryFn: ledgerService.getLedgers,
   })
+
+  const GROUP_ORDER: LedgerAccountGroup[] = ['Assets', 'Liabilities', 'Income', 'Expenses']
+
+  const formatLakh = (value: number) => {
+    const lakhs = value / 100000
+    return `₹${lakhs.toFixed(1)}L`
+  }
+
+  const stats = useMemo<LedgerGroupStat[]>(() => {
+    const grouped = ledgers.reduce((acc, ledger) => {
+      const group = ledger.accountGroup
+      if (!group) return acc
+
+      if (!acc[group]) {
+        acc[group] = { total: 0, count: 0 }
+      }
+
+      const numericValue = Number(String(ledger.openingBalance).replace(/[^0-9.-]/g, '')) || 0
+
+      acc[group].total += numericValue
+      acc[group].count += 1
+
+      return acc
+    }, {} as Record<string, { total: number; count: number }>)
+
+    return GROUP_ORDER.map((group) => {
+      const entry = grouped[group] ?? { total: 0, count: 0 }
+      return {
+        id: group,
+        group,
+        value: formatLakh(entry.total),
+        ledgerCount: entry.count,
+      }
+    })
+  }, [ledgers])
 
   const filtered = useMemo(() => {
     if (!search) return ledgers
@@ -38,33 +79,124 @@ export default function LedgerPage() {
       (row) =>
         row.name.toLowerCase().includes(q) ||
         row.ledgerId.toLowerCase().includes(q) ||
-        row.accountClass.toLowerCase().includes(q) ||
-        row.accountGroup.toLowerCase().includes(q)
+        (row.accountClass?.className.toLowerCase().includes(q) ?? false) ||
+        row.accountGroup?.toLowerCase().includes(q)
     )
   }, [ledgers, search])
 
-  const handleCreate = (values: CreateLedgerFormValues) => {
-    const nextId = ledgers.length + 1
-    const created: Ledger = {
-      id: String(nextId),
-      ledgerId: `LED-${String(nextId).padStart(3, '0')}`,
-      name: values.name.trim(),
-      accountClass: values.accountClass,
-      accountGroup: values.accountGroup as LedgerAccountGroup,
-      openingBalance: values.openingBalance
-        ? `₹${values.openingBalance}`
-        : '₹0',
-      balanceType: values.balanceType as Ledger['balanceType'],
-      gstEnabled: values.gstEnabled,
-      status: 'Active',
-    }
+  const createMutation = useMutation({
+    mutationFn: ledgerService.create,
+    onSuccess: (created) => {
+      queryClient.setQueryData<Ledger[]>(['ledgers'], (prev = []) => [created, ...prev])
+      setModalOpen(false)
+      toast.success(`Ledger "${created.name}" created successfully`)
+    },
+    onError: (error: any) => {
+      const fieldErrors = (error?.response?.data?.errors ?? {}) as Record<string, string[]>
+      const apiMessage =
+        error?.response?.data?.error ||
+        Object.values(fieldErrors)?.[0]?.[0] ||
+        'Failed to create ledger'
+      toast.error(apiMessage)
+    },
+  })
 
-    queryClient.setQueryData<Ledger[]>(['ledgers'], (prev = []) => [created, ...prev])
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Parameters<typeof ledgerService.update>[1] }) =>
+      ledgerService.update(id, payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Ledger[]>(['ledgers'], (prev = []) =>
+        prev.map((l) => (l.id === updated.id ? updated : l))
+      )
+      setModalOpen(false)
+      setEditingLedger(null)
+      toast.success(`Ledger "${updated.name}" updated successfully`)
+    },
+    onError: (error: any) => {
+      const fieldErrors = (error?.response?.data?.errors ?? {}) as Record<string, string[]>
+      const apiMessage =
+        error?.response?.data?.error ||
+        Object.values(fieldErrors)?.[0]?.[0] ||
+        'Failed to update ledger'
+      toast.error(apiMessage)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => ledgerService.delete(id),
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<Ledger[]>(['ledgers'], (prev = []) => prev.filter((l) => l.id !== id))
+      setDeletingLedger(null)
+      toast.success('Ledger deleted')
+    },
+    onError: (error: any) => {
+      const apiMessage = error?.response?.data?.error || 'Failed to delete ledger'
+      toast.error(apiMessage)
+    },
+  })
+
+  const handleCreate = (values: CreateLedgerFormValues) => {
+    createMutation.mutate({
+      ledgerName: values.name.trim(),
+      accountGroupId: values.accountGroupId as number,
+      accountClassId: values.accountClassId as number,
+      balanceType: values.balanceType === 'Debit' ? 'debit' : 'credit',
+      openingBalance: values.openingBalance ? Number(values.openingBalance) : 0,
+      organizationUnitId: values.organizationUnitId === '' ? null : values.organizationUnitId,
+      gstApplicable: values.gstEnabled,
+    })
   }
 
-  if (statsLoading || ledgersLoading) {
+  const handleUpdate = (values: CreateLedgerFormValues) => {
+    if (!editingLedger) return
+    updateMutation.mutate({
+      id: editingLedger.id,
+      payload: {
+        ledgerName: values.name.trim(),
+        accountGroupId: values.accountGroupId as number,
+        accountClassId: values.accountClassId as number,
+        balanceType: values.balanceType === 'Debit' ? 'debit' : 'credit',
+        openingBalance: values.openingBalance ? Number(values.openingBalance) : 0,
+        organizationUnitId: values.organizationUnitId === '' ? null : values.organizationUnitId,
+        gstApplicable: values.gstEnabled,
+      },
+    })
+  }
+
+  const openCreate = () => {
+    setEditingLedger(null)
+    setModalOpen(true)
+  }
+
+  const openEdit = (ledger: Ledger) => {
+    setEditingLedger(ledger)
+    setModalOpen(true)
+  }
+
+  const handleDelete = (ledger: Ledger) => {
+    setDeletingLedger(ledger)
+  }
+
+  const confirmDelete = () => {
+    if (!deletingLedger) return
+    deleteMutation.mutate(deletingLedger.id)
+  }
+
+  if (ledgersLoading) {
     return <div className="page-shell text-sm text-slate-500">Loading...</div>
   }
+
+  const editingInitialValues: CreateLedgerFormValues | undefined = editingLedger
+    ? {
+        name: editingLedger.name,
+        accountGroupId: editingLedger.accountGroupId,
+        accountClassId: editingLedger.accountClass?.id ?? '',
+        balanceType: editingLedger.balanceType,
+        openingBalance: String(editingLedger.openingBalanceRaw),
+        organizationUnitId: editingLedger.organizationUnitId ?? '',
+        gstEnabled: editingLedger.gstEnabled,
+      }
+    : undefined
 
   return (
     <div className="page-shell">
@@ -83,7 +215,7 @@ export default function LedgerPage() {
           </button>
           <button
             type="button"
-            onClick={() => setCreateOpen(true)}
+            onClick={openCreate}
             className="flex h-9 items-center gap-2 rounded-[14px] bg-[linear-gradient(#093055,#043793)] px-3 text-xs font-semibold text-white sm:px-4"
           >
             <Plus size={13} />
@@ -99,7 +231,7 @@ export default function LedgerPage() {
             className="rounded-[14px] border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
           >
             <div className="mb-2 flex items-center gap-2">
-              <span className={`h-2 w-2 rounded-full ${GROUP_DOT[stat.group]}`} />
+              <span className={`h-2 w-2 rounded-full ${GROUP_DOT[stat.group] ?? 'bg-slate-300'}`} />
               <p className="text-xs text-slate-500">{stat.group}</p>
             </div>
             <p className="stat-value text-[#043793]">{stat.value}</p>
@@ -131,12 +263,32 @@ export default function LedgerPage() {
         </button>
       </div>
 
-      <ReusableTable columns={getLedgerColumns()} data={filtered} />
+      <ReusableTable
+        columns={getLedgerColumns({ onEdit: openEdit, onDelete: handleDelete })}
+        data={filtered}
+      />
 
       <CreateLedgerModal
-        isOpen={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onSubmit={handleCreate}
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false)
+          setEditingLedger(null)
+        }}
+        onSubmit={editingLedger ? handleUpdate : handleCreate}
+        isSubmitting={editingLedger ? updateMutation.isPending : createMutation.isPending}
+        mode={editingLedger ? 'edit' : 'create'}
+        ledgerId={editingLedger?.ledgerId}
+        initialValues={editingInitialValues}
+      />
+
+      <ConfirmDialog
+        isOpen={deletingLedger !== null}
+        title="Delete Ledger"
+        message={`Delete ledger "${deletingLedger?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeletingLedger(null)}
+        disabled={deleteMutation.isPending}
       />
     </div>
   )

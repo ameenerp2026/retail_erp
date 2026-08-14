@@ -21,7 +21,12 @@ const BAR_STYLE: Record<SubLedgerRisk, string> = {
   High: 'bg-rose-500',
 }
 
-export function getSubLedgerColumns(): ColumnsType<SubLedger> {
+type GetSubLedgerColumnsArgs = {
+  onEdit?: (row: SubLedger) => void
+  onDelete?: (row: SubLedger) => void
+}
+
+export function getSubLedgerColumns({ onEdit, onDelete }: GetSubLedgerColumnsArgs = {}): ColumnsType<SubLedger> {
   return [
     {
       title: 'NAME',
@@ -105,12 +110,26 @@ export function getSubLedgerColumns(): ColumnsType<SubLedger> {
     {
       title: 'ACTIONS',
       key: 'actions',
-      render: () => (
+      render: (_: unknown, record: SubLedger) => (
         <div className="flex items-center gap-2">
-          <button type="button" className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit?.(record)
+            }}
+            className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50"
+          >
             <Pencil size={14} />
           </button>
-          <button type="button" className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete?.(record)
+            }}
+            className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50"
+          >
             <Trash2 size={14} />
           </button>
         </div>

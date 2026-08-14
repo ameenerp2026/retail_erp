@@ -1,7 +1,7 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
-import { Save, MapPin, ArrowLeft, Info } from 'lucide-react'
+import { Save,ArrowLeft, Info } from 'lucide-react'
 import FormInput from '../../../../components/forms/FormInput'
 import {
   businessLocationSchema,

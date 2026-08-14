@@ -8,7 +8,8 @@ type ReusableTableProps<T> = {
   columns: ColumnsType<T>;
   data: T[];
   rowKey?: string;
-  loading?: boolean
+  loading?: boolean;
+  onRowClick?: (record: T) => void;
 };
 
 export default function ReusableTable<T extends object>({
@@ -16,9 +17,8 @@ export default function ReusableTable<T extends object>({
   data,
   rowKey = "id",
   loading = false,
+  onRowClick,
 }: ReusableTableProps<T>) {
-  console.log('columns',columns)
-  console.log('DATA',data)
     return(
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full">
             <div className=" [&_.ant-table-thead_th]:text-[#6B7A99]
@@ -41,9 +41,16 @@ export default function ReusableTable<T extends object>({
                     pageSize:10,
                      showTotal: (total) => `Showing ${total} results`,
                 }}
+                onRow={
+                  onRowClick
+                    ? (record) => ({
+                        onClick: () => onRowClick(record),
+                        className: 'cursor-pointer',
+                      })
+                    : undefined
+                }
               />
             </div>
         </div>
     )
 }
-

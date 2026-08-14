@@ -1,6 +1,5 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'react-hot-toast'
 import { X } from 'lucide-react'
 import { currencySchema, type CurrencyFormData } from '@/components/forms/validate.schema'
 import FormInput from '@/components/forms/FormInput'
@@ -9,9 +8,11 @@ import type { CurrencyRecord } from '@/types/currency'
 type Props = {
   currency?: CurrencyRecord | null
   onClose: () => void
+  onSubmit: (data: CurrencyFormData) => void
+  isSubmitting?: boolean
 }
 
-export default function CurrencyForm({ currency, onClose }: Props) {
+export default function CurrencyForm({ currency, onClose, onSubmit, isSubmitting = false }: Props) {
   const isEdit = Boolean(currency)
 
   const {
@@ -19,7 +20,7 @@ export default function CurrencyForm({ currency, onClose }: Props) {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CurrencyFormData>({
     resolver: zodResolver(currencySchema),
     defaultValues: {
@@ -32,18 +33,6 @@ export default function CurrencyForm({ currency, onClose }: Props) {
   })
 
   const isBase = watch('isBase')
-
-  function onSubmit(data: CurrencyFormData) {
-    try {
-      console.log('Form data:', data)
-      // call your API here
-      // isEdit ? await currencyService.update(currency!.id, data) : await currencyService.create(data)
-      toast.success(isEdit ? 'Currency updated successfully!' : 'Currency added successfully!')
-      onClose()
-    } catch (error) {
-      toast.error('Something went wrong. Please try again.')
-    }
-  }
 
   return (
     <div className="w-full bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden">
@@ -143,6 +132,11 @@ export default function CurrencyForm({ currency, onClose }: Props) {
               Standard
             </button>
           </div>
+          {isBase && (
+            <p className="mt-2 text-xs text-amber-600">
+              Setting this as base will unset the current base currency.
+            </p>
+          )}
         </div>
       </form>
 
@@ -151,7 +145,8 @@ export default function CurrencyForm({ currency, onClose }: Props) {
         <button
           type="button"
           onClick={onClose}
-          className="h-10 px-4 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+          disabled={isSubmitting}
+          className="h-10 px-4 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
         >
           Cancel
         </button>

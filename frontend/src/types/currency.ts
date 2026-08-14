@@ -1,4 +1,3 @@
-
 export type CurrencyRecord = {
   id: string
   code: string           // e.g. INR, USD
@@ -7,5 +6,14 @@ export type CurrencyRecord = {
   exchangeRate: number   // rate vs base currency
   isBase: boolean        // true for the base currency
   lastUpdated: string
-
 }
+
+export type CreateCurrencyRequest = {
+  code: string
+  name: string
+  symbol: string
+  exchangeRate: number
+  isBase: boolean
+}
+
+export type UpdateCurrencyRequest = CreateCurrencyRequest
