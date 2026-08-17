@@ -9,5 +9,10 @@ const router = express.Router()
 router.use(authMiddleware);
 router.post('/gst',creategstDetailsController);
 router.get('/gst',getGSTDetailsController);
+router.get("/test", (req, res) => {
+  res.json({
+    message: "GST route is working",
+  });
+});
 
 export default router

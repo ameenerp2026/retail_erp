@@ -112,8 +112,8 @@ emergencyContact: z.string()
  allowDispatch:z.boolean(),
  allowPOS:z.boolean(),
  status:z.boolean(),
- defaultWarehouse: z.string().min(1, 'Select Warehouse'),
- parentWarehouse: z.string().min(1, 'Select Parent Warehouse'),
+//  defaultWarehouse: z.string().min(1, 'Select Warehouse'),
+//  parentWarehouse: z.string().min(1, 'Select Parent Warehouse'),
 })
 
 export type businessLocationFormData = z.infer<typeof businessLocationSchema>

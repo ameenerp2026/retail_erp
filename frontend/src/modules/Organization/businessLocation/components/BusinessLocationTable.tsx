@@ -1,14 +1,5 @@
 import { Pencil, Trash2 } from 'lucide-react'
-
-export interface BusinessLocationRow {
-  id: number | string
-  locationName: string
-  code: string
-  address: string
-  city: string
-  state: string
-  status: 'Active' | 'Inactive'
-}
+import type { BusinessLocationRow } from '@/types/admin/organization/businessLocation'
 
 interface BusinessLocationTableProps {
   locations: BusinessLocationRow[]
@@ -29,7 +20,7 @@ export default function BusinessLocationTable({
         <thead className="bg-slate-50">
           <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
             <th className="px-4 py-3">Location Name</th>
-            <th className="px-4 py-3">Code</th>
+            {/* <th className="px-4 py-3">Code</th> */}
             <th className="px-4 py-3">Address</th>
             <th className="px-4 py-3">City</th>
             <th className="px-4 py-3">State</th>
@@ -48,12 +39,12 @@ export default function BusinessLocationTable({
             locations.map((row) => (
               <tr key={row.id} className="text-sm transition-colors hover:bg-slate-50">
                 <td className="px-4 py-4 font-semibold text-slate-800">{row.locationName}</td>
-                <td className="px-4 py-4 text-slate-500">{row.code}</td>
-                <td className="px-4 py-4 text-slate-600">{row.address}</td>
+               {/* // <td className="px-4 py-4 text-slate-500">{row.code}</td> */}
+                <td className="px-4 py-4 text-slate-600">{row.addressLine2}</td>
                 <td className="px-4 py-4 text-slate-600">{row.city}</td>
                 <td className="px-4 py-4 text-slate-600">{row.state}</td>
                 <td className="px-4 py-4">
-                  {row.status === 'Active' ? (
+                  {row.status === 'ACTIVE' ? (
                     <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-600">
                       Active
                     </span>

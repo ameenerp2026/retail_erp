@@ -16,6 +16,9 @@ data: {
 
     })
 }
+
+
+
 export const getGSTDetails = async () => {
   return prisma.gSTIN.findMany({
     orderBy: {

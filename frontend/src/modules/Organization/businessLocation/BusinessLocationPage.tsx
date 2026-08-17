@@ -1,66 +1,43 @@
 import { useMemo, useState } from 'react'
 import { Plus, Search, Filter, Download } from 'lucide-react'
 import BusinessLocationForm from './components/BusinessLocationForm'
-import BusinessLocationTable, {
-  type BusinessLocationRow,
-} from './components/BusinessLocationTable'
+import toast from 'react-hot-toast'
+import type { BusinessLocationRow } from '../../../types/admin/organization/businessLocation' 
+import BusinessLocationTable from './components/BusinessLocationTable'
 import Pagination from '../components/Pagination'
+import { useBusinessLocations ,useDeleteBusinessLocation} from '@/hooks/admin/organization/useBusinessLocation'
 
-const MOCK_LOCATIONS: BusinessLocationRow[] = [
-  {
-    id: 1,
-    locationName: 'Mumbai Head Office',
-    code: 'MHO-001',
-    address: '12th Floor, World Trade Centre, Nariman Point',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    locationName: 'Delhi NCR Branch',
-    code: 'DNB-012',
-    address: 'Suite 405, Connaught Place, Inner Circle',
-    city: 'New Delhi',
-    state: 'Delhi',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    locationName: 'Bangalore Tech Park',
-    code: 'BLR-TECH',
-    address: 'Plot 42, Electronic City Phase II',
-    city: 'Bangalore',
-    state: 'Karnataka',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    locationName: 'Chennai Warehouse',
-    code: 'MAA-WH',
-    address: 'Block G, Ambattur Industrial Estate',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    status: 'Inactive',
-  },
-  {
-    id: 5,
-    locationName: 'Hyderabad Sales Office',
-    code: 'HYD-SO',
-    address: 'Lvl 4, My Home Twitza, HITECH City',
-    city: 'Hyderabad',
-    state: 'Telangana',
-    status: 'Active',
-  },
-]
+
 
 const ROWS_PER_PAGE = 10
+type ViewMode = 'list' | 'create' | 'edit'
+
 
 function BusinessLocationPage() {
-  const [view, setView] = useState<'list' | 'form'>('list')
-  const [locations] = useState<BusinessLocationRow[]>(MOCK_LOCATIONS)
+  const deleteMutation = useDeleteBusinessLocation()
+  const [view, setView] = useState<ViewMode>('list')
+const [selectedLocation, setSelectedLocation] =
+  useState<BusinessLocationRow | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+
+
+const {
+  data: locations = [],
+  //isLoading: locationsLoading,
+} = useBusinessLocations()
+
+const {
+  data: businessLocations = [],
+  //isLoading: isBusinessLocationsLoading,
+  //isError: isBusinessLocationsError,
+ // error: businessLocationsError,
+} = useBusinessLocations();
+
+console.log("🔥 Business Locations:", businessLocations);
+  
+
+
 
   const filteredLocations = useMemo(() => {
     const term = searchTerm.toLowerCase().trim()
@@ -76,18 +53,55 @@ function BusinessLocationPage() {
   const startIndex = (currentPage - 1) * ROWS_PER_PAGE
   const currentLocations = filteredLocations.slice(startIndex, startIndex + ROWS_PER_PAGE)
 
+const handleCreate = () => {
+  setSelectedLocation(null)
+  setView('create')
+}
+
   const handleEdit = (row: BusinessLocationRow) => {
-    console.log('edit', row)
-    setView('form')
-  }
+  setSelectedLocation(row)
+  setView('edit')
+}
+  
 
-  const handleDelete = (row: BusinessLocationRow) => {
-    console.log('delete', row)
-  }
+const handleDelete = async (
+  row: BusinessLocationRow
+) => {
+  try {
+    await deleteMutation.mutateAsync(row.id)
 
-  if (view === 'form') {
-    return <BusinessLocationForm onBack={() => setView('list')} onSaved={() => setView('list')} />
+    toast.success(
+      'Business location deleted successfully'
+    )
+  } catch (error) {
+    console.error('Delete error:', error)
+
+    toast.error(
+      'Failed to delete business location'
+    )
   }
+}
+  if (view === 'create') {
+  return (
+    <BusinessLocationForm
+      onBack={() => setView('list')}
+      onSaved={() => setView('list')}
+    />
+  )
+}
+
+if (view === 'edit' && selectedLocation) {
+  return (
+    <BusinessLocationForm
+      location={selectedLocation}
+      onBack={() => setView('list')}
+      onSaved={() => setView('list')}
+    />
+  )
+}
+  // if (view === 'form') {
+  //   return <BusinessLocationForm onBack={() => setView('list')} onSaved={() => setView('list')} />
+  // }
 
   return (
     <div className="page-shell">
@@ -102,12 +116,18 @@ function BusinessLocationPage() {
         <div className="page-actions">
           <button
             type="button"
-            onClick={() => setView('form')}
+            
+               onClick={
+                handleCreate}
             className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-95"
           >
             <Plus size={18} />
             Add Location
           </button>
+
+
+
+          
         </div>
       </div>
 
@@ -149,7 +169,7 @@ function BusinessLocationPage() {
 
       {/* Table */}
       <BusinessLocationTable
-        locations={currentLocations}
+        locations={businessLocations}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

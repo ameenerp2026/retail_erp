@@ -1,11 +1,11 @@
 import apiClient from "../../apiClient";
 import type { GstinFormData } from "@/components/forms/validate.schema";
+
+
 export const getGSTINs = async () => {
   const response = await apiClient.get("/api/gstManagement/gst");
   return response.data.data;
 };
-
-
 
 export const createGSTIN=async(data:GstinFormData)=>{
   const response = await apiClient.post(

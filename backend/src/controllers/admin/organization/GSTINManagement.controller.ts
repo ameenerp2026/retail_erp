@@ -40,26 +40,27 @@ export const creategstDetailsController = async (
 export const getGSTDetailsController = async (
   req: Request,
   res: Response
-) => {
-   try {
-     const gstDetails = await getGSTDetails();
+): Promise<void> => {
+  try {
+    const gstDetails = await getGSTDetails()
 
-  if (!gstDetails) {
-      return res.status(404).json({
-        message: "GST details not found",
-      });
+    if (!gstDetails) {
+      res.status(404).json({
+        message: 'GST details not found',
+      })
+      return
     }
 
-    return res.status(200).json({
-      message: "GST details fetched successfully",
+    res.status(200).json({
+      message: 'GST details fetched successfully',
       data: gstDetails,
-    });
+    })
+  } catch (error: any) {
+    console.error('Get GST details error:', error)
+
+    res.status(500).json({
+      message: 'Failed to fetch GST details',
+      error: error?.message,
+    })
   }
-   catch (error: any) {
-    return res.status(500).json({
-      message: "Failed to fetch GST details",
-      error: error.message,
-    });
-  }
-   
 }

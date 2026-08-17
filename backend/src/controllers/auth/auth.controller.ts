@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import prisma from '../../config/prisma.js'
 
-
 export const register = async (req: Request, res: Response) => {
   try {
     const body = req.body ?? {}
@@ -74,19 +73,20 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: '1d' }
     )
 
-    res.json({
+    return res.json({
             message : ' Login Successful!',
             token,
 
             user:{
                 id:user.id,
-                email:user.email
+                email:user.email,
+                  name: user.name,
+    role: user.role
             },
         
         })
-    }
-    catch(error){
-        return res.status(500).json({message: 'Login failed'})
-    }
-   
+    
+  } catch (error) {
+    return res.status(500).json({ message: 'Login failed' })
+  }
 }

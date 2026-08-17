@@ -178,7 +178,7 @@ model BusinessLocation {
 
   // BASIC INFORMATION
   locationName String
-  locationCode String @unique
+  
 
   parentOrganizationUnitId Int
   parentOrganizationUnit   OrganizationUnit @relation(fields: [parentOrganizationUnitId], references: [id])

@@ -19,6 +19,7 @@ export default function GSTINManagement() {
 
   const { data: gstins = [] } = useGSTINs();
   const createGSTINMutation = useCreateGSTIN();
+  
   function handleAddGSTIN(data: GstinFormData) {
     createGSTINMutation.mutate(data, {
       onSuccess: () => {

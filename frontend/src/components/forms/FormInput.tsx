@@ -86,6 +86,8 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextArea
             {...rest}
           />
         ) : type === 'select' ? (
+
+          console.log('FormInput options:', options),
           <select
             ref={ref as React.Ref<HTMLSelectElement>}
             className={baseClass}

@@ -1,4 +1,5 @@
 import { useForm, Controller } from 'react-hook-form'
+import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
 import { Save,ArrowLeft, Info } from 'lucide-react'
@@ -9,11 +10,22 @@ import {
 } from '../../../../components/forms/validate.schema'
 import { useOrganizationUnits } from '../../../../hooks/admin/organization/useOrganizationUnits'
 import { getCountries, getStates, getCities } from '@/services/location.service'
+import type { BusinessLocationRow } from '../../../../types/admin/organization/businessLocation'
+import {useGSTINs} from '../../../../hooks/admin/organization/useGSTIN'
+import {
+  useCreateBusinessLocation,
+  useUpdateBusinessLocation,
+} from '@/hooks/admin/organization/useBusinessLocation'
+
 
 type BusinessLocationFormProps = {
+  location?: BusinessLocationRow
   onBack?: () => void
   onSaved?: (data: businessLocationFormData) => void
 }
+
+
+
 
 const LOCATION_TYPE_OPTIONS = [
   { label: 'Store', value: 'STORE' },
@@ -29,11 +41,7 @@ const BUSINESS_CATEGORY_OPTIONS = [
   { label: 'Manufacturing', value: 'MANUFACTURING' },
 ]
 
-const GSTIN_OPTIONS = [
-  { label: '27AAAAA0000A1Z5', value: '27AAAAA0000A1Z5' },
-  { label: '29BBBBB1111B1Z4', value: '29BBBBB1111B1Z4' },
-  { label: '07CCCCC2222C1Z3', value: '07CCCCC2222C1Z3' },
-]
+
 
 const GST_REGISTRATION_OPTIONS = [
   { label: 'Regular', value: 'REGULAR' },
@@ -41,18 +49,26 @@ const GST_REGISTRATION_OPTIONS = [
   { label: 'SEZ', value: 'SEZ' },
 ]
 
-const WAREHOUSE_OPTIONS = [
-  { label: 'Main Warehouse', value: 'WH-MAIN' },
-  { label: 'Secondary Warehouse', value: 'WH-SEC' },
-  { label: 'Transit Warehouse', value: 'WH-TRANSIT' },
-]
+// const WAREHOUSE_OPTIONS = [
+//   { label: 'Main Warehouse', value: 'WH-MAIN' },
+//   { label: 'Secondary Warehouse', value: 'WH-SEC' },
+//   { label: 'Transit Warehouse', value: 'WH-TRANSIT' },
+// ]
 
-function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
+
+
+function BusinessLocationForm(
+  {  
+  location,
+  onBack,
+  onSaved,
+}: BusinessLocationFormProps) {
   const {
     register,
     control,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<businessLocationFormData>({
     resolver: zodResolver(businessLocationSchema),
@@ -83,16 +99,83 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
       allowPurchase: false,
       allowDispatch: false,
       status: true,
-      defaultWarehouse: '',
-      parentWarehouse: '',
+      // defaultWarehouse: '',
+      // parentWarehouse: '',
     },
   })
+
+  useEffect(() => {
+  if (!location) return
+
+  reset({
+    locationName: location.locationName ?? '',
+    parentOrganizationUnit: String(
+      location.parentOrganizationUnitId ?? ''
+    ),
+    locationType: location.locationType ?? '',
+    businessCategory: location.businessCategory ?? '',
+
+    addressLine1: location.addressLine1 ?? '',
+    addressLine2: location.addressLine2 ?? '',
+    landmark: location.landmark ?? '',
+
+    city: location.city ?? '',
+    state: location.state ?? '',
+    country: location.country ?? '',
+    pinCode: location.pinCode ?? '',
+
+    contactPerson: location.contactPerson ?? '',
+    phoneNumber: location.phoneNumber ?? '',
+    email: location.email ?? '',
+    emergencyContact: location.emergencyContact ?? '',
+
+    linkedGSTIN: String(location.linkedGSTINId ?? ''),
+    registrationType: location.registrationType ?? '',
+
+    defaultBillingLocation:
+      location.defaultBillingLocation ?? false,
+
+    defaultStockLocation:
+      location.defaultStockLocation ?? false,
+
+    allowSales: location.allowSales ?? false,
+    allowPurchase: location.allowPurchase ?? false,
+    allowInventory: location.allowInventory ?? false,
+    allowDispatch: location.allowDispatch ?? false,
+    allowPOS: location.allowPOS ?? false,
+
+    status: location.status === 'ACTIVE',
+  })
+}, [location, reset])
+
+  console.log('🔥 BusinessLocationForm rendered')
+
+const isEditMode = !!location
+
+const createMutation =
+  useCreateBusinessLocation()
+
+const updateMutation =
+  useUpdateBusinessLocation()
+
+  const isSaving =
+  createMutation.isPending ||
+  updateMutation.isPending
 
   const country = watch('country')
   const state = watch('state')
  // const locationCode = watch('locationCode')
 
   const countries = getCountries()
+
+  const  {
+  data:gstins=[],
+}=useGSTINs();
+
+const gstinOptions = gstins.map((gstin:any) => ({
+  label: gstin.gstin,
+  value: String(gstin.id),
+}))
   const states = country ? getStates(country) : []
   const cities = country && state ? getCities(country, state) : []
 
@@ -103,17 +186,48 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
     value: String(unit.id),
   }))
 
-  const onSave = async (data: businessLocationFormData) => {
-    try {
-      console.log('businessLocationFormData', data)
-      toast.success('Business location saved')
-      onSaved?.(data)
-    } catch (err) {
-      console.error(err)
-      toast.error('Failed to save')
-    }
-  }
+console.log('gstins',gstins)
+console.log("🔥🔥🔥 BUSINESS LOCATION FORM EXECUTED 🔥🔥🔥");
 
+
+const onSave = async (
+  data: businessLocationFormData
+) => {
+  try {
+    if (isEditMode && location) {
+
+      await updateMutation.mutateAsync({
+        id: location.id,
+        data,
+      })
+
+      toast.success(
+        'Business location updated successfully'
+      )
+
+    } else {
+
+      await createMutation.mutateAsync(data)
+
+      toast.success(
+        'Business location created successfully'
+      )
+    }
+
+    onSaved?.(data)
+
+  } catch (error: any) {
+    console.error(
+      'Business location save failed:',
+      error
+    )
+
+    toast.error(
+      error?.response?.data?.message ||
+      'Failed to save business location'
+    )
+  }
+}
   return (
     <form
       onSubmit={handleSubmit(onSave, (formErrors) => console.log(formErrors))}
@@ -140,13 +254,21 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
           </div>
         </div>
         <div className="page-actions">
-          <button
-            type="submit"
-            className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-95"
-          >
-            <Save size={16} />
-            <span>Save</span>
-          </button>
+         <button
+  type="submit"
+  disabled={isSaving}
+  className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white disabled:opacity-50"
+>
+  <Save size={16} />
+
+  <span>
+    {isSaving
+      ? 'Saving...'
+      : isEditMode
+        ? 'Update'
+        : 'Save'}
+  </span>
+</button>
         </div>
       </div>
 
@@ -184,7 +306,7 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
             <FormInput
               label="Linked GSTIN"
               type="select"
-              options={GSTIN_OPTIONS}
+              options={gstinOptions}
               {...register('linkedGSTIN')}
             />
 
@@ -358,7 +480,7 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
                 label="Linked GSTIN"
                 type="select"
                 required
-                options={GSTIN_OPTIONS}
+                options={gstinOptions}
                 hint="Multiple locations can share one GSTIN."
                 {...register('linkedGSTIN')}
                 error={errors.linkedGSTIN?.message}
@@ -478,7 +600,7 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
                 />
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormInput
                 label="Default Warehouse"
                 type="select"
@@ -493,7 +615,7 @@ function BusinessLocationForm({ onBack, onSaved }: BusinessLocationFormProps) {
                 {...register('parentWarehouse')}
                 error={errors.parentWarehouse?.message}
               />
-            </div>
+            </div> */}
 
             {/* STATUS */}
             <p className="section-title mb-3 mt-6 uppercase tracking-wide text-[#043793]">
