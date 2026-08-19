@@ -3,6 +3,7 @@ import type { ColumnsType } from "antd/es/table"
 import type { InventoryPeriod } from "@/types/inventory"
 import StatusTag from "@/components/shared/StatusTags"
 import { MoreHorizontal } from "lucide-react"
+import { formatDate, formatDateTime } from "@/utils/dateFormat"
 
 export function getInventoryColumns(
   onRowClick: (period: InventoryPeriod) => void,
@@ -23,12 +24,12 @@ export function getInventoryColumns(
         </button>
       ),
     },
-    { title: "START DATE",     dataIndex: "startDate",    key: "startDate",    sorter: false,render: (text) => <span className="text-[#1A2332]">{text}</span> },
-    { title: "END DATE",       dataIndex: "endDate",      key: "endDate",      sorter: false,render: (text) => <span className="text-[#1A2332]">{text}</span> },
+    { title: "START DATE",     dataIndex: "startDate",    key: "startDate",    sorter: false,render: (text) => <span className="text-[#1A2332]">{formatDate(text)}</span> },
+    { title: "END DATE",       dataIndex: "endDate",      key: "endDate",      sorter: false,render: (text) => <span className="text-[#1A2332]">{formatDate(text)}</span> },
     { title: "INV. STATUS",    dataIndex: "invStatus",    key: "invStatus",    sorter: false, render: (s) => <StatusTag status={s} /> },
     { title: "FIN. STATUS", dataIndex: "financeStatus",key: "financeStatus",sorter: false, render: (s) => <StatusTag status={s} /> },
     { title: "COGS STATUS",    dataIndex: "cogsStatus",   key: "cogsStatus",   sorter: false, render: (s) => <StatusTag status={s} /> },
-    { title: "LAST MODIFIED",  dataIndex: "lastModified", key: "lastModified", sorter: false,render: (text) => <span className="text-[#1A2332]">{text}</span> },
+    { title: "LAST MODIFIED",  dataIndex: "lastModified", key: "lastModified", sorter: false,render: (text) => <span className="text-[#1A2332]">{formatDateTime(text)}</span> },
     {
       title: "ACTION",
       key: "action",

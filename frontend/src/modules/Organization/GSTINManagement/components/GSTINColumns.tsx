@@ -2,6 +2,7 @@
 import type { ColumnsType } from 'antd/es/table'
 import StatusTag from '@/components/shared/StatusTags'
 import type { GSTINRecord } from '@/types/gstin'
+import { formatDateLong } from '@/utils/dateFormat'
 
 export function getGSTINColumns(
   onReVerify: (record: GSTINRecord) => void
@@ -34,13 +35,7 @@ export function getGSTINColumns(
       dataIndex: "createdAt",
       key: "createdAt",
       render: (val) => (
-        <span className="text-[#94A3B8]"> {val
-        ? new Date(val).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          })
-        : "—"}</span>
+        <span className="text-[#94A3B8]">{formatDateLong(val)}</span>
       ),
     },
      { title: "Created By", dataIndex: ["createdBy", "name"], key: "createdBy" },

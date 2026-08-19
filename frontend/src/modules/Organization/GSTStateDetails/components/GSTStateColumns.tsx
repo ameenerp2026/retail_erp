@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import YesNoBadge from '@/components/shared/YesNoBadge'
 import SEZBadge from './SEZBadge'
 import type { GSTStateRecord } from '@/types/gstState'
+import { formatDate } from '@/utils/dateFormat'
 
 export function getGSTStateColumns(
   onView: (record: GSTStateRecord) => void,
@@ -65,7 +66,7 @@ export function getGSTStateColumns(
       title: "LAST UPDATED",
       dataIndex: "lastUpdated",
       key: "lastUpdated",
-      render: (val) => <span className="text-slate-400">{val}</span>,
+      render: (val) => <span className="text-slate-400">{formatDate(val)}</span>,
     },
     {
       title: "ACTIONS",
