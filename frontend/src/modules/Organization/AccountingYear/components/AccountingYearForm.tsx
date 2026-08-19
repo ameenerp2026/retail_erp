@@ -4,6 +4,7 @@ import { accountingYearSchema, AccountingYearFormData } from '@/components/forms
 import z from 'zod'
 import { X } from 'lucide-react'
 import apiClient from '../../../../services/apiClient'
+import { formatFinancialYearName } from '@/utils/dateFormat'
 type Props = {
   onClose: () => void
   onSubmit?: (data: AccountingYearFormData) => void
@@ -17,14 +18,6 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
     toDate: '',
   })
   const [errors, setErrors] = useState<Errors>({})
-
-  const getYearName = (fromDate: string, toDate: string) => {
-  const fromYear = new Date(fromDate).getFullYear();
-  const toYear = new Date(toDate).getFullYear().toString().slice(-2);
-  console.log('toDate',new Date(fromDate).getFullYear().toString())
-
-  return `FY ${fromYear}-${toYear}`;
-};
 
   const handleChange = (field: keyof AccountingYearFormData, value: string) => {
     setFormData(prev => ({...prev, [field]: value }))
@@ -42,7 +35,7 @@ console.log('validatedData',validatedData);
 const payload = {
     fromDate: formData.fromDate,
     toDate: formData.toDate,
-    yearName: getYearName(validatedData.fromDate, validatedData.toDate),
+    yearName: formatFinancialYearName(validatedData.fromDate, validatedData.toDate),
   };
 console.log('payload',payload)
   const res =  await apiClient.post('/api/accountingYear/accounting-Year',payload) 

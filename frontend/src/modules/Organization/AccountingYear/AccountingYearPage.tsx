@@ -6,6 +6,7 @@ import AccountingYearForm from "./components/AccountingYearForm";
 import { AccountingYear, Period, PeriodStatus } from "@/types/accounting";
 import apiClient from "@/services/apiClient";
 import toast from "react-hot-toast"; // or your toast lib
+import { formatDateRange } from "@/utils/dateFormat";
 
 
 export default function AccountingYearPage() {
@@ -28,16 +29,7 @@ export default function AccountingYearPage() {
         (year: any) => ({
           id: year.id,
           label: year.yearName,
-          dateRange: `${new Date(year.fromDate).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })} — ${new Date(year.toDate).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })}`,
-
+          dateRange: formatDateRange(year.fromDate, year.toDate),
           status: year.status,
           closedPeriods: year.financeMonths.filter(
             (m: any) => m.financeStatus === "Closed",
@@ -65,8 +57,6 @@ export default function AccountingYearPage() {
   }, []);
   const getPeriodsForYear = (year?: AccountingYear): Period[] => {
     if (!year) return [];
-
-    const startYear = parseInt(year.dateRange.split(" ")[2]);
 
     return year.financeMonths.map((month: any) => ({
       month: month.period.split(" ")[0], // Jul

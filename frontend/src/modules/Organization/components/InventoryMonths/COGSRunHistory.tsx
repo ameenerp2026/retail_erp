@@ -7,6 +7,7 @@ import StatusTag from '@/components/shared/StatusTags'
 import type { ColumnsType } from 'antd/es/table'
 import type { COGSRun, COGSRunHistoryProps } from '@/types/inventory'
 import { inventoryService } from '@/services/inventoryService'
+import { formatDateTime } from '@/utils/dateFormat'
 
 const ICON_MAP = {
   clock: Clock,
@@ -22,8 +23,18 @@ const columns: ColumnsType<COGSRun> = [
     key: 'month',
     render: (text) => <span className="font-semibold text-[#0F4C9A]">{text}</span>,
   },
-  { title: 'START TIME', dataIndex: 'startTime', key: 'startTime' },
-  { title: 'END TIME', dataIndex: 'endTime', key: 'endTime' },
+  {
+    title: 'START TIME',
+    dataIndex: 'startTime',
+    key: 'startTime',
+    render: (value) => formatDateTime(value),
+  },
+  {
+    title: 'END TIME',
+    dataIndex: 'endTime',
+    key: 'endTime',
+    render: (value) => formatDateTime(value),
+  },
   { title: 'RUNTIME', dataIndex: 'runtime', key: 'runtime' },
   {
     title: 'STATUS',
