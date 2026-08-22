@@ -1,6 +1,14 @@
 import { Period } from '@/types/accounting'
 
-export default function PeriodCard({ period }: { period: Period }) {
+
+
+type Props = {
+  period: Period
+  onClick?: () => void
+}
+
+
+export default function PeriodCard({ period, onClick }: Props) {
   const getCardStyles = () => {
     if (period.status === 'Closed') return 'bg-green-50 border-green-200 text-green-600'
     if (period.status === 'Open') return 'bg-blue-50 border-blue-200 text-blue-600' 
@@ -8,7 +16,10 @@ export default function PeriodCard({ period }: { period: Period }) {
   }
 
   return (
-    <div className={`w-full h-24 border rounded-xl p-4 flex flex-col items-center justify-center ${getCardStyles()}`}>
+    <div 
+      className={`w-full h-24 border rounded-xl p-4 flex flex-col items-center justify-center ${getCardStyles()}`}
+      onClick={onClick}
+    >
       <p className="text-sm font-semibold text-[#043793] mb-1">{period.month}</p>
       <p className="text-xs text-slate-400 mb-2">{period.year}</p>
       

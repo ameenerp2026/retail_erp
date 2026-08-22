@@ -7,6 +7,7 @@ import { OrgUnitForm } from "./components/OrgUnitForm"
 import { DeleteConfirmForm } from "../components/DeleteConfirmForm"
 import { OrgUnitFormData } from "@/components/forms/validate.schema"
 import apiClient from '../../../services/apiClient'
+import { exportToPDF, ExportColumn } from '@/utils/exportData'
 import toast from "react-hot-toast"
 
 export interface OrganizationUnit {
@@ -30,6 +31,17 @@ export interface OrganizationUnit {
 
 
 type StatusFilter = "all" | "Active" | "Inactive"
+
+const orgUnitColumns: ExportColumn<OrganizationUnit>[] = [
+  { header: 'Unit ID', accessor: (u) => u.id },
+  { header: 'Name', accessor: (u) => `${u.organizationUnit} (${u.organizationGroup.shortName})` },
+  { header: 'Type', accessor: (u) => u.unitType },
+  { header: 'GSTIN', accessor: (u) => u.gstIn },
+  { header: 'Manager', accessor: (u) => u.manager },
+  { header: 'Status', accessor: (u) => u.status },
+]
+
+
 
 function OrganizationUnit() {
   const [units, setUnits] =  useState<OrganizationUnit[]>([]);
@@ -65,6 +77,9 @@ function OrganizationUnit() {
       return matchesStatus && matchesSearch
     })
   }, [units, searchTerm, statusFilter])
+
+
+// exportToPDF(filteredUnits, orgUnitColumns, { filename: 'org-units.pdf', title: 'Org Units' })
 
   useEffect(() => {
     setCurrentPage(1)
@@ -181,7 +196,13 @@ const fetchUnits = async () => {
           </p>
         </div>
         <div className="page-actions">
-          <button className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4">
+          <button onClick={() =>
+    exportToPDF(filteredUnits, orgUnitColumns, {
+      filename: 'org-units.pdf',
+      title: 'Org Units',
+    })
+  }
+          className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4" >
             <Download size={16} />
             <span className="hidden sm:inline">Export</span>
           </button>

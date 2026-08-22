@@ -21,6 +21,8 @@
     "antd": "^6.4.4",
     "axios": "^1.16.1",
     "country-state-city": "^3.2.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

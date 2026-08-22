@@ -1,6 +1,7 @@
 import { AccountingYear, Period } from '@/types/accounting'
 import PeriodCard from './PeriodCard'
-
+import PeriodDetailModal from './PeriodDetailModal'
+import { useState } from 'react'
 type Props = {
   year: AccountingYear
   periods: Period[]
@@ -8,6 +9,8 @@ type Props = {
 }
 
 export default function PeriodGrid({ year, periods, onGenerate }: Props) {
+  const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null)
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-6">
       <div className="flex justify-between items-center mb-6">
@@ -27,7 +30,11 @@ export default function PeriodGrid({ year, periods, onGenerate }: Props) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {periods.map((period) => (
-          <PeriodCard key={period.month} period={period} />
+          <PeriodCard
+            key={period.month}
+            period={period}
+            onClick={() => setSelectedPeriod(period)}
+          />
         ))}
       </div>
 
@@ -45,6 +52,7 @@ export default function PeriodGrid({ year, periods, onGenerate }: Props) {
           <span>Pending</span>
         </div>
       </div>
+      <PeriodDetailModal  period={selectedPeriod} onClose={()=> setSelectedPeriod(null)} />
     </div>
   )
 }

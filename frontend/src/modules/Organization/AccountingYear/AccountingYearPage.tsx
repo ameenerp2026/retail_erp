@@ -23,7 +23,6 @@ export default function AccountingYearPage() {
       const yearData = await apiClient.get(
         "/api/accountingYear/accounting-Year",
       );
-
       const formattedYears: AccountingYear[] = yearData.data.data.map(
         (year: any) => ({
           id: year.id,
@@ -37,7 +36,10 @@ export default function AccountingYearPage() {
             month: "short",
             year: "numeric",
           })}`,
-
+          createdBy:year.createdBy.name,
+          createdOn: year.createdBy.createdAt,
+          updatedBy: year.updatedBy?.name,
+          updatedOn: year.updatedBy?.updatedAt,
           status: year.status,
           closedPeriods: year.financeMonths.filter(
             (m: any) => m.financeStatus === "Closed",
@@ -47,7 +49,6 @@ export default function AccountingYearPage() {
         }),
       );
       setYears(formattedYears);
-
       if (formattedYears.length > 0) {
         setSelectedYearId(formattedYears[0].id);
       }
@@ -63,30 +64,34 @@ export default function AccountingYearPage() {
   useEffect(() => {
     fetchAccountingYear();
   }, []);
-  const getPeriodsForYear = (year?: AccountingYear): Period[] => {
-    if (!year) return [];
+const getPeriodsForYear = (year?: AccountingYear): Period[] => {
+  if (!year) return [];
+  return year.financeMonths.map((month: any, idx: number) => {
+    
+    const now = new Date();
+    const start = new Date(month.startDate);
+    const end = new Date(month.endDate);
 
-    const startYear = parseInt(year.dateRange.split(" ")[2]);
+    const formatDate = (d: Date) =>
+      d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
-    return year.financeMonths.map((month: any) => ({
-      month: month.period.split(" ")[0], // Jul
-      year: month.period.split(" ")[1], // 2026
-
+    return {
+      month: month.period.split(" ")[0],   // "Jul"
+      year: month.period.split(" ")[1],    // "2026"
       status: month.financeStatus as PeriodStatus,
-    }));
-    // return months.map((month, idx) => {
-    //   const isNextCalendarYear = idx >= 9
-    //   const displayYear = isNextCalendarYear? `${startYear}-${String(startYear + 1).slice(2)}` : `${startYear}`
-
-    // let status: PeriodStatus = 'Pending'
-    // if (years.status === 'Closed') status = 'Closed'
-    // else if (year.status === 'Active' && idx < year.closedPeriods) status = 'Closed'
-    // else if (year.status === 'Active' && idx === year.closedPeriods) status = 'Open'
-
-    //   return { month, year: displayYear, status }
-    // })
-  };
-
+      sequenceNumber: `#${String(idx + 1).padStart(2, "0")}`,
+      accountingYear: year.label,
+      startDate: formatDate(start),
+      endDate: formatDate(end),
+      isCurrentPeriod: now >= start && now <= end,
+      createdBy:year.createdBy,           // no backend field yet — placeholder
+      createdOn: formatDate(new Date(month.createdAt)),
+      updatedBy: "Admin",           // no backend field yet — placeholder
+      updatedOn: formatDate(new Date(month.updatedAt)),
+      auditLog: [],                  // no backend audit trail yet
+    };
+  });
+};
   return (
     <div className="page-shell">
       <div className="page-header">

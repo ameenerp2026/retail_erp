@@ -78,6 +78,15 @@ export const getAccountingYearById =async(id:number)=>{
     return prisma.accountingYear.findUnique({
         where:{
             id,
+        },
+        include:{
+          createdBy:{
+            select:{
+              id:true,
+              name:true,
+              email:true
+            }
+          }
         }
     })
 }
@@ -85,11 +94,19 @@ export const getAccountingYearById =async(id:number)=>{
 export const getAccountingYear = async () => {
   return prisma.accountingYear.findMany({
      include: {
-    financeMonths: true,
+       createdBy: {
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    },
+    financeMonths: true
+   
   },
-     orderBy: {
-    createdAt: 'desc',
-  },
-  });
+  orderBy: {
+    createdAt: 'desc'
+  }
+});
 };
 
