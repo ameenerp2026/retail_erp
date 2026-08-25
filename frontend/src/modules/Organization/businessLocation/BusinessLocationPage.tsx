@@ -43,7 +43,7 @@ console.log("🔥 Business Locations:", businessLocations);
     const term = searchTerm.toLowerCase().trim()
     if (!term) return locations
     return locations.filter((loc) =>
-      [loc.locationName, loc.code, loc.city, loc.state].some((field) =>
+      [loc.locationName, loc.pinCode, loc.city, loc.state].some((field) =>
         field.toLowerCase().includes(term),
       ),
     )

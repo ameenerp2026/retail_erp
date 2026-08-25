@@ -19,7 +19,8 @@ model User {
   createdAccountingYears AccountingYear[] @relation("CreatedAccountingYears")
   updatedAccountingYears AccountingYear[] @relation("UpdatedAccountingYears")
   createdGSTINs          GSTIN[]          @relation("UserCreatedGSTINs")
-
+  createdGstStates GstState[] @relation("GstStateCreatedBy")
+  updatedGstStates GstState[] @relation("GstStateUpdatedBy")
   @@schema("user")
 }
 
@@ -465,4 +466,27 @@ enum BalanceType {
   credit
 
   @@schema("finance")
+}
+model GstState {
+  id     Int    @id @default(autoincrement())
+  code   String @unique @db.VarChar(2)                       
+  isoCode String @unique @map("iso_code") @db.VarChar(5)     
+  name   String @unique @map("state_name") @db.VarChar(100)  
+
+  igstEnabled     Boolean @default(true) @map("igst_enabled")
+  cgstSgstEnabled Boolean @default(true) @map("cgst_sgst_enabled")
+  hasSEZ          Boolean @default(false) @map("has_sez")
+
+  status LocationStatus @default(ACTIVE)
+
+  createdById Int   @map("created_by")
+  createdBy   User  @relation("GstStateCreatedBy", fields: [createdById], references: [id])
+  updatedById Int?  @map("updated_by")
+  updatedBy   User? @relation("GstStateUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("gst_states")
+  @@schema("organization")
 }

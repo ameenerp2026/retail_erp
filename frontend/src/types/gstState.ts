@@ -7,4 +7,5 @@ export type GSTStateRecord = {
   sez: boolean
   linkedGstins: number
   lastUpdated: string
+  createdBy: string
 }

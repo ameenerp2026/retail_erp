@@ -59,10 +59,10 @@ export default function PeriodDetailModal({ period, onClose }: Props) {
             <Detail label="Start Date" value={period.startDate} />
             <Detail label="End Date" value={period.endDate} />
             <Detail label="Is Current Period" value={period.isCurrentPeriod ? 'Yes' : 'No'} />
-            <Detail label="Created By" value={period.createdBy} />
-            <Detail label="Created On" value={period.createdOn} />
-            <Detail label="Updated By" value={period.updatedBy} />
-            <Detail label="Updated On" value={period.updatedOn} />
+            <Detail label="Created By" value={period.createdBy??'-'} />
+            <Detail label="Created On" value={period.createdOn??'-'} />
+            <Detail label="Updated By" value={period.updatedBy??'-'} />
+            <Detail label="Updated On" value={period.updatedOn??'-'} />
           </div>
 
           {/* Audit activity */}
