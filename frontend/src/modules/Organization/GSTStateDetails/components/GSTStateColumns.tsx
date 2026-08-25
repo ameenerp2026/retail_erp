@@ -7,8 +7,10 @@ import type { GSTStateRecord } from '@/types/gstState'
 
 export function getGSTStateColumns(
   onView: (record: GSTStateRecord) => void,
-  onLinkedClick: (record: GSTStateRecord) => void
+  // onLinkedClick: (record: GSTStateRecord) => void,
+  onToggleField: (record: GSTStateRecord, field: 'igst' | 'cgstSgst') => void
 ): ColumnsType<GSTStateRecord> {
+ 
   return [
     {
       title: "CODE",
@@ -33,13 +35,17 @@ export function getGSTStateColumns(
       title: "IGST",
       dataIndex: "igst",
       key: "igst",
-      render: (val) => <YesNoBadge value={val} />,
+      render: (val, record) => (
+        <YesNoBadge value={val} onToggle={() => onToggleField(record, 'igst')} />
+      ),
     },
     {
       title: "CGST + SGST",
       dataIndex: "cgstSgst",
       key: "cgstSgst",
-      render: (val) => <YesNoBadge value={val} />,
+      render: (val, record) => (
+        <YesNoBadge value={val} onToggle={() => onToggleField(record, 'cgstSgst')} />
+      ),
     },
     {
       title: "SEZ",
@@ -48,12 +54,12 @@ export function getGSTStateColumns(
       render: (val) => <SEZBadge value={val} />,
     },
     {
-      title: "LINKED GSTINS",
+      title: "LINKED STORES",
       dataIndex: "linkedGstins",
       key: "linkedGstins",
       render: (count, record) => (
         <button
-          onClick={() => onLinkedClick(record)}
+          onClick={() => onView(record)}
           className="flex items-center gap-1 text-blue-600 font-medium hover:underline"
         >
           {count}
@@ -68,16 +74,22 @@ export function getGSTStateColumns(
       render: (val) => <span className="text-slate-400">{val}</span>,
     },
     {
-      title: "ACTIONS",
-      key: "actions",
-      render: (_, record) => (
-        <button
-          onClick={() => onView(record)}
-          className="text-xs text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-4 py-1.5 rounded-full font-medium transition"
-        >
-          View
-        </button>
-      ),
+      title: "CREATED BY",
+      dataIndex: "createdBy",
+      key: "createdBy",
+      render: (val) => <span className="text-slate-400">{val}</span>,
     },
+    // {
+    //   title: "ACTIONS",
+    //   key: "actions",
+    //   render: (_, record) => (
+    //     <button
+    //       onClick={() => onView(record)}
+    //       className="text-xs text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-4 py-1.5 rounded-full font-medium transition"
+    //     >
+    //       View
+    //     </button>
+    //   ),
+    // },
   ]
 }

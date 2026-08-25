@@ -13,6 +13,7 @@ import accountClassRoutes from './routes/admin/finance/accountClass.routes.js'
 import ledgerRoutes from './routes/admin/finance/ledger.route.js'
 import subLedgerRoutes from './routes/admin/finance/subLedger.routes.js'
 import currencyRoutes from "./routes/admin/finance/currency.routes.js";
+import gstStateRoutes from "./routes/admin/organization/gstState.routes.js";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use("/api/organization", organizationRoutes);
 app.use("/api/organizationUnit", organizationUnit);
 app.use('/api/financeMonth',financeMonth);
 app.use("/api/gstManagement", gstInManagement);
+app.use('/api/gst-states',gstStateRoutes);
 app.use('/api/accountingYear',accountingYear)
 app.use('/api/organization/businessLocation',businessLocation)
 app.use('/api/finance/account-groups',accountGroup)
@@ -37,6 +39,7 @@ app.use('/api/finance/account-class',accountClassRoutes);
 app.use('/api/finance/ledgers',ledgerRoutes);
 app.use('/api/finance/sub-ledgers',subLedgerRoutes); 
 app.use('/api/finance/currencies',currencyRoutes);
+
 
 
 export default app;

@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { getFinanceData } from "@/services/admin/organization/finance.service";
-import apiClient from "../../../services/apiClient";
-
 
 export const useGetFinanceMonths = () => {
   return useQuery({

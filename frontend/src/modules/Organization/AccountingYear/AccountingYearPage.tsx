@@ -12,14 +12,11 @@ export default function AccountingYearPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
   const [years, setYears] = useState<AccountingYear[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const selectedYear = years.find((y) => y.id === selectedYearId)!;
 
   const fetchAccountingYear = async () => {
     try {
-      setLoading(true);
-
       const yearData = await apiClient.get(
         "/api/accountingYear/accounting-Year",
       );
@@ -56,8 +53,6 @@ export default function AccountingYearPage() {
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch organization units");
-    } finally {
-      setLoading(false);
     }
   };
 
