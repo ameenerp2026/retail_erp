@@ -1,6 +1,5 @@
 import type { ColumnsType } from 'antd/es/table'
 import type { FinancePeriod } from '@/types/finance'
-import StatusTag from '@/components/shared/StatusTags'
 import { formatDate, formatDateTime } from "@/utils/dateFormat";
 type ColumnOptions = {
   onSelect?: (period: FinancePeriod) => void

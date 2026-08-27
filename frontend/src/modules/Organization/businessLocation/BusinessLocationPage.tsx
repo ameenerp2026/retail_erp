@@ -6,12 +6,23 @@ import type { BusinessLocationRow } from '../../../types/admin/organization/busi
 import BusinessLocationTable from './components/BusinessLocationTable'
 import Pagination from '../components/Pagination'
 import { useBusinessLocations ,useDeleteBusinessLocation} from '@/hooks/admin/organization/useBusinessLocation'
-
-
+import { exportToPDF, ExportColumn } from '@/utils/exportData'
 
 const ROWS_PER_PAGE = 10
 type ViewMode = 'list' | 'create' | 'edit'
 
+const businessLocationColumns: ExportColumn<BusinessLocationRow>[] = [
+  { header: 'Location Name', accessor: (l) => l.locationName },
+  { header: 'Type', accessor: (l) => l.locationType },
+  { header: 'Category', accessor: (l) => l.businessCategory },
+  { header: 'Address', accessor: (l) => [l.addressLine1, l.addressLine2].filter(Boolean).join(', ') },
+  { header: 'City', accessor: (l) => l.city },
+  { header: 'State', accessor: (l) => l.state },
+  { header: 'Pin Code', accessor: (l) => l.pinCode },
+  { header: 'Contact Person', accessor: (l) => l.contactPerson },
+  { header: 'Phone', accessor: (l) => l.phoneNumber || '—' },
+  { header: 'Status', accessor: (l) => l.status },
+]
 
 function BusinessLocationPage() {
   const deleteMutation = useDeleteBusinessLocation()
@@ -21,30 +32,16 @@ const [selectedLocation, setSelectedLocation] =
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
 
-
 const {
   data: locations = [],
-  //isLoading: locationsLoading,
 } = useBusinessLocations()
-
-const {
-  data: businessLocations = [],
-  //isLoading: isBusinessLocationsLoading,
-  //isError: isBusinessLocationsError,
- // error: businessLocationsError,
-} = useBusinessLocations();
-
-console.log("🔥 Business Locations:", businessLocations);
-  
-
-
 
   const filteredLocations = useMemo(() => {
     const term = searchTerm.toLowerCase().trim()
     if (!term) return locations
-    return locations.filter((loc) =>
-      [loc.locationName, loc.code, loc.city, loc.state].some((field) =>
-        field.toLowerCase().includes(term),
+    return locations.filter((loc: BusinessLocationRow) =>
+      [loc.locationName, loc.city, loc.state, loc.addressLine1].some((field) =>
+        field?.toLowerCase().includes(term),
       ),
     )
   }, [locations, searchTerm])
@@ -160,7 +157,14 @@ if (view === 'edit' && selectedLocation) {
         </div>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+          onClick={() =>
+            exportToPDF(filteredLocations, businessLocationColumns, {
+              filename: 'business-locations.pdf',
+              title: 'Business Locations',
+              orientation: 'landscape',
+            })
+          }
+          className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer"
         >
           <Download size={16} />
           Export
@@ -169,7 +173,7 @@ if (view === 'edit' && selectedLocation) {
 
       {/* Table */}
       <BusinessLocationTable
-        locations={businessLocations}
+        locations={currentLocations}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

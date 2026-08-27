@@ -1,34 +1,28 @@
 import { useMemo, useState } from 'react'
 import { Download, Plus, RefreshCw } from 'lucide-react'
-//import { useQuery } from '@tanstack/react-query'
 import PeriodTable from './components/FinanceTable'
 import FinanceSetupStatCards from './components/FinanceSetupStatCards'
-import FinanceActivityTimeline from './components/FinanceActivityTimeline'
 import FinanceFilters, {
   DEFAULT_FINANCE_FILTERS,
   type FinanceFilterState,
 } from './components/FinanceFilters'
-import {useGetFinanceMonths} from '@/hooks/admin/organization/useFinanceService'
-import { FinanceStat } from "@/types/finance";
+import { useGetFinanceMonths } from '@/hooks/admin/organization/useFinanceService'
+import type { FinancePeriod, FinanceStat } from "@/types/finance";
 import { formatDate, formatDateTime } from "@/utils/dateFormat";
+import { exportToPDF, ExportColumn } from '@/utils/exportData';
 
+const financeColumns: ExportColumn<FinancePeriod>[] = [
+  { header: 'Period', accessor: (p) => p.period },
+  { header: 'Start Date', accessor: (p) => (p.startDate ? formatDate(p.startDate) : '—') },
+  { header: 'End Date', accessor: (p) => (p.endDate ? formatDate(p.endDate) : '—') },
+  { header: 'Finance Status', accessor: (p) => p.financeStatus },
+  { header: 'Last Modified', accessor: (p) => (p.updatedAt ? formatDateTime(p.updatedAt) : '—') },
+]
 
 export default function FinanceMonths() {
   // Draft filters (edited in the UI) vs. applied filters (committed on "Apply Filters")
   const [draftFilters, setDraftFilters] = useState<FinanceFilterState>(DEFAULT_FINANCE_FILTERS)
   const [appliedFilters, setAppliedFilters] = useState<FinanceFilterState>(DEFAULT_FINANCE_FILTERS)
-
-  //const { data: periods = [], isLoading: periodsLoading } = useGetFinanceMonths()
-
-  // const { data: stats = [], isLoading: statsLoading } = useQuery({
-  //   queryKey: ['finance-stats'],
-  //   queryFn: financeService.getStats,
-  // })
-
-  // const { data: activity = [] } = useQuery({
-  //   queryKey: ['finance-activity'],
-  //   queryFn: () => financeService.getActivity(),
-  // })
 
  const {
   data: financeMonths = [],
@@ -39,7 +33,7 @@ export default function FinanceMonths() {
     const { search, status } = appliedFilters
     const needle = search.trim().toLowerCase()
 
-    return financeMonths.filter((period:any) => {
+    return financeMonths.filter((period: any) => {
       if (status !== 'All' && period.financeStatus !== status) return false
       if (needle && !period.period.toLowerCase().includes(needle)) return false
       return true
@@ -47,19 +41,13 @@ export default function FinanceMonths() {
   }, [financeMonths, appliedFilters])
 
 const stats = useMemo<FinanceStat[]>(() => [
-  // {
-  //   id: "activeFy",
-  //   type: "activeFy",
-  //   label: "Active Financial Year",
-  //   value: "FY 2026-27",
-  // },
   {
     id: "open",
     type: "open",
     label: "Open",
     value: String(
       financeMonths.filter(
-        (x:any) => x.financeStatus === "OPEN"
+        (x: any) => x.financeStatus === "OPEN"
       ).length
     ),
   },
@@ -69,7 +57,7 @@ const stats = useMemo<FinanceStat[]>(() => [
     label: "Closed",
     value: String(
       financeMonths.filter(
-        (x:any) => x.financeStatus === "CLOSED"
+        (x: any) => x.financeStatus === "CLOSED"
       ).length
     ),
   },
@@ -79,7 +67,7 @@ const stats = useMemo<FinanceStat[]>(() => [
     label: "Provisional",
     value: String(
       financeMonths.filter(
-        (x:any) => x.financeStatus === "PROVISIONAL"
+        (x: any) => x.financeStatus === "PROVISIONAL"
       ).length
     ),
   },
@@ -87,10 +75,6 @@ const stats = useMemo<FinanceStat[]>(() => [
 
 
   const applyFilters = () => setAppliedFilters(draftFilters)
-
-  // if (statsLoading || periodsLoading) {
-  //   return <div className="page-shell text-sm text-slate-500">Loading...</div>
-  // }
 
   return (
     <div className="page-shell">
@@ -104,7 +88,13 @@ const stats = useMemo<FinanceStat[]>(() => [
         <div className="page-actions">
           <button
             type="button"
-            className="flex h-9 items-center gap-2 rounded-[14px] border border-slate-200 bg-[#F5F7FB] px-3 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 sm:px-4"
+            onClick={() =>
+              exportToPDF(filteredPeriods, financeColumns, {
+                filename: 'finance-months.pdf',
+                title: 'Finance Months',
+              })
+            }
+            className="flex h-9 items-center gap-2 rounded-[14px] border border-slate-200 bg-[#F5F7FB] px-3 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 sm:px-4 cursor-pointer"
           >
             <Download size={13} />
             <span className="hidden sm:inline">Export Periods</span>

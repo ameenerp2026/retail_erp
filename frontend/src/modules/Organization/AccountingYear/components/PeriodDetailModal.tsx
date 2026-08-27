@@ -95,11 +95,11 @@ export default function PeriodDetailModal({ period, onClose }: Props) {
   )
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
       <div className="text-slate-400 text-xs mb-0.5">{label}</div>
-      <div className="text-slate-800 font-medium">{value}</div>
+      <div className="text-slate-800 font-medium">{value || '—'}</div>
     </div>
   )
 }
