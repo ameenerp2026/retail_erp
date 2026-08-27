@@ -103,8 +103,9 @@ const getPeriodsForYear = (year?: AccountingYear): Period[] => {
         </div>
         <button
           type="button"
+          disabled={loading}
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
+          className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
         >
           <span>+</span> New Accounting Year
         </button>
