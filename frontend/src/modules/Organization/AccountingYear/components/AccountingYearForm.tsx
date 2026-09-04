@@ -98,89 +98,93 @@ console.log('payload',payload)
 
   return (
     <>
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-
-      <div className="w-full max-w-[512px] bg-white rounded-lg shadow-2xl flex flex-col max-h- overflow-hidden">
-             {/* Header */}
-        <div className="px-6 pt-4 pb-4 border-b border-gray-200 shrink-0">
-            <div className="flex items-start justify-between">
-                <div>
-                    <h2 className="text-xl font-bold text-[#043793]">
-                        Add Accounting year
-                    </h2>
-                    <p className="text-[#94A3B8] text-sm mt-1">
-                    create a new accounting year.
-                    </p>
-                </div>
-                <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition">
-                    <X size={20} />
-                </button>
-            </div>
+      {/* Header */}
+      <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-6 pt-6 pb-4">
+        <div className="min-w-0">
+          <h2 className="text-lg font-bold text-[#043793]">Add Accounting Year</h2>
+          <p className="mt-1 text-sm text-slate-400">Create a new accounting year.</p>
         </div>
-        {/*form*/}
-        <form id="accounting-year-form" onSubmit={handleSubmit} className="px-6 py-5 space-y-5 overflow-y-auto">
-            
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="block text-sm text-slate-400 mb-1">From</label>
-                        <input
-                        type="date"
-                        value={formData.fromDate}
-                        onChange={(e) => handleChange('fromDate', e.target.value)}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#043793] ${
-                            errors.fromDate? 'border-red-500' : 'border-slate-300'
-                        }`}
-                        />
-                        {errors.fromDate && <p className="text-xs text-red-500 mt-1">{errors.fromDate}</p>}
-                    </div>
-                    <div>
-                        <label className="block text-sm text-slate-400 mb-1">To</label>
-                        <input
-                        type="date"
-                        value={formData.toDate}
-                        onChange={(e) => handleChange('toDate', e.target.value)}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#043793] ${
-                            errors.toDate? 'border-red-500' : 'border-slate-300'
-                        }`}
-                        />
-                        {errors.toDate && <p className="text-xs text-red-500 mt-1">{errors.toDate}</p>}
-                    </div>
-                </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+        >
+          <X size={20} />
+        </button>
+      </div>
 
-                {/* <div>
-                    <label className="block text-sm text-slate-400 mb-1">Year Name</label>
-                    <input
-                        type="text"
-                        value={formData.yearName}
-                        onChange={(e) => handleChange('yearName', e.target.value)}
-                        placeholder="Enter year name"
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#94A3B8] ${
-                        errors.yearName? 'border-red-500' : 'border-slate-300'
-                        }`}
-                    />
-                    {errors.yearName && <p className="text-xs text-red-500 mt-1">{errors.yearName}</p>}
-                </div>
-             */}
-        </form>
-        {/*footer*/}
-        <div className="px-6 py-4 bg-slate-50 border-t border-gray-200 flex justify-end gap-3 shrink-0">
-            <button
-            type="button"
-            onClick={onClose}
-            className="h-10 px-4 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
-            >
-             Cancel
-            </button>
-            <button
-            type="submit"
-            form="accounting-year-form"
-            className="h-10 px-4 rounded-lg bg-[linear-gradient(#093055,#043793)] text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
-            >
-                Add Year
-            </button>
+      {/* Body */}
+      <form
+        id="accounting-year-form"
+        onSubmit={handleSubmit}
+        className="flex-1 overflow-y-auto px-6 py-5"
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="min-w-0">
+            <label htmlFor="fromDate" className="my-1 block text-[12px] font-semibold text-[#94A3B8]">
+              From
+            </label>
+            <input
+              id="fromDate"
+              type="date"
+              value={formData.fromDate}
+              onChange={(e) => handleChange('fromDate', e.target.value)}
+              className={`w-full rounded-xl border px-4 py-2 text-sm focus:outline-none ${
+                errors.fromDate ? 'border-red-500' : 'border-slate-300 focus:border-[#043793]'
+              }`}
+            />
+            {errors.fromDate && <p className="mt-1 text-xs text-red-500">{errors.fromDate}</p>}
+          </div>
+          <div className="min-w-0">
+            <label htmlFor="toDate" className="my-1 block text-[12px] font-semibold text-[#94A3B8]">
+              To
+            </label>
+            <input
+              id="toDate"
+              type="date"
+              value={formData.toDate}
+              onChange={(e) => handleChange('toDate', e.target.value)}
+              className={`w-full rounded-xl border px-4 py-2 text-sm focus:outline-none ${
+                errors.toDate ? 'border-red-500' : 'border-slate-300 focus:border-[#043793]'
+              }`}
+            />
+            {errors.toDate && <p className="mt-1 text-xs text-red-500">{errors.toDate}</p>}
+          </div>
         </div>
-    </div>
-    </div>
+
+        {/* <div>
+            <label className="block text-sm text-slate-400 mb-1">Year Name</label>
+            <input
+                type="text"
+                value={formData.yearName}
+                onChange={(e) => handleChange('yearName', e.target.value)}
+                placeholder="Enter year name"
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#94A3B8] ${
+                errors.yearName? 'border-red-500' : 'border-slate-300'
+                }`}
+            />
+            {errors.yearName && <p className="text-xs text-red-500 mt-1">{errors.yearName}</p>}
+        </div> */}
+      </form>
+
+      {/* Footer */}
+      <div className="flex shrink-0 justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+        <button
+          type="button"
+          onClick={onClose}
+          className="h-10 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="accounting-year-form"
+          className="h-10 rounded-lg bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+        >
+          Add Year
+        </button>
+      </div>
     </>
   )
 }

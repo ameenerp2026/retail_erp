@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { Period, PeriodStatus } from '@/types/accounting'
 
 type Props = {
@@ -12,43 +13,48 @@ const statusStyles: Record<PeriodStatus, { bg: string; text: string; icon: strin
 }
 
 export default function PeriodDetailModal({ period, onClose }: Props) {
-    console.log('PeriodDetailModal',period)
   if (!period) return null
 
-  const style = statusStyles[period.status]
+  // Backend can send a status outside the union (e.g. "Provisional") — fall back instead of crashing.
+  const style = statusStyles[period.status] ?? statusStyles.Pending
 
-  return (
+  return createPortal(
     <>
-      {/* Backdrop */}
+      {/* Backdrop — sits above the sidebar (z-50) so the whole app dims */}
       <div
-        className="fixed inset-0 bg-black/30 z-40 transition-opacity"
+        className="animate-fade-in fixed inset-0 z-[100] bg-black/30"
         onClick={onClose}
       />
 
       {/* Panel */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-sm bg-white z-50 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+      <div className="animate-slide-in-right fixed inset-y-0 right-0 z-[101] flex w-full max-w-sm flex-col bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-5 border-b border-slate-200">
-          <h2 className="font-semibold text-slate-800">Accounting Period Details</h2>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-6 py-5">
+          <h2 className="min-w-0 truncate font-semibold text-slate-800">
+            Accounting Period Details
+          </h2>
           <button
+            type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-xl leading-none"
+            className="shrink-0 cursor-pointer rounded-lg px-1 text-xl leading-none text-slate-400 transition hover:text-slate-600"
             aria-label="Close"
           >
             ×
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
+        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
           {/* Status banner */}
           <div className={`flex items-center gap-2 rounded-lg px-4 py-3 ${style.bg} ${style.text}`}>
-            <span className="w-5 h-5 rounded-full bg-white/60 flex items-center justify-center text-xs">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/60 text-xs">
               {style.icon}
             </span>
-            <span className="font-medium">
+            <span className="min-w-0 truncate font-medium">
               {period.month} {period.year} — {period.status}
             </span>
-            <span className="ml-auto text-xs opacity-70">Sequence {period.sequenceNumber}</span>
+            <span className="ml-auto shrink-0 text-xs opacity-70">
+              Sequence {period.sequenceNumber}
+            </span>
           </div>
 
           {/* Detail grid */}
@@ -67,19 +73,21 @@ export default function PeriodDetailModal({ period, onClose }: Props) {
 
           {/* Audit activity */}
           {period.auditLog && period.auditLog.length > 0 && (
-            <div className="border border-slate-200 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-semibold text-slate-500 tracking-wide">
+            <div className="rounded-lg border border-slate-200 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <span className="text-xs font-semibold tracking-wide text-slate-500">
                   RECENT AUDIT ACTIVITY
                 </span>
-                <button className="text-xs font-medium text-[#043793]">View All</button>
+                <button type="button" className="shrink-0 cursor-pointer text-xs font-medium text-[#043793]">
+                  View All
+                </button>
               </div>
               <ul className="space-y-3">
                 {period.auditLog.map((event, i) => (
                   <li key={i} className="flex gap-2 text-sm">
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                    <div>
-                      <div className="text-slate-700">{event.action}</div>
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                    <div className="min-w-0">
+                      <div className="break-words text-slate-700">{event.action}</div>
                       <div className="text-xs text-slate-400">
                         {event.by} · {event.date}
                       </div>
@@ -91,15 +99,16 @@ export default function PeriodDetailModal({ period, onClose }: Props) {
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   )
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div>
-      <div className="text-slate-400 text-xs mb-0.5">{label}</div>
-      <div className="text-slate-800 font-medium">{value}</div>
+    <div className="min-w-0">
+      <div className="mb-0.5 text-xs text-slate-400">{label}</div>
+      <div className="break-words font-medium text-slate-800">{value || '—'}</div>
     </div>
   )
 }

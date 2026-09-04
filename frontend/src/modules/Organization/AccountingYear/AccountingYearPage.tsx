@@ -6,6 +6,7 @@ import AccountingYearForm from "./components/AccountingYearForm";
 import { AccountingYear, Period, PeriodStatus } from "@/types/accounting";
 import apiClient from "@/services/apiClient";
 import toast from "react-hot-toast"; // or your toast lib
+import { Plus } from "lucide-react";
 
 
 export default function AccountingYearPage() {
@@ -95,23 +96,26 @@ const getPeriodsForYear = (year?: AccountingYear): Period[] => {
   return (
     <div className="page-shell">
       <div className="page-header">
-        <div>
+        <div className="min-w-0">
           <h1 className="page-title">Accounting Year</h1>
           <p className="page-subtitle">
             Fiscal year setup and period configuration
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
-        >
-          <span>+</span> New Accounting Year
-        </button>
+        <div className="page-actions">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          >
+            <Plus size={16} /> New Accounting Year
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-6">
-        <div className="space-y-3">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:gap-6">
+        <div className="min-w-0 space-y-3">
           {years.map((year) => (
             <YearListItem
               key={year.id}
@@ -122,15 +126,21 @@ const getPeriodsForYear = (year?: AccountingYear): Period[] => {
           ))}
         </div>
         {selectedYearId && (
-          <PeriodGrid
-            year={selectedYear}
-            periods={getPeriodsForYear(selectedYear)}
-            onGenerate={() => console.log("Generate periods")}
-          />
+          <div className="min-w-0">
+            <PeriodGrid
+              year={selectedYear}
+              periods={getPeriodsForYear(selectedYear)}
+              onGenerate={() => console.log("Generate periods")}
+            />
+          </div>
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        maxWidth="lg"
+      >
         <AccountingYearForm onClose={() => setIsModalOpen(false)} />
       </Modal>
     </div>

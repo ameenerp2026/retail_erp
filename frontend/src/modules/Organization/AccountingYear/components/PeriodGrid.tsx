@@ -2,6 +2,8 @@ import { AccountingYear, Period } from '@/types/accounting'
 import PeriodCard from './PeriodCard'
 import PeriodDetailModal from './PeriodDetailModal'
 import { useState } from 'react'
+import { Play } from 'lucide-react'
+
 type Props = {
   year: AccountingYear
   periods: Period[]
@@ -12,23 +14,24 @@ export default function PeriodGrid({ year, periods, onGenerate }: Props) {
   const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null)
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="font-semibold text-[#043793]">
+    <div className="section-card">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="truncate font-semibold text-[#043793]">
             {year.label} — Period Grid
           </h2>
           <p className="text-sm text-slate-400">{year.dateRange}</p>
         </div>
-        <button 
+        <button
+          type="button"
           onClick={onGenerate}
-          className="text-sm font-medium text-[#043793] border border-slate-300 px-3 py-1.5 rounded-lg flex items-center gap-2 bg-blue-50"
+          className="inline-flex shrink-0 cursor-pointer items-center gap-2 self-start whitespace-nowrap rounded-lg border border-slate-300 bg-blue-50 px-3 py-1.5 text-sm font-medium text-[#043793] transition hover:bg-blue-100"
         >
-          <span>▶</span> Generate Periods
+          <Play size={14} /> Generate Periods
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         {periods.map((period) => (
           <PeriodCard
             key={period.month}
@@ -38,21 +41,22 @@ export default function PeriodGrid({ year, periods, onGenerate }: Props) {
         ))}
       </div>
 
-      <div className="flex items-center gap-6 text-xs text-slate-600">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-          <span>Closed</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-          <span>Open / Current</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
-          <span>Pending</span>
-        </div>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600">
+        <span className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+          Closed
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+          Open / Current
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+          Pending
+        </span>
       </div>
-      <PeriodDetailModal  period={selectedPeriod} onClose={()=> setSelectedPeriod(null)} />
+
+      <PeriodDetailModal period={selectedPeriod} onClose={() => setSelectedPeriod(null)} />
     </div>
   )
 }
