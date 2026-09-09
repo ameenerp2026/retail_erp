@@ -69,6 +69,76 @@ export async function createBusinessLocation(data: CreateBusinessLocationInput) 
   });
 };
 
+export const deleteBusinessLoaction=async(id:number)=>{
+    return prisma.businessLocation.delete({
+      where:{
+        id,
+      }
+    })
+}
+
+
+export const updateBusinessLocation = async(
+    id:number, 
+    data:any
+)=>{
+    return prisma.businessLocation.update({
+        data: {
+            locationName: data.locationName,    
+        
+      parentOrganizationUnit: {
+        connect: {
+          id: data.parentOrganizationUnitId,
+        },
+      },
+        locationType: data.locationType,
+        businessCategory: data.businessCategory,
+        addressLine1: data.addressLine1,
+        addressLine2: data.addressLine2,
+        landmark: data.landmark,
+        city: data.city,  
+        state: data.state,
+        country: data.country,
+        pinCode: data.pinCode,
+        contactPerson: data.contactPerson,  
+        phoneNumber: data.phoneNumber,
+        email: data.email,
+        emergencyContact: data.emergencyContact, 
+       linkedGSTIN: {
+        connect: {
+          id: data.linkedGSTINId,
+        },
+      },
+        registrationType: data.registrationType,
+        defaultBillingLocation: data.defaultBillingLocation,    
+    defaultStockLocation: data.defaultStockLocation,
+    allowSales: data.allowSales,
+    allowPurchase: data.allowPurchase,      
+
+    allowInventory: data.allowInventory,
+    allowDispatch: data.allowDispatch,
+    allowPOS: data.allowPOS,
+        },
+ include: {
+      parentOrganizationUnit: {
+        select: {
+          id: true,
+          organizationUnit: true,
+        },
+      },
+      linkedGSTIN: {
+        select: {
+          id: true,
+          gstin: true,
+        },
+      },
+    },
+        where:{
+            id,
+        }
+       
+    })
+}
 
 
             

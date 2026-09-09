@@ -197,7 +197,7 @@ export const gstinSchema = z.object({
 
   orgUnit: z.string().min(1, 'Org Unit is required'),
 
-  type: z.enum(['Regular', 'Composition'], {
+  type: z.enum(['Regular', 'Composition','Sez'], {
     message: 'Type is required'
   }),
 })

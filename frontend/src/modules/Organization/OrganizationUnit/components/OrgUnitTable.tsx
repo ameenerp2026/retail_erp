@@ -10,6 +10,7 @@ interface OrgUnitTableProps {
   loading?: boolean;
 }
 export default function OrgUnitTable({ units,onEdit,onDelete,loading }: OrgUnitTableProps) {
+  console.log("🔥 OrgUnitTable units:", units);
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <table className="w-full">

@@ -6,6 +6,7 @@ import { inventoryService } from '@/services/inventoryService'
 import type { UnpostedDocument } from '@/types/inventory'
 import type { ColumnsType } from 'antd/es/table/interface'
 import { AlertTriangle, ShoppingCart, LucideCuboid, MapPin, Download, Eye, Send } from 'lucide-react'
+import { exportToPDF, ExportColumn } from '@/utils/exportData'
 
 const columns: ColumnsType<UnpostedDocument> = [
   {
@@ -38,6 +39,14 @@ const columns: ColumnsType<UnpostedDocument> = [
       </div>
     ),
   },
+]
+
+const unpostedDocColumns: ExportColumn<UnpostedDocument>[] = [
+  { header: 'Site', accessor: (d) => d.site },
+  { header: 'Entry Type', accessor: (d) => d.entryType },
+  { header: 'Document Number', accessor: (d) => d.documentNumber },
+  { header: 'Document Date', accessor: (d) => d.documentDate },
+  { header: 'Status', accessor: (d) => d.status },
 ]
 
 const SUMMARY_ICONS = [AlertTriangle, MapPin, ShoppingCart, LucideCuboid]
@@ -79,7 +88,16 @@ export default function UnpostedDocuments() {
         })}
       </div>
       <div className="flex justify-end">
-        <button type="button" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-600">
+        <button
+          type="button"
+          onClick={() =>
+            exportToPDF(documents, unpostedDocColumns, {
+              filename: 'unposted-documents.pdf',
+              title: 'Unposted Documents',
+            })
+          }
+          className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
+        >
           <Download size={14} /> Export
         </button>
       </div>

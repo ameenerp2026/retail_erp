@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import type { BusinessLocationRow } from '@/types/admin/organization/businessLocation'
-
+import { getStates } from '@/services/location.service'
 interface BusinessLocationTableProps {
   locations: BusinessLocationRow[]
   onEdit: (row: BusinessLocationRow) => void
@@ -14,6 +14,17 @@ export default function BusinessLocationTable({
   onDelete,
   loading,
 }: BusinessLocationTableProps) {
+
+
+const getStateName = (countryCode: string, stateCode: string) => {
+  const states = getStates(countryCode);
+
+  const state = states.find(
+    (s) => s.isoCode === stateCode
+  );
+
+  return state?.name || stateCode;
+}
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full">
@@ -42,7 +53,8 @@ export default function BusinessLocationTable({
                {/* // <td className="px-4 py-4 text-slate-500">{row.code}</td> */}
                 <td className="px-4 py-4 text-slate-600">{row.addressLine2}</td>
                 <td className="px-4 py-4 text-slate-600">{row.city}</td>
-                <td className="px-4 py-4 text-slate-600">{row.state}</td>
+                <td className="px-4 py-4 text-slate-600">
+                   {getStateName(row.country, row.state)}</td>
                 <td className="px-4 py-4">
                   {row.status === 'ACTIVE' ? (
                     <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-600">

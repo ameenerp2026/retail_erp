@@ -18,6 +18,11 @@ import InventoryMonths from "@/modules/Organization/pages/InventoryMonths"
 import RecalculateCOGS from "@/modules/Organization/components/InventoryMonths/RecalculateCOGS"
 import GSTINManagement from "@/modules/Organization/GSTINManagement/GSTINManagement"
 import GSTStateDetails from "@/modules/Organization/GSTStateDetails/GSTStateDetails"
+import Securities from "@/modules/Securities/Securities"
+import Roles from "@/modules/Securities/pages/Roles"
+import RoleWizard from "@/modules/Securities/pages/RoleWizard"
+import Users from "@/modules/Securities/pages/Users"
+import UserLogs from "@/modules/Securities/pages/UserLogs"
 import Utilities from "@/modules/Utilities/Utilities"
 import DataImport from "@/modules/Utilities/pages/DataImport"
 import EInvoice from "@/modules/Utilities/pages/EInvoice"
@@ -70,7 +75,12 @@ console.log("isLoggedIn:", isLoggedIn);
         <Route path="sub-ledger" element={<SubLedger />} />
         <Route path="currency" element={<Currency />} />
       </Route>
-
+        <Route path="/securities" element={<Securities />}>
+        <Route path="roles" element={<Roles />} />
+          <Route path="role-wizard" element={<RoleWizard />} /> 
+          <Route path="users" element={<Users />} />
+          <Route path="user-logs" element={<UserLogs />} />
+        </Route>
       <Route path="/utilities" element={<Utilities />}>
         <Route path="data-import" element={<DataImport />} />
         <Route path="e-invoice" element={<EInvoice />} />

@@ -112,7 +112,6 @@ export const deleteOrgUnitController = async (
   req: Request,
   res: Response
 ) => {
-    console.log('Body',res)
   try {
     
     const id = Number(req.params.id);

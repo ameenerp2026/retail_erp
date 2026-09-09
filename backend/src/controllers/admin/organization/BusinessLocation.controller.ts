@@ -4,7 +4,8 @@ import type {
   UpdateBusinessLocationInput,
   
 } from '../../../types/businessLocation.types.js';
-import {createBusinessLocation,getBusinessLocationData} from '../../../services/admin/organization/BusinessLocation.service.js'
+import {createBusinessLocation,getBusinessLocationData,deleteBusinessLoaction,updateBusinessLocation} from '../../../services/admin/organization/BusinessLocation.service.js'
+import { updateOrganizationUnit } from "../../../services/admin/organization/OrganizationUnit.service.js";
 
 export const createBusinessLocationController = async (
   req: Request,
@@ -63,3 +64,52 @@ export const getBusinessLocationController = async (
   }
    
 }
+
+export const deleteBusinessLocationController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    
+    const id = Number(req.params.id);
+
+    const result = await deleteBusinessLoaction(
+      id
+    );
+
+    return res.status(200).json({
+      message: "Business location deleted successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "Failed to delete business location",
+      error: error.message,
+    });
+  }
+}
+
+export const updateBusinessLocationController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    
+    const id = Number(req.params.id);
+
+    const result = await updateBusinessLocation(
+      id,
+      req.body
+    );
+
+    return res.status(200).json({
+      message: "Business location updated successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "Failed to update business location",
+      error: error.message,
+    });
+  }
+};

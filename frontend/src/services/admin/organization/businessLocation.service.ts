@@ -1,5 +1,6 @@
 import apiClient from '@/services/apiClient'
 import type { businessLocationFormData } from '@/components/forms/validate.schema'
+import { BusinessLocationRow } from '@/types/admin/organization/businessLocation'
 
 const buildPayload = (data: businessLocationFormData) => ({
   locationName: data.locationName,
@@ -66,11 +67,8 @@ export const deleteBusinessLocation = async (id: number) => {
   return response.data
 }
 
-export const getBusinessLocations = async () => {
-  const response = await apiClient.get(
-    '/api/organization/businessLocation'
-  )
-
+export const getBusinessLocations = async (): Promise<BusinessLocationRow[]> => {
+  const response = await apiClient.get('/api/organization/businessLocation')
   return response.data.data
 }
 

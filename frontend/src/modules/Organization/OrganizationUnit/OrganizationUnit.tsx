@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react"
-import { Download, Plus, Search, X } from "lucide-react"
+import { useEffect, useMemo, useState, useRef } from "react"
+import { Download, Plus, Search, X,ChevronDown  } from "lucide-react"
 import OrgUnitTable from "./components/OrgUnitTable"
 import Pagination from "../components/Pagination"
 import { Modal } from '@/components/shared/Modal'
@@ -7,7 +7,7 @@ import { OrgUnitForm } from "./components/OrgUnitForm"
 import { DeleteConfirmForm } from "../components/DeleteConfirmForm"
 import { OrgUnitFormData } from "@/components/forms/validate.schema"
 import apiClient from '../../../services/apiClient'
-import { exportToPDF, ExportColumn } from '@/utils/exportData'
+import { exportToPDF, exportToCSV, ExportColumn } from '@/utils/exportData'
 import toast from "react-hot-toast"
 
 export interface OrganizationUnit {
@@ -49,7 +49,8 @@ function OrganizationUnit() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage] = useState(10)
-
+  const [exportOpen, setExportOpen]=useState(false)
+  const exportRef =useRef<HTMLDivElement>(null)
   // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [unitToDelete, setUnitToDelete] = useState<OrganizationUnit | null>(null)
@@ -196,16 +197,40 @@ const fetchUnits = async () => {
           </p>
         </div>
         <div className="page-actions">
-          <button onClick={() =>
-    exportToPDF(filteredUnits, orgUnitColumns, {
-      filename: 'org-units.pdf',
-      title: 'Org Units',
-    })
-  }
+          <div className="relative" ref={exportRef}>
+          <button 
+        onClick={()=>setExportOpen(!exportOpen)}
           className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4" >
             <Download size={16} />
             <span className="hidden sm:inline">Export</span>
           </button>
+          {exportOpen && filteredUnits.length>0 && (
+            <div className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg z-10">
+              <button 
+              onClick={()=>{
+                 exportToCSV(filteredUnits, orgUnitColumns,'org-units.csv')
+                setExportOpen(false)}
+              }
+                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              >
+                  Export to CSV
+              </button>
+              <button
+                onClick={() =>
+                {  exportToPDF(filteredUnits, orgUnitColumns, {
+                    filename: 'org-units.pdf',
+                    title: 'Org Units',
+                  })
+                setExportOpen(false)
+                }
+                }
+                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Export to PDF
+              </button>
+            </div>
+          )}
+          </div>
           <button
             onClick={handleAddClick}
             disabled={loading}

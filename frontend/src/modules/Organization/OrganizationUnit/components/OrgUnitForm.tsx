@@ -13,6 +13,7 @@ interface OrganizationUnit {
   gstIn: string;
   manager: string;
   organizationGroupId: number;
+  country: string;
   state: string;
   address: string;
   status: string;
@@ -52,16 +53,16 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
     address: '',
   },
   })
-
   const selectedCountry = watch('country')
   const countries = getCountries()
   const states = selectedCountry ? getStates(selectedCountry) : []
 
 
   useEffect(() => {
-     console.log('editData',editData);
+    console.log('editData',editData)
   if (editData) {
     if (editData) {
+      console.log("🔥 OrgUnitForm editData:", editData);
     reset({
      
        name: editData.organizationUnit,
@@ -69,7 +70,8 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
   gstin: editData.gstIn,
   manager: editData.manager,
   group: String(editData.organizationGroupId),
-  state: editData.state,
+   country: editData.country,
+      state: editData.state,
   address: editData.address,
     });
   }
@@ -224,7 +226,7 @@ useEffect(() => {
               >
                 <option value=''>Select state</option>
                 {states.map((s) => (
-                  <option key={s.isoCode} value={s.isoCode}>
+                  <option key={s.isoCode} value={s.name}>
                     {s.name}
                   </option>
                 ))}

@@ -3,6 +3,7 @@ import DetailPanel, { type DetailRow, type ActivityItem } from '@/components/sha
 import StatusTag from '@/components/shared/StatusTags'
 import type { InventoryPeriod } from '@/types/inventory'
 import { Activity, AlertTriangle, CheckCircle, CheckSquare, FileText } from 'lucide-react'
+import { formatDate, formatDateTime } from '@/utils/dateFormat'
 
 type Props = {
   period: InventoryPeriod
@@ -22,9 +23,9 @@ export default function InventoryDetailPanel({ period, onClose }: Props) {
     { label: "InventoryStatus",    type: "badge",  value: period.invStatus, badgeComponent: <StatusTag status={period.invStatus} /> },
     { label: "Finance Status",  type: "badge",    value: period.financeStatus,     badgeComponent: <StatusTag status={period.financeStatus} />     },
     { label: "COGS Status",       type: "badge",  value: period.cogsStatus,    badgeComponent: <StatusTag status={period.cogsStatus} />    },
-    { label: "Last COGS Run", type: "text",   value: period.lastModified,textColor: "text-[#1A2332]"                                                               },
+    { label: "Last COGS Run", type: "text",   value: formatDate(period.lastModified),textColor: "text-[#1A2332]"                                                               },
     { label: "Modified By", type: "text",   value: period.modifiedBy,textColor: "text-[#1A2332]"                                                               },
-    { label: "Modified Time", type: "text",   value: period.lastModified,textColor: "text-[#6B7A99]"                                                               },
+    { label: "Modified Time", type: "text",   value: formatDateTime(period.lastModified),textColor: "text-[#6B7A99]"                                                               },
    
   ]
 

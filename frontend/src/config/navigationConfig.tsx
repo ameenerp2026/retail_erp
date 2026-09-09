@@ -56,7 +56,7 @@ export const MODULE_ROUTES: ModuleRoute[] = [
   },
 
   {
-    label: "Securities",
+    label: "securities",
     icon: ShieldCheck,
     basePath: "/securities",
     tabs:[

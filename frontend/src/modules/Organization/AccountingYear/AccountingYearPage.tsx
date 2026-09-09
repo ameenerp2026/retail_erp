@@ -12,14 +12,11 @@ export default function AccountingYearPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
   const [years, setYears] = useState<AccountingYear[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const selectedYear = years.find((y) => y.id === selectedYearId)!;
 
   const fetchAccountingYear = async () => {
     try {
-      setLoading(true);
-
       const yearData = await apiClient.get(
         "/api/accountingYear/accounting-Year",
       );
@@ -56,8 +53,6 @@ export default function AccountingYearPage() {
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch organization units");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -103,8 +98,9 @@ const getPeriodsForYear = (year?: AccountingYear): Period[] => {
         </div>
         <button
           type="button"
+         // disabled={loading}
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
+          className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
         >
           <span>+</span> New Accounting Year
         </button>

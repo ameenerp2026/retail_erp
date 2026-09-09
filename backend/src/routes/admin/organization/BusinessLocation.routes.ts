@@ -1,6 +1,9 @@
 import express from "express";
 import {
-  createBusinessLocationController,getBusinessLocationController
+  createBusinessLocationController,
+  getBusinessLocationController,
+  deleteBusinessLocationController,
+  updateBusinessLocationController,
 } from "../../../controllers/admin/organization/BusinessLocation.controller.js";
 import {authMiddleware }from '../../../middleware/auth.middleware.js'
 const router = express.Router();
@@ -13,5 +16,12 @@ router.get(
   '/',
   getBusinessLocationController
 );
-
+router.delete(
+  '/:id',
+  deleteBusinessLocationController
+);
+router.put(
+  '/:id',
+  updateBusinessLocationController
+);
 export default router

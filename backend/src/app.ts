@@ -18,6 +18,7 @@ import ledgerImportRoutes from './routes/admin/utilities/ledger.routes.js'
 import subLedgerImportRoutes from './routes/admin/utilities/subledger.route.js'
 import eInvoiceRoutes from './routes/admin/utilities/eInvoice.routes.js'
 import eWayBillRoutes from './routes/admin/utilities/eWayBill.routes.js'
+import gstStateRoutes from "./routes/admin/organization/gstState.routes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/organization", organizationRoutes);
 app.use("/api/organizationUnit", organizationUnit);
 app.use('/api/financeMonth',financeMonth);
 app.use("/api/gstManagement", gstInManagement);
+app.use('/api/gst-states',gstStateRoutes);
 app.use('/api/accountingYear',accountingYear)
 app.use('/api/organization/businessLocation',businessLocation)
 app.use('/api/finance/account-groups',accountGroup)
@@ -47,4 +49,7 @@ app.use('/api/utilities/ledgers', ledgerImportRoutes);
 app.use('/api/utilities/subledgers', subLedgerImportRoutes);
 app.use('/api/utilities/e-invoice', eInvoiceRoutes);
 app.use('/api/utilities/e-way-bill', eWayBillRoutes);
+
+
+
 export default app;

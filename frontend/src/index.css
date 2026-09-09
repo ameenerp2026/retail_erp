@@ -6,6 +6,8 @@
   --color-brand: #043793;
   --color-brand-muted: #5b8bc6;
   --color-surface: #f1f5f9;
+  --animate-fade-in: fade-in 0.15s ease-out;
+  --animate-slide-in-right: slide-in-right 0.2s ease-out;
 }
 
 @layer base {
@@ -88,5 +90,23 @@
 
   .stat-value {
     @apply text-xl font-bold tracking-tight tabular-nums;
+  }
+}
+
+/* Slide-over/drawer motion (no tailwindcss-animate plugin in this project) */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-slide-in-right {
+    animation: none;
   }
 }

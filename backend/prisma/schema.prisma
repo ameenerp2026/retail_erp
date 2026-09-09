@@ -70,7 +70,7 @@ model OrganizationUnit {
 
   organizationGroupId Int
   organizationGroup   OrganizationGroup @relation(fields: [organizationGroupId], references: [id])
-
+   country           String   @default("IN")
   state             String
   address           String
   status            String             @default("Active")
