@@ -1,42 +1,58 @@
 import { Period } from '@/types/accounting'
+import { CheckCircle2 } from 'lucide-react'
 
-type Props = {
-  period: Period
-  onClick?: () => void
-}
-
-export default function PeriodCard({ period, onClick }: Props) {
+export default function PeriodCard({ period }: { period: Period }) {
   const getCardStyles = () => {
-    if (period.status === 'Closed') return 'bg-green-50 border-green-200 text-green-600 hover:border-green-300'
-    if (period.status === 'Open') return 'bg-blue-50 border-blue-200 text-blue-600 hover:border-blue-300'
-    return 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+    switch (period.status) {
+      case 'Closed':
+        return 'bg-emerald-50/70 border-emerald-200/80 text-emerald-700 hover:border-emerald-300'
+      case 'Open':
+        return 'bg-blue-50/80 border-blue-200 text-blue-700 ring-1 ring-blue-200 hover:border-blue-300 shadow-2xs'
+      case 'Pending':
+      default:
+        return 'bg-slate-50/60 border-slate-200/80 text-slate-500 hover:border-slate-300'
+    }
+  }
+
+  const getStatusContent = () => {
+    switch (period.status) {
+      case 'Closed':
+        return (
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+            <CheckCircle2 size={13} className="stroke-[2.5]" />
+            Closed
+          </span>
+        )
+      case 'Open':
+        return (
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700">
+            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+            Open
+          </span>
+        )
+      case 'Pending':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+            Pending
+          </span>
+        )
+    }
   }
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex min-h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl border p-3 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#043793]/30 ${getCardStyles()}`}
+    <div
+      className={`w-full min-h-[96px] border rounded-xl p-3.5 flex flex-col items-center justify-between text-center transition-all duration-150 ${getCardStyles()}`}
     >
-      <p className="text-sm font-semibold text-[#043793]">{period.month}</p>
-      <p className="mb-1.5 text-xs text-slate-400">{period.year}</p>
+      <div>
+        <p className="text-sm font-bold text-[#043793]">{period.month}</p>
+        <p className="text-[11px] font-medium text-slate-400 mt-0.5">{period.year}</p>
+      </div>
 
-      <span className="flex items-center gap-1 text-xs font-medium">
-        {period.status === 'Closed' && (
-          <svg
-            className="h-3.5 w-3.5 shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        )}
-        {period.status === 'Open' && <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />}
-        {period.status === 'Pending' && <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400" />}
-        {period.status}
-      </span>
-    </button>
+      <div className="mt-2">
+        {getStatusContent()}
+      </div>
+    </div>
   )
 }

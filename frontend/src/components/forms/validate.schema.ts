@@ -123,10 +123,7 @@ export type businessLocationFormData = z.infer<typeof businessLocationSchema>
 export const accountingYearSchema = z.object({
   fromDate: z.string().min(1, 'Start date is required'),
   toDate: z.string().min(1, 'End date is required'),
-  // yearName: z.string()
-  //  .trim()
-  //  .min(1, 'Year name is required')
-  //  .min(3, 'Year name must be at least 3 characters')
+  yearName: z.string().optional(),
 })
 .refine((data) => new Date(data.fromDate) < new Date(data.toDate), {
   message: 'End date must be after start date',

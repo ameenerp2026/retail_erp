@@ -1,30 +1,30 @@
 export type YearStatus = 'Active' | 'Closed' | 'Pending'
 export type PeriodStatus = 'Closed' | 'Open' | 'Pending'
+
 export type FinanceMonth = {
-  id: number;
+  id?: number;
   period: string;
-  startDate: string;
-  endDate: string;
-  financeStatus: "Open" | "Closed" | "Provisional";
+  startDate?: string;
+  endDate?: string;
+  financeStatus: "Open" | "Closed" | "Provisional" | "Pending";
 };
+
 export type AccountingYear = {
   id: number
   label: string
   dateRange: string
   status: YearStatus
   closedPeriods: number
-  totalPeriods: number,
-  createdBy?: string,
-  createdOn?: string,
-  updatedBy?: string,
-  updatedOn?: string,
-    financeMonths: FinanceMonth[];
-
+  totalPeriods: number
+  createdBy?: string
+  createdOn?: string
+  updatedBy?: string
+  updatedOn?: string
+  financeMonths?: FinanceMonth[]
 }
 
-
 export type AuditEvent = {
-  action: string   // e.g. "Periods Generated", "Period Opened", "Period Closed"
+  action: string
   by: string
   date: string
 }
@@ -33,11 +33,11 @@ export type Period = {
   month: string
   year: string
   status: PeriodStatus
-  sequenceNumber: string
-  accountingYear: string
-  startDate: string
-  endDate: string
-  isCurrentPeriod: boolean
+  sequenceNumber?: string
+  accountingYear?: string
+  startDate?: string
+  endDate?: string
+  isCurrentPeriod?: boolean
   createdBy?: string
   createdOn?: string
   updatedBy?: string

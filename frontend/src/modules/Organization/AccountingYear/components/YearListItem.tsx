@@ -1,4 +1,5 @@
 import { AccountingYear, YearStatus } from '@/types/accounting'
+import { Calendar } from 'lucide-react'
 
 type Props = {
   year: AccountingYear
@@ -7,56 +8,86 @@ type Props = {
 }
 
 export default function YearListItem({ year, isSelected, onSelect }: Props) {
-  const getStatusStyles = (status: YearStatus) => {
+  const getStatusBadge = (status: YearStatus) => {
     switch (status) {
-      case 'Active': return 'bg-green-50 text-green-700 border-green-200'
-      case 'Closed': return 'bg-slate-50 text-slate-600 border-slate-200'
-      case 'Pending': return 'bg-amber-50 text-amber-700 border-amber-200'
-      default: return 'bg-slate-50 text-slate-600 border-slate-200'
+      case 'Active':
+        return {
+          bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+          dot: 'bg-emerald-500',
+        }
+      case 'Closed':
+        return {
+          bg: 'bg-slate-100 text-slate-700 border-slate-200/80',
+          dot: 'bg-slate-500',
+        }
+      case 'Pending':
+        return {
+          bg: 'bg-amber-50 text-amber-700 border-amber-200/80',
+          dot: 'bg-amber-500',
+        }
+      default:
+        return {
+          bg: 'bg-slate-100 text-slate-700 border-slate-200/80',
+          dot: 'bg-slate-400',
+        }
     }
   }
 
   const getProgressColor = (status: YearStatus) => {
     switch (status) {
       case 'Active':
-      case 'Closed': return 'bg-teal-500'
-      default: return 'bg-slate-300'
+        return 'bg-teal-500'
+      case 'Closed':
+        return 'bg-emerald-500'
+      case 'Pending':
+        return 'bg-slate-300'
+      default:
+        return 'bg-teal-500'
     }
   }
 
-  // Guard the bar width: 0 periods gives NaN%, which the browser drops as invalid.
   const closed = year.closedPeriods ?? 0
-  const total = year.totalPeriods ?? 0
-  const progress = total > 0 ? Math.min(100, Math.max(0, (closed / total) * 100)) : 0
+  const total = year.totalPeriods ?? 12
+  const progress = total > 0 ? (closed / total) * 100 : 0
+  const badge = getStatusBadge(year.status)
 
   return (
-    <button
-      type="button"
+    <div
       onClick={onSelect}
-      aria-pressed={isSelected}
-      className={`w-full cursor-pointer rounded-xl border bg-white p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
-        ${isSelected ? 'border-teal-400 ring-2 ring-teal-100' : 'border-slate-200 hover:border-slate-300'}
-      `}
+      className={`rounded-2xl border p-4.5 cursor-pointer transition-all duration-200 ${
+        isSelected
+          ? 'bg-white border-[#043793] ring-2 ring-[#043793]/15 shadow-sm'
+          : 'bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs'
+      }`}
     >
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <p className="min-w-0 truncate font-semibold text-[#043793]">{year.label}</p>
-        <span className={`shrink-0 rounded-md border px-2 py-0.5 text-xs ${getStatusStyles(year.status)}`}>
+      <div className="flex justify-between items-start mb-1.5">
+        <p className="font-bold text-base text-[#043793] tracking-tight">{year.label}</p>
+        <span
+          className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full border font-semibold ${badge.bg}`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
           {year.status}
         </span>
       </div>
-      <p className="mb-3 text-xs text-slate-400">{year.dateRange}</p>
+      <p className="text-xs text-slate-500 mb-3.5 flex items-center gap-1.5">
+        <Calendar size={13} className="text-slate-400" />
+        {year.dateRange}
+      </p>
 
       <div className="space-y-1.5">
-        <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
-            className={`h-full ${getProgressColor(year.status)} transition-all`}
+            className={`h-full ${getProgressColor(year.status)} rounded-full transition-all duration-300`}
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-right text-xs text-slate-400">
-          {closed}/{total} closed
-        </p>
+        <div className="flex justify-between items-center text-xs">
+          <span className="text-slate-400 font-medium">{Math.round(progress)}% completed</span>
+          <span className="font-semibold text-slate-600">
+            {closed}/{total} closed
+          </span>
+        </div>
       </div>
-    </button>
+    </div>
   )
 }
