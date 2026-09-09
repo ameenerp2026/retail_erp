@@ -13,6 +13,11 @@ import accountClassRoutes from './routes/admin/finance/accountClass.routes.js'
 import ledgerRoutes from './routes/admin/finance/ledger.route.js'
 import subLedgerRoutes from './routes/admin/finance/subLedger.routes.js'
 import currencyRoutes from "./routes/admin/finance/currency.routes.js";
+import utilitiesRoutes from './routes/admin/utilities/utilities.routes.js';
+import ledgerImportRoutes from './routes/admin/utilities/ledger.routes.js'
+import subLedgerImportRoutes from './routes/admin/utilities/subledger.route.js'
+import eInvoiceRoutes from './routes/admin/utilities/eInvoice.routes.js'
+import eWayBillRoutes from './routes/admin/utilities/eWayBill.routes.js'
 
 const app = express();
 
@@ -37,6 +42,9 @@ app.use('/api/finance/account-class',accountClassRoutes);
 app.use('/api/finance/ledgers',ledgerRoutes);
 app.use('/api/finance/sub-ledgers',subLedgerRoutes); 
 app.use('/api/finance/currencies',currencyRoutes);
-
-
+app.use('/api/utilities',utilitiesRoutes);
+app.use('/api/utilities/ledgers', ledgerImportRoutes);
+app.use('/api/utilities/subledgers', subLedgerImportRoutes);
+app.use('/api/utilities/e-invoice', eInvoiceRoutes);
+app.use('/api/utilities/e-way-bill', eWayBillRoutes);
 export default app;
