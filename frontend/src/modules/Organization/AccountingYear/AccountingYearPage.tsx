@@ -6,8 +6,6 @@ import AccountingYearForm from "./components/AccountingYearForm";
 import { AccountingYear, Period, PeriodStatus } from "@/types/accounting";
 import apiClient from "@/services/apiClient";
 import toast from "react-hot-toast"; // or your toast lib
-import { formatDateRange } from "@/utils/dateFormat";
-import { Plus } from "lucide-react";
 
 
 export default function AccountingYearPage() {
@@ -26,7 +24,19 @@ export default function AccountingYearPage() {
         (year: any) => ({
           id: year.id,
           label: year.yearName,
-          dateRange: formatDateRange(year.fromDate, year.toDate),
+          dateRange: `${new Date(year.fromDate).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })} — ${new Date(year.toDate).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })}`,
+          createdBy:year.createdBy.name,
+          createdOn: year.createdBy.createdAt,
+          updatedBy: year.updatedBy?.name,
+          updatedOn: year.updatedBy?.updatedAt,
           status: year.status,
           closedPeriods: year.financeMonths.filter(
             (m: any) => m.financeStatus === "Closed",
@@ -49,13 +59,20 @@ export default function AccountingYearPage() {
   useEffect(() => {
     fetchAccountingYear();
   }, []);
-  const getPeriodsForYear = (year?: AccountingYear): Period[] => {
-    if (!year) return [];
+const getPeriodsForYear = (year?: AccountingYear): Period[] => {
+  if (!year) return [];
+  return year.financeMonths.map((month: any, idx: number) => {
+    
+    const now = new Date();
+    const start = new Date(month.startDate);
+    const end = new Date(month.endDate);
 
-    return year.financeMonths.map((month: any) => ({
-      month: month.period.split(" ")[0], // Jul
-      year: month.period.split(" ")[1], // 2026
+    const formatDate = (d: Date) =>
+      d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
+    return {
+      month: month.period.split(" ")[0],   // "Jul"
+      year: month.period.split(" ")[1],    // "2026"
       status: month.financeStatus as PeriodStatus,
       sequenceNumber: `#${String(idx + 1).padStart(2, "0")}`,
       accountingYear: year.label,
@@ -73,26 +90,24 @@ export default function AccountingYearPage() {
   return (
     <div className="page-shell">
       <div className="page-header">
-        <div className="min-w-0">
+        <div>
           <h1 className="page-title">Accounting Year</h1>
           <p className="page-subtitle">
             Fiscal year setup and period configuration
           </p>
         </div>
-        <div className="page-actions">
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
-          >
-            <Plus size={16} /> New Accounting Year
-          </button>
-        </div>
+        <button
+          type="button"
+         // disabled={loading}
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+        >
+          <span>+</span> New Accounting Year
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:gap-6">
-        <div className="min-w-0 space-y-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-6">
+        <div className="space-y-3">
           {years.map((year) => (
             <YearListItem
               key={year.id}
@@ -103,21 +118,15 @@ export default function AccountingYearPage() {
           ))}
         </div>
         {selectedYearId && (
-          <div className="min-w-0">
-            <PeriodGrid
-              year={selectedYear}
-              periods={getPeriodsForYear(selectedYear)}
-              onGenerate={() => console.log("Generate periods")}
-            />
-          </div>
+          <PeriodGrid
+            year={selectedYear}
+            periods={getPeriodsForYear(selectedYear)}
+            onGenerate={() => console.log("Generate periods")}
+          />
         )}
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        maxWidth="lg"
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <AccountingYearForm onClose={() => setIsModalOpen(false)} />
       </Modal>
     </div>
