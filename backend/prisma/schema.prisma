@@ -19,8 +19,9 @@ model User {
   createdAccountingYears AccountingYear[] @relation("CreatedAccountingYears")
   updatedAccountingYears AccountingYear[] @relation("UpdatedAccountingYears")
   createdGSTINs          GSTIN[]          @relation("UserCreatedGSTINs")
-  createdGstStates GstState[] @relation("GstStateCreatedBy")
-  updatedGstStates GstState[] @relation("GstStateUpdatedBy")
+  createdGstStates       GstState[]       @relation("GstStateCreatedBy")
+  updatedGstStates       GstState[]       @relation("GstStateUpdatedBy")
+
   @@schema("user")
 }
 
@@ -61,7 +62,7 @@ model OrganizationGroup {
 }
 
 model OrganizationUnit {
-  id               Int      @id @default(autoincrement())
+  id               Int    @id @default(autoincrement())
   organizationUnit String
   unitType         String
   gstIn            String
@@ -72,12 +73,12 @@ model OrganizationUnit {
    country           String   @default("IN")
   state             String
   address           String
-  status            String   @default("Active")
+  status            String             @default("Active")
   gstins            GSTIN[]
   businessLocations BusinessLocation[]
   ledgers           Ledger[]
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   @@schema("organization")
 }
@@ -154,7 +155,33 @@ model GSTIN {
   updatedAt DateTime @updatedAt
 
   businessLocations BusinessLocation[]
+  eInvoices         EInvoice[]
+  ewayBills         EWayBill[]
 
+  @@schema("organization")
+}
+
+model GstState {
+  id      Int    @id @default(autoincrement())
+  code    String @unique @db.VarChar(2)
+  isoCode String @unique @map("iso_code") @db.VarChar(5)
+  name    String @unique @map("state_name") @db.VarChar(100)
+
+  igstEnabled     Boolean @default(true) @map("igst_enabled")
+  cgstSgstEnabled Boolean @default(true) @map("cgst_sgst_enabled")
+  hasSEZ          Boolean @default(false) @map("has_sez")
+
+  status LocationStatus @default(ACTIVE)
+
+  createdById Int   @map("created_by")
+  createdBy   User  @relation("GstStateCreatedBy", fields: [createdById], references: [id])
+  updatedById Int?  @map("updated_by")
+  updatedBy   User? @relation("GstStateUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("gst_states")
   @@schema("organization")
 }
 
@@ -179,7 +206,6 @@ model BusinessLocation {
 
   // BASIC INFORMATION
   locationName String
-  
 
   parentOrganizationUnitId Int
   parentOrganizationUnit   OrganizationUnit @relation(fields: [parentOrganizationUnitId], references: [id])
@@ -378,7 +404,7 @@ model Ledger {
   currency           Currency?         @relation(fields: [currencyId], references: [id], onDelete: Restrict)
   organizationUnit   OrganizationUnit? @relation(fields: [organizationUnitId], references: [id], onDelete: Restrict)
 
-  subLedgers         SubLedger[]
+  subLedgers SubLedger[]
 
   @@unique([ledgerName, accountClassId])
   @@map("ledgers")
@@ -386,15 +412,15 @@ model Ledger {
 }
 
 model SubLedgerType {
-  id         Int         @id @default(autoincrement())
-  typeName   String      @unique @map("type_name") @db.VarChar(100)
-  status     Status      @default(active)
-  createdBy      Int?         @map("created_by")
-  updatedBy      Int?         @map("updated_by")
-  createdAt  DateTime    @default(now()) @map("created_at")
-  updatedAt  DateTime    @updatedAt @map("updated_at")
-  deletedAt          DateTime?         @map("deleted_at")
-  deletedBy          Int?              @map("deleted_by")
+  id        Int       @id @default(autoincrement())
+  typeName  String    @unique @map("type_name") @db.VarChar(100)
+  status    Status    @default(active)
+  createdBy Int?      @map("created_by")
+  updatedBy Int?      @map("updated_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy Int?      @map("deleted_by")
 
   subLedgers SubLedger[]
 
@@ -415,8 +441,8 @@ model SubLedger {
   updatedBy       Int?          @map("updated_by")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
-  deletedAt          DateTime?         @map("deleted_at")
-  deletedBy          Int?              @map("deleted_by")
+  deletedAt       DateTime?     @map("deleted_at")
+  deletedBy       Int?          @map("deleted_by")
   ledger          Ledger        @relation(fields: [ledgerId], references: [id])
   subLedgerType   SubLedgerType @relation(fields: [subLedgerTypeId], references: [id])
 
@@ -426,21 +452,21 @@ model SubLedger {
 }
 
 model Currency {
-  id            Int       @id @default(autoincrement())
-  countryName   String?   @map("country_name") @db.VarChar(100)
-  currencyCode  String    @unique @map("currency_code") @db.VarChar(10)
-  currencyName  String    @map("currency_name") @db.VarChar(100)
-  symbol        String    @db.VarChar(10)
-  exchangeRate  Decimal   @default(1) @map("exchange_rate") @db.Decimal(18, 4)
-  isBase        Boolean   @default(false) @map("is_base")
-  status        Status    @default(active)
-  createdBy     Int?      @map("created_by")
-  updatedBy     Int?      @map("updated_by")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  deletedAt     DateTime? @map("deleted_at")
-  deletedBy     Int?      @map("deleted_by")
-  ledgers       Ledger[]
+  id           Int       @id @default(autoincrement())
+  countryName  String?   @map("country_name") @db.VarChar(100)
+  currencyCode String    @unique @map("currency_code") @db.VarChar(10)
+  currencyName String    @map("currency_name") @db.VarChar(100)
+  symbol       String    @db.VarChar(10)
+  exchangeRate Decimal   @default(1) @map("exchange_rate") @db.Decimal(18, 4)
+  isBase       Boolean   @default(false) @map("is_base")
+  status       Status    @default(active)
+  createdBy    Int?      @map("created_by")
+  updatedBy    Int?      @map("updated_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+  deletedBy    Int?      @map("deleted_by")
+  ledgers      Ledger[]
 
   @@map("currencies")
   @@schema("finance")
@@ -467,26 +493,157 @@ enum BalanceType {
 
   @@schema("finance")
 }
-model GstState {
-  id     Int    @id @default(autoincrement())
-  code   String @unique @db.VarChar(2)                       
-  isoCode String @unique @map("iso_code") @db.VarChar(5)     
-  name   String @unique @map("state_name") @db.VarChar(100)  
 
-  igstEnabled     Boolean @default(true) @map("igst_enabled")
-  cgstSgstEnabled Boolean @default(true) @map("cgst_sgst_enabled")
-  hasSEZ          Boolean @default(false) @map("has_sez")
+model HsnCode {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(8)
+  description String?  @db.VarChar(300)
+  gstRate     Decimal? @db.Decimal(5, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  status LocationStatus @default(ACTIVE)
+  @@map("hsn_codes")
+  @@schema("finance")
+}
 
-  createdById Int   @map("created_by")
-  createdBy   User  @relation("GstStateCreatedBy", fields: [createdById], references: [id])
-  updatedById Int?  @map("updated_by")
-  updatedBy   User? @relation("GstStateUpdatedBy", fields: [updatedById], references: [id])
+model EInvoice {
+  id                 Int             @id @default(autoincrement())
+  documentNumber     String          @map("document_number") @db.VarChar(30)
+  documentDate       DateTime        @map("document_date")
+  transactionType    TransactionType @map("transaction_type")
+  supplyType         SupplyType      @map("supply_type")
+  sellerGstProfileId Int             @map("seller_gst_profile_id")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  fromPin  String? @map("from_pin") @db.VarChar(10)
+  fromCity String? @map("from_city") @db.VarChar(100)
 
-  @@map("gst_states")
-  @@schema("organization")
+  toGstin     String  @map("to_gstin") @db.VarChar(15)
+  toLegalName String? @map("to_legal_name") @db.VarChar(200)
+  toPin       String? @map("to_pin") @db.VarChar(10)
+  toCity      String? @map("to_city") @db.VarChar(100)
+
+  irn               String?        @unique @db.VarChar(64)
+  ackNumber         String?        @map("ack_number") @db.VarChar(30)
+  ackDate           DateTime?      @map("ack_date")
+  qrCode            String?        @db.Text
+  signedInvoiceJson Json?          @map("signed_invoice_json")
+  status            EInvoiceStatus @default(draft)
+  cancelledAt       DateTime?      @map("cancelled_at")
+  cancelReason      String?        @map("cancel_reason") @db.VarChar(200)
+  createdBy         Int?           @map("created_by")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  seller GSTIN          @relation(fields: [sellerGstProfileId], references: [id])
+  items  EInvoiceItem[]
+
+  @@unique([documentNumber, sellerGstProfileId])
+  @@map("e_invoices")
+  @@schema("finance")
+}
+
+model EInvoiceItem {
+  id           Int      @id @default(autoincrement())
+  eInvoiceId   Int      @map("e_invoice_id")
+  hsnCode      String   @map("hsn_code") @db.VarChar(8)
+  description  String?  @db.VarChar(300)
+  quantity     Decimal  @default(1) @db.Decimal(18, 3)
+  unit         String?  @db.VarChar(10)
+  rate         Decimal  @db.Decimal(18, 2)
+  taxableValue Decimal  @map("taxable_value") @db.Decimal(18, 2)
+  cgstRate     Decimal? @map("cgst_rate") @db.Decimal(5, 2)
+  sgstRate     Decimal? @map("sgst_rate") @db.Decimal(5, 2)
+  igstRate     Decimal? @map("igst_rate") @db.Decimal(5, 2)
+  eInvoice     EInvoice @relation(fields: [eInvoiceId], references: [id])
+
+  @@map("e_invoice_items")
+  @@schema("finance")
+}
+
+enum TransactionType {
+  outward
+  inward
+
+  @@schema("finance")
+}
+
+enum SupplyType {
+  b2b
+  b2c
+  d2c
+
+  @@schema("finance")
+}
+
+enum EInvoiceStatus {
+  draft
+  submitted
+  irn_generated
+  cancelled
+  failed
+
+  @@schema("finance")
+}
+
+model DocumentSequence {
+  id            Int    @id @default(autoincrement())
+  sellerGstinId Int    @map("seller_gst_profile_id")
+  docType       String @map("doc_type") @db.VarChar(20)
+  financialYear String @map("financial_year") @db.VarChar(7) // e.g. "2025-26"
+  lastNumber    Int    @default(0) @map("last_number")
+
+  @@unique([sellerGstinId,docType,financialYear])
+  @@map("document_sequences")
+  @@schema("finance")
+}
+
+enum TransportMode {
+  road
+  rail
+  air
+  ship
+
+  @@schema("finance")
+}
+
+enum EWayBillStatus {
+  draft
+  generated
+  cancelled
+  expired
+
+  @@schema("finance")
+}
+
+model EWayBill {
+  id                 Int             @id @default(autoincrement())
+  documentNumber     String          @map("document_number") @db.VarChar(30)
+  documentDate       DateTime        @map("document_date")
+  transactionType    TransactionType @map("transaction_type")
+  supplyType         SupplyType      @map("supply_type")
+  sellerGstProfileId Int             @map("seller_gst_profile_id")
+  fromPin            String?         @map("from_pin") @db.VarChar(10)
+  fromCity           String?         @map("from_city") @db.VarChar(100)
+  toGstin            String          @map("to_gstin") @db.VarChar(15)
+  toLegalName        String?         @map("to_legal_name") @db.VarChar(200)
+  toPin              String?         @map("to_pin") @db.VarChar(10)
+  toCity             String?         @map("to_city") @db.VarChar(100)
+  hsnCode            String          @map("hsn_code") @db.VarChar(8)
+  taxableValue       Decimal         @map("taxable_value") @db.Decimal(18, 2)
+  vehicleNumber      String          @map("vehicle_number") @db.VarChar(15)
+  transportMode      TransportMode   @map("transport_mode")
+  distanceKm         Int             @map("distance_km")
+  validUntil         DateTime        @map("valid_until")
+  ewbNumber          String?         @unique @map("ewb_number") @db.VarChar(12)
+  status             EWayBillStatus  @default(draft)
+  cancelledAt        DateTime?       @map("cancelled_at")
+  cancelReason       String?         @map("cancel_reason") @db.VarChar(200)
+  createdBy          Int?            @map("created_by")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+  seller             GSTIN           @relation(fields: [sellerGstProfileId], references: [id])
+
+  @@unique([documentNumber, sellerGstProfileId])
+  @@map("e_way_bills")
+  @@schema("finance")
 }

@@ -1,3 +1,18 @@
+export type ImportTypeOption = {
+  value: string
+  label: string
+  templateTitle: string
+  templateDescription: string
+  templateUrl: string
+  templateFileName: string
+  importUrl: string
+  // Optional: only set for import types that have a working /import/preview
+  // route (currently just ledgers). The frontend checks for this and shows
+  // "No preview endpoint configured" rather than silently falling back to
+  // the commit route when it's missing.
+  previewUrl?: string
+}
+
 export type ImportStep = {
   id: string
   step: string
@@ -7,8 +22,7 @@ export type ImportStep = {
 
 export type DataImportInfo = {
   searchPlaceholder: string
-  templateTitle: string
-  templateDescription: string
+  importTypes: ImportTypeOption[]
   howToTitle: string
   howToSubtitle: string
   steps: ImportStep[]

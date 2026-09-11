@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react"
-import { Download, Plus, Search, X,ChevronDown  } from "lucide-react"
+import { Download, Plus, Search, X} from "lucide-react"
 import OrgUnitTable from "./components/OrgUnitTable"
 import Pagination from "../components/Pagination"
 import { Modal } from '@/components/shared/Modal'
@@ -17,6 +17,7 @@ export interface OrganizationUnit {
   gstIn: string;
   manager: string;
   organizationGroupId: number;
+  country: string;
   state: string;
   address: string;
   status: string;
@@ -72,8 +73,8 @@ function OrganizationUnit() {
         unit.manager,
         unit.organizationGroup.shortName,
         unit.state,
-         unit.state,
-    unit.address
+        unit.country,
+        unit.address
       ].some(field => field?.toLowerCase().includes(term))
       return matchesStatus && matchesSearch
     })

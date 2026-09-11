@@ -2,8 +2,7 @@ import type { DataImportInfo, EInvoiceInfo, EWayBillInfo } from '@/types/utiliti
 
 export const MOCK_DATA_IMPORT: DataImportInfo = {
   searchPlaceholder: 'Search import type',
-  templateTitle: 'Sample Excel Template',
-  templateDescription: 'Download the pre-formatted template to get started quickly',
+  importTypes: [],
   howToTitle: 'How to Use the Template',
   howToSubtitle: 'Follow these steps to import master data successfully',
   steps: [
