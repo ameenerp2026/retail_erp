@@ -20,7 +20,7 @@ router.delete(
   '/:id',
   deleteBusinessLocationController
 );
-router.put(
+router.patch(
   '/:id',
   updateBusinessLocationController
 );

@@ -1,5 +1,6 @@
 
 import prisma from '../../../config/prisma.js';
+import { Prisma } from '@prisma/client';
 import type {
   CreateBusinessLocationInput,
   UpdateBusinessLocationInput,
@@ -69,12 +70,23 @@ export async function createBusinessLocation(data: CreateBusinessLocationInput) 
   });
 };
 
-export const deleteBusinessLoaction=async(id:number)=>{
-    return prisma.businessLocation.delete({
-      where:{
-        id,
-      }
+
+export const deleteBusinessLoaction = async (id: number) => {
+  try {
+    return await prisma.businessLocation.delete({
+      where: { id },
     })
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2025'
+    ) {
+      const notFoundError: any = new Error('Business location not found')
+      notFoundError.statusCode = 404
+      throw notFoundError
+    }
+    throw error
+  }
 }
 
 

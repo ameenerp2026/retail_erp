@@ -34,11 +34,11 @@ app.get("/", (req, res) => {
 app.use('/api/auth',authRoutes) 
 app.use("/api/organization", organizationRoutes);
 app.use("/api/organizationUnit", organizationUnit);
+app.use('/api/organization/businessLocation', businessLocation);
 app.use('/api/financeMonth',financeMonth);
 app.use("/api/gstManagement", gstInManagement);
 app.use('/api/gst-states',gstStateRoutes);
 app.use('/api/accountingYear',accountingYear)
-app.use('/api/organization/businessLocation',businessLocation)
 app.use('/api/finance/account-groups',accountGroup)
 app.use('/api/finance/account-class',accountClassRoutes);
 app.use('/api/finance/ledgers',ledgerRoutes);

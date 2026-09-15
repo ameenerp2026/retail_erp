@@ -70,20 +70,21 @@ export const deleteBusinessLocationController = async (
   res: Response
 ) => {
   try {
-    
     const id = Number(req.params.id);
 
-    const result = await deleteBusinessLoaction(
-      id
-    );
+    const result = await deleteBusinessLoaction(id);
 
     return res.status(200).json({
       message: "Business location deleted successfully",
       data: result,
     });
   } catch (error: any) {
-    return res.status(500).json({
-      message: "Failed to delete business location",
+    const statusCode = error.statusCode || 500;
+
+    return res.status(statusCode).json({
+      message: statusCode === 404
+        ? "Business location not found or already deleted"
+        : "Failed to delete business location",
       error: error.message,
     });
   }
