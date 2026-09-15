@@ -16,15 +16,15 @@ export default function BusinessLocationTable({
 }: BusinessLocationTableProps) {
 
 
-const getStateName = (countryCode: string, stateCode: string) => {
-  const states = getStates(countryCode);
+  const getStateName = (countryCode: string, stateCode: string) => {
+    const states = getStates(countryCode);
 
-  const state = states.find(
-    (s) => s.isoCode === stateCode
-  );
+    const state = states.find(
+      (s) => s.isoCode === stateCode
+    );
 
-  return state?.name || stateCode;
-}
+    return state?.name || stateCode;
+  }
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full">
@@ -50,11 +50,11 @@ const getStateName = (countryCode: string, stateCode: string) => {
             locations.map((row) => (
               <tr key={row.id} className="text-sm transition-colors hover:bg-slate-50">
                 <td className="px-4 py-4 font-semibold text-slate-800">{row.locationName}</td>
-               {/* // <td className="px-4 py-4 text-slate-500">{row.code}</td> */}
+                {/* // <td className="px-4 py-4 text-slate-500">{row.code}</td> */}
                 <td className="px-4 py-4 text-slate-600">{row.addressLine2}</td>
                 <td className="px-4 py-4 text-slate-600">{row.city}</td>
                 <td className="px-4 py-4 text-slate-600">
-                   {getStateName(row.country, row.state)}</td>
+                  {getStateName(row.country, row.state)}</td>
                 <td className="px-4 py-4">
                   {row.status === 'ACTIVE' ? (
                     <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-600">
@@ -79,7 +79,9 @@ const getStateName = (countryCode: string, stateCode: string) => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(row)}
+                      onClick={() => {
+                        onDelete(row)
+                      }}
                       disabled={loading}
                       className="text-red-500 transition hover:text-red-600"
                       title="Delete"
