@@ -1,10 +1,9 @@
-
 import type { StatusType } from '@/components/shared/StatusTags'
+
 export type FinanceStatType =
   | 'open'
   | 'closed'
   | 'provisional'
-  //| 'activeFy'
 
 export type FinanceStat = {
   id: string
@@ -13,15 +12,21 @@ export type FinanceStat = {
   value: string
   count?: number
 }
- export type FinancePeriodStatus = Extract<StatusType, 'Open' | 'Closed' | 'Future' | 'Provisional'>
+
+export type FinancePeriodStatus = Extract<StatusType, 'Open' | 'Closed' | 'Future' | 'Provisional'>
 
 export type FinancePeriod = {
   id: number
-  accountingYearId: string
   period: string
   startDate: string
   endDate: string
-  financeStatus: FinanceStatType
-  updatedAt: string
-  
+  financeStatus: string
+  accountingYearId?: string | number
+  updatedAt?: string
+  lastModified?: string
+  transactions?: number
+  lastClosedBy?: string | null
+  invStatus?: string
+  cogsStatus?: string
+  periodId?: string
 }
