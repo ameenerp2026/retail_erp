@@ -34,8 +34,8 @@ export default function FinanceMonths() {
     const needle = search.trim().toLowerCase()
 
     return financeMonths.filter((period: any) => {
-      if (status !== 'All' && period.financeStatus !== status) return false
-      if (needle && !period.period.toLowerCase().includes(needle)) return false
+      if (status !== 'All' && period.financeStatus?.toLowerCase() !== status.toLowerCase()) return false
+      if (needle && !period.period?.toLowerCase().includes(needle)) return false
       return true
     })
   }, [financeMonths, appliedFilters])
