@@ -7,6 +7,7 @@ import {
   AccountingYear,
   Period,
   PeriodStatus,
+  YearStatus,
 } from "@/types/accounting";
 import apiClient from "@/services/apiClient";
 import toast from "react-hot-toast";
@@ -15,12 +16,15 @@ import {
   formatDateRange,
 } from "@/utils/dateFormat";
 import { Plus } from "lucide-react";
+import PeriodDetailModal from "./components/PeriodDetailModal";
 
 export default function AccountingYearPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [selectedYearId, setSelectedYearId] =
     useState<number | null>(null);
+
+  const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null);
 
   const [years, setYears] = useState<AccountingYear[]>([]);
 
@@ -29,6 +33,11 @@ export default function AccountingYearPage() {
   const selectedYear = years.find(
     (y) => y.id === selectedYearId
   );
+  const mapYearStatus = (status: string): YearStatus => {
+    if (status === 'OPEN') return 'Active'
+    if (status === 'CLOSED') return 'Closed'
+    return 'Pending'
+  }
 
   const fetchAccountingYear = async () => {
     try {
@@ -48,7 +57,7 @@ export default function AccountingYearPage() {
             year.toDate
           ),
 
-          status: year.status,
+          status: mapYearStatus(year.status),
 
           closedPeriods: year.financeMonths.filter(
             (m: any) =>
@@ -77,6 +86,19 @@ export default function AccountingYearPage() {
       setLoading(false);
     }
   };
+  const handleCreateYear = async (data: { fromDate: string; toDate: string }) => {
+    try {
+      await apiClient.post("/api/accountingYear/accounting-Year", data);
+      toast.success("Accounting Year created successfully");
+      setIsModalOpen(false);
+      await fetchAccountingYear();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(
+        error?.response?.data?.message || "Failed to save accounting year"
+      );
+    }
+  };
 
   useEffect(() => {
     fetchAccountingYear();
@@ -89,11 +111,12 @@ export default function AccountingYearPage() {
 
     return (year.financeMonths ?? []).map(
       (month: any, idx: number) => {
-        const start = new Date(month.fromDate);
-        const end = new Date(month.toDate);
+        const start = new Date(month.startDate);
+        const end = new Date(month.endDate);
         const now = new Date();
 
         return {
+          id: month.id,
           month: month.period.split(" ")[0],
           year: month.period.split(" ")[1],
 
@@ -124,7 +147,11 @@ export default function AccountingYearPage() {
             new Date(month.updatedAt)
           ),
 
-          auditLog: [],
+          auditLog: (month.auditLogs ?? []).map((log: any) => ({
+            action: log.action,
+            by: log.performedBy?.name ?? 'Admin',
+            date: formatDate(new Date(log.createdAt)),
+          })),
         };
       }
     );
@@ -184,13 +211,11 @@ export default function AccountingYearPage() {
             <PeriodGrid
               year={selectedYear}
               periods={getPeriodsForYear(selectedYear)}
-              onGenerate={() =>
-                console.log("Generate periods")
-              }
+              onGenerate={() => console.log("Generate periods")}
+              onPeriodClick={setSelectedPeriod}
             />
           </div>
         )}
-
       </div>
 
       {/* Modal */}
@@ -200,12 +225,15 @@ export default function AccountingYearPage() {
         maxWidth="lg"
       >
         <AccountingYearForm
-          onClose={() =>
-            setIsModalOpen(false)
-          }
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleCreateYear}
         />
       </Modal>
-
+      {/* Period Details Modal */}
+      <PeriodDetailModal
+        period={selectedPeriod}
+        onClose={() => setSelectedPeriod(null)}
+      />
     </div>
   );
 }
