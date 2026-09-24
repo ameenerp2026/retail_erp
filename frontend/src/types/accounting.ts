@@ -6,7 +6,7 @@ export type FinanceMonth = {
   period: string;
   startDate?: string;
   endDate?: string;
-  financeStatus: "Open" | "Closed" | "Provisional" | "Pending";
+  financeStatus: "Open" | "Closed" | "Provisional";
 };
 
 export type AccountingYear = {
@@ -30,6 +30,7 @@ export type AuditEvent = {
 }
 
 export type Period = {
+  id: number
   month: string
   year: string
   status: PeriodStatus

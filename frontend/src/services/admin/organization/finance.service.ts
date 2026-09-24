@@ -10,7 +10,6 @@ export const getFinanceData=async()=>{
 export const getActivity = async (_periodId: number) => {
   return []
 }
-
 export const financeService = {
   getFinanceData,
   getActivity,
