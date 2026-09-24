@@ -1,15 +1,14 @@
 import { AccountingYear, Period } from '@/types/accounting'
 import PeriodCard from './PeriodCard'
-import { CalendarDays, Play } from 'lucide-react'
+import { CalendarDays} from 'lucide-react'
 
 type Props = {
   year: AccountingYear
   periods: Period[]
-  onGenerate: () => void
   onPeriodClick?: (period: Period) => void
 }
 
-export default function PeriodGrid({ year, periods, onGenerate, onPeriodClick }: Props) {
+export default function PeriodGrid({ year, periods, onPeriodClick }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-6 pb-4 border-b border-slate-100">

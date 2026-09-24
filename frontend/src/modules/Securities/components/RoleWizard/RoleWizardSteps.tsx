@@ -1,65 +1,65 @@
-import React from 'react'
+// import { Eye, FileText, Settings } from 'lucide-react';
+// import React from 'react'
 
-interface Props{
-    currentStep: number;
-}
+// interface Props{
+//     currentStep: number;
+// }
 
-const steps=[
-    {
-        id:1,
-        title: "Role Info",
-        icon:FileText
-    },
-    {
-        id:2,
-        title: "Permissions",
-        icon: Settings
-    },
-    {
-        id:3,
-        title: 'Review',
-        icon: Eye
-    }
-S
-]
+// const steps=[
+//     {
+//         id:1,
+//         title: "Role Info",
+//         icon:FileText
+//     },
+//     {
+//         id:2,
+//         title: "Permissions",
+//         icon: Settings
+//     },
+//     {
+//         id:3,
+//         title: 'Review',
+//         icon: Eye
+//     }
+// ]
 
-function RoleWizardSteps({
-    currentStep,
-}:Props) {
-
-
-  return (
-    <div>Role Wizard</div>
-    // <div>
-    //     {steps.map((step,index)=>{
-    //      const Icon = step.icon;
-    //      const IsCompleted  = currentStep > step.id;
-    //      const IsActive = currentStep === step.id;
-
-    //      return(
-    //         <div key={step.id} >
-    //             <div>
-    //                 <div
-    //                 className={`
-
-    //                     ${
-
-    //                     }
-    //                 `}
-    //                 >
+// function RoleWizardSteps({
+//     currentStep,
+// }:Props) {
 
 
-    //                     </div>
+//   return (
+//     <div>Role Wizard</div>
+//     // <div>
+//     //     {steps.map((step,index)=>{
+//     //      const Icon = step.icon;
+//     //      const IsCompleted  = currentStep > step.id;
+//     //      const IsActive = currentStep === step.id;
 
-    //                 </div>
+//     //      return(
+//     //         <div key={step.id} >
+//     //             <div>
+//     //                 <div
+//     //                 className={`
 
-    //             </div>
-    //      )
+//     //                     ${
+
+//     //                     }
+//     //                 `}
+//     //                 >
 
 
-    //     }}
-    //     </div>
-  )
-}
+//     //                     </div>
 
-export default RoleWizardSteps
+//     //                 </div>
+
+//     //             </div>
+//     //      )
+
+
+//     //     }}
+//     //     </div>
+//   )
+// }
+
+// export default RoleWizardSteps

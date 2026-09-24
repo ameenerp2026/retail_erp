@@ -211,7 +211,6 @@ export default function AccountingYearPage() {
             <PeriodGrid
               year={selectedYear}
               periods={getPeriodsForYear(selectedYear)}
-              onGenerate={() => console.log("Generate periods")}
               onPeriodClick={setSelectedPeriod}
             />
           </div>
