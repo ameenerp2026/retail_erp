@@ -1,4 +1,4 @@
- import React, {useState} from 'react'
+ import {useState} from 'react'
  import RoleWizardSteps from '../components/RoleWizard/RoleWizardSteps'
  import RoleInformation from '../components/RoleWizard/RoleInformation'
 import PermissionMatrix from '../components/RoleWizard/PermissionMatrix'

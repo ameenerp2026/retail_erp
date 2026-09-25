@@ -1,5 +1,4 @@
 import { Check, FileText, Settings, Eye } from 'lucide-react';
-import React from 'react'
 
 interface Props{
     currentStep: number;
