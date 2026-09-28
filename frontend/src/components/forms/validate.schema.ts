@@ -226,3 +226,35 @@ export const accountGroupSchema = z.object({
 })
 
 export type AccountGroupFormData = z.infer<typeof accountGroupSchema>
+
+// ── Securities · Users ("Add User" form) ─────────────────────────
+export const addUserSchema = z.object({
+  fullName: z.string()
+    .trim()
+    .min(1, 'Full Name is required')
+    .min(3, 'Full Name must be at least 3 characters')
+    .max(80, 'Full Name must be under 80 characters'),
+
+  email: z.string()
+    .trim()
+    .min(1, 'Email Address is required')
+    .email('Invalid email'),
+
+  role: z.string()
+    .min(1, 'Select role'),
+
+  orgUnit: z.string().optional(),
+
+  reportingManager: z.string().trim().optional(),
+
+  password: z.string()
+    .trim()
+    .optional()
+    .refine(val => !val || val.length >= 8, {
+      message: 'Password must be at least 8 characters',
+    }),
+
+  sendOnboardingEmail: z.boolean(),
+})
+
+export type AddUserFormData = z.infer<typeof addUserSchema>

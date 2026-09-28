@@ -64,6 +64,7 @@ export const MODULE_ROUTES: ModuleRoute[] = [
       { label: "Role Wizard", path: "role-wizard"},
       { label: "Users", path: "users"},
       { label: "User Logs", path: "user-logs"},
+      {label:"User License", path:"user-licenses"}
     ]
   },
 

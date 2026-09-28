@@ -17,7 +17,7 @@ export const DEFAULT_FINANCE_FILTERS: FinanceFilterState = {
 
 const FY_OPTIONS = ['FY 2025-26', 'FY 2024-25', 'FY 2023-24']
 const ORG_OPTIONS = ['RetailShop India', 'RetailShop UAE', 'RetailShop KSA']
-//const STATUS_OPTIONS: FinanceFilterState['status'][] = ['All', 'Open', 'Closed', 'Provisional', 'Future']
+const STATUS_OPTIONS: FinanceFilterState['status'][] = ['All', 'Open', 'Closed', 'Provisional']
 
 type Props = {
   /** Draft filter values (controlled by the parent) */
@@ -79,7 +79,7 @@ export default function FinanceFilters({ value, onChange, onApply }: Props) {
         />
 
         {/* Status */}
-        {/* <select
+        <select
           value={value.status}
           onChange={(e) => set('status', e.target.value as FinanceFilterState['status'])}
           className={`${selectClass} lg:w-40`}
@@ -89,13 +89,13 @@ export default function FinanceFilters({ value, onChange, onApply }: Props) {
               {status === 'All' ? 'All Status' : status}
             </option>
           ))}
-        </select> */}
+        </select>
 
         {/* Apply */}
         <button
           type="button"
           onClick={onApply}
-          className="h-10 shrink-0 rounded-xl bg-[linear-gradient(#093055,#043793)] px-6 text-xs font-semibold text-white transition hover:opacity-95"
+          className="h-10 shrink-0 rounded-xl bg-[linear-gradient(#093055,#043793)] px-6 text-xs font-semibold text-white transition hover:opacity-95 cursor-pointer"
         >
           Apply Filters
         </button>

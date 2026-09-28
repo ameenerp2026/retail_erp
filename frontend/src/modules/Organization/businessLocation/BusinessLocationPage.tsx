@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import type { BusinessLocationRow } from '../../../types/admin/organization/businessLocation' 
 import BusinessLocationTable from './components/BusinessLocationTable'
 import Pagination from '../components/Pagination'
-import { useBusinessLocations} from '@/hooks/admin/organization/useBusinessLocation'
+import { BUSINESS_LOCATION_QUERY_KEY ,useBusinessLocations} from '@/hooks/admin/organization/useBusinessLocation'
 import { exportToPDF, ExportColumn } from '@/utils/exportData'
  import { useQueryClient } from '@tanstack/react-query';     
 import {deleteBusinessLocation} from '@/services/admin/organization/businessLocation.service'
@@ -70,7 +70,7 @@ const handleDelete = async (
   try {
     await deleteBusinessLocation(row.id)
      await queryClient.invalidateQueries({
-      queryKey: ['businessLocations'],
+      queryKey: BUSINESS_LOCATION_QUERY_KEY,
     });
     toast.success(
       'Business location deleted successfully'
