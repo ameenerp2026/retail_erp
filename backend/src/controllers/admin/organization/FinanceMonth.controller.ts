@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import {
   // createFinanceMonth,
-   getFinanceMonths,
+  getFinanceMonths,
   getFinanceMonthById,
   // updateFinanceMonth,
   // deleteFinanceMonth,
@@ -12,7 +12,7 @@ import {
 //   res: Response
 // ) => {
 //   try {
-    
+
 //     const result = await createFinanceMonth(req.body);
 
 //     return res.status(201).json({
@@ -34,7 +34,7 @@ export const getFinanceMonthsController = async (
   res: Response
 ) => {
   try {
-    
+
     const id = Number(req.params.id);
 
     const result = await getFinanceMonths();
@@ -62,7 +62,7 @@ export const getFinanceMonthByIdController = async (
   res: Response
 ) => {
   try {
-    
+
     const id = Number(req.params.id);
 
     const result = await getFinanceMonthById(id);
@@ -91,7 +91,7 @@ export const getFinanceMonthByIdController = async (
 // ) => {
 //     console.log('Body',res)
 //   try {
-    
+
 //     const id = Number(req.params.id);
 
 //     const result = await updateFinanceMonth(
@@ -117,12 +117,12 @@ export const getFinanceMonthByIdController = async (
 // ) => {
 //     console.log('Body',res)
 //   try {
-    
+
 //     const id = Number(req.params.id);
 
 //     const result = await deleteFinanceMonth(
 //       id,
-      
+
 //     );
 
 //     return res.status(200).json({
@@ -136,4 +136,3 @@ export const getFinanceMonthByIdController = async (
 //     });
 //   }
 // }
-

@@ -1,7 +1,12 @@
 import { Period } from '@/types/accounting'
 import { CheckCircle2 } from 'lucide-react'
 
-export default function PeriodCard({ period }: { period: Period }) {
+type Props = {
+  period: Period
+  onClick?: () => void
+}
+
+export default function PeriodCard({ period, onClick }: Props) {
   const getCardStyles = () => {
     switch (period.status) {
       case 'Closed':
@@ -42,8 +47,10 @@ export default function PeriodCard({ period }: { period: Period }) {
   }
 
   return (
-    <div
-      className={`w-full min-h-[96px] border rounded-xl p-3.5 flex flex-col items-center justify-between text-center transition-all duration-150 ${getCardStyles()}`}
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full min-h-[96px] border rounded-xl p-3.5 flex flex-col items-center justify-between text-center transition-all duration-150 cursor-pointer ${getCardStyles()}`}
     >
       <div>
         <p className="text-sm font-bold text-[#043793]">{period.month}</p>
@@ -53,6 +60,6 @@ export default function PeriodCard({ period }: { period: Period }) {
       <div className="mt-2">
         {getStatusContent()}
       </div>
-    </div>
+    </button>
   )
 }

@@ -21,6 +21,8 @@ model User {
   createdGSTINs          GSTIN[]          @relation("UserCreatedGSTINs")
   createdGstStates       GstState[]       @relation("GstStateCreatedBy")
   updatedGstStates       GstState[]       @relation("GstStateUpdatedBy")
+  performedFinanceMonthAudits FinanceMonthAudit[] @relation("PerformedFinanceMonthAudits")
+
 
   @@schema("user")
 }
@@ -120,6 +122,7 @@ model FinanceMonth {
 
   accountingYearId Int
   accountingYear   AccountingYear @relation(fields: [accountingYearId], references: [id], onDelete: Cascade)
+  auditLogs FinanceMonthAudit[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -131,6 +134,17 @@ enum FinanceStatus {
   Open
   Closed
   Provisional
+
+  @@schema("organization")
+}
+model FinanceMonthAudit {
+  id             Int          @id @default(autoincrement())
+  financeMonthId Int
+  financeMonth   FinanceMonth @relation(fields: [financeMonthId], references: [id])
+  action         String
+  performedById  Int
+  performedBy    User         @relation("PerformedFinanceMonthAudits", fields: [performedById], references: [id])
+  createdAt      DateTime     @default(now())
 
   @@schema("organization")
 }

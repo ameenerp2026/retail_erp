@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { toast } from 'react-hot-toast'
 import { accountingYearSchema, AccountingYearFormData } from '@/components/forms/validate.schema'
 import z from 'zod'
 import { X, AlertCircle } from 'lucide-react'
@@ -15,9 +14,9 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
   const [formData, setFormData] = useState<AccountingYearFormData>({
     fromDate: '',
     toDate: '',
-    yearName: '',
   })
   const [errors, setErrors] = useState<Errors>({})
+  const [isSubmitting, setIsSubmitting] = useState(false) // NEW
 
   const handleChange = (field: keyof AccountingYearFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -30,11 +29,8 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
 
     try {
       const validatedData = accountingYearSchema.parse(formData)
-      const _data = { id: Date.now().toString(), ...validatedData }
-
-      toast.success('Accounting year added successfully')
-      onSubmit?.(_data)
-      onClose()
+      setIsSubmitting(true)                 // NEW
+      await onSubmit?.(validatedData)        // CHANGED — was fire-and-forget + fake toast
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Errors = {}
@@ -45,12 +41,9 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
         setErrors(fieldErrors)
         return
       }
-
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('Something went wrong. Try again.')
-      }
+      // API errors are toasted by the parent's handleCreateYear, nothing to do here
+    } finally {
+      setIsSubmitting(false)                 // NEW
     }
   }
 
@@ -125,29 +118,6 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
             )}
           </div>
         </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-            Year Name <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.yearName}
-            onChange={(e) => handleChange('yearName', e.target.value)}
-            placeholder="e.g. FY 2027-28"
-            className={`w-full border rounded-xl px-3.5 py-2 text-sm text-slate-800 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#043793]/15 transition-all ${
-              errors.yearName
-                ? 'border-rose-400 bg-rose-50/20'
-                : 'border-slate-300 focus:border-[#043793]'
-            }`}
-          />
-          {errors.yearName && (
-            <p className="text-xs font-medium text-rose-500 mt-1 flex items-center gap-1">
-              <AlertCircle size={12} />
-              {errors.yearName}
-            </p>
-          )}
-        </div>
       </form>
 
       {/* Footer */}
@@ -162,9 +132,10 @@ export default function AccountingYearForm({ onClose, onSubmit }: Props) {
         <button
           type="submit"
           form="accounting-year-form"
-          className="h-9.5 px-4.5 rounded-xl bg-gradient-to-r from-[#093055] to-[#043793] text-white text-xs font-semibold hover:opacity-95 active:scale-95 transition-all shadow-sm cursor-pointer"
+          disabled={isSubmitting}
+          className="h-9.5 px-4.5 rounded-xl bg-gradient-to-r from-[#093055] to-[#043793] text-white text-xs font-semibold hover:opacity-95 active:scale-95 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Add Year
+          {isSubmitting ? 'Adding...' : 'Add Year'}
         </button>
       </div>
     </div>

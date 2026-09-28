@@ -8,6 +8,7 @@ type Props = {
 }
 
 export default function PeriodDetailModal({ period, onClose }: Props) {
+
   if (!period) return null
 
   const normalizedStatus = String(period.status || '').toLowerCase()
