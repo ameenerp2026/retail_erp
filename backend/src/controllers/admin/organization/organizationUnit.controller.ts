@@ -6,13 +6,15 @@ import {
   deleteOrganizationUnit,
   updateOrganizationUnit
 } from "../../../services/admin/organization/OrganizationUnit.service.js";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
 
 export const createOrgUnitController = async (
   req: Request,
   res: Response
 ) => {
   try {
-    console.log('createOrganizationUnit',req.body)
+    console.log("createOrganizationUnit", req.body);
+
     const result = await createOrganizationUnit(req.body);
 
     return res.status(201).json({
@@ -29,38 +31,41 @@ export const createOrgUnitController = async (
   }
 };
 
-export const getOrgUnitController = async (
-  req: Request,
-  res: Response
-) => {
-   try {
-     const units = await getOrganizationUnit();
 
-  if (!units) {
-      return res.status(404).json({
-        message: "Organization unit not found",
+export const getOrgUnitController = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        message: "Authentication required",
       });
+      return;
     }
 
-    return res.status(200).json({
+    const result = await getOrganizationUnit(req.user.id);
+
+    res.status(200).json({
       message: "Organization units fetched successfully",
-      data: units,
+      data: result,
     });
-  }
-   catch (error: any) {
-    return res.status(500).json({
+  } catch (error: any) {
+    console.error("Get organization units error:", error);
+
+    res.status(500).json({
       message: "Failed to fetch organization units",
-      error: error.message,
+      error: error?.message,
     });
   }
-   
-}
+};
+
+
 export const getOrgUnitByIdController = async (
   req: Request,
   res: Response
 ) => {
   try {
-    
     const id = Number(req.params.id);
 
     const result = await getOrganizationUnitById(id);
@@ -77,18 +82,18 @@ export const getOrgUnitByIdController = async (
     });
   } catch (error: any) {
     return res.status(500).json({
-      message: "Failed to fetch organization group",
+      message: "Failed to fetch organization unit",
       error: error.message,
     });
   }
 };
+
 
 export const updateOrgUnitController = async (
   req: Request,
   res: Response
 ) => {
   try {
-    
     const id = Number(req.params.id);
 
     const result = await updateOrganizationUnit(
@@ -108,18 +113,15 @@ export const updateOrgUnitController = async (
   }
 };
 
+
 export const deleteOrgUnitController = async (
   req: Request,
   res: Response
 ) => {
   try {
-    
     const id = Number(req.params.id);
 
-    const result = await deleteOrganizationUnit(
-      id,
-      
-    );
+    const result = await deleteOrganizationUnit(id);
 
     return res.status(200).json({
       message: "Organization unit deleted successfully",
@@ -127,9 +129,8 @@ export const deleteOrgUnitController = async (
     });
   } catch (error: any) {
     return res.status(500).json({
-      message: "Failed to update organization unit",
+      message: "Failed to delete organization unit",
       error: error.message,
     });
   }
-}
-
+};

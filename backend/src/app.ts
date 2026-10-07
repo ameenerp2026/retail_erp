@@ -19,7 +19,7 @@ import subLedgerImportRoutes from './routes/admin/utilities/subledger.route.js'
 import eInvoiceRoutes from './routes/admin/utilities/eInvoice.routes.js'
 import eWayBillRoutes from './routes/admin/utilities/eWayBill.routes.js'
 import gstStateRoutes from "./routes/admin/organization/gstState.routes.js";
-
+import securityRoutes from "./routes/admin/securities/security.routes.js";
 const app = express();
 
 app.use(cors());
@@ -49,7 +49,7 @@ app.use('/api/utilities/ledgers', ledgerImportRoutes);
 app.use('/api/utilities/subledgers', subLedgerImportRoutes);
 app.use('/api/utilities/e-invoice', eInvoiceRoutes);
 app.use('/api/utilities/e-way-bill', eWayBillRoutes);
-
+app.use('/api/securities', securityRoutes);
 
 
 export default app;

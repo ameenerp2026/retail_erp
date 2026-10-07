@@ -69,6 +69,13 @@ export async function createBusinessLocation(data: CreateBusinessLocationInput) 
     orderBy: { updatedAt: "desc" },
   });
 };
+export const getBusinessLocationById = async (id: number) => {
+  return prisma.businessLocation.findUnique({
+    where: {
+      id,
+    },
+  });
+};
 
 
 export const deleteBusinessLoaction = async (id: number) => {

@@ -1,31 +1,39 @@
 import { Request, Response } from "express";
 
 import {createAccountingYear,getAccountingYear,getAccountingYearById} from '../../../services/admin/organization/AccountingYear.service.js'
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
 
 
 export const createAccountingYearController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
-  console.log('createAccountingYearController',req.body)
   try {
-    const userId = (req as any).user.id;;
-    const result = await createAccountingYear(req.body,userId);
+    if (!req.user) {
+      res.status(401).json({
+        message: "Authentication required",
+      });
+      return;
+    }
 
-    return res.status(201).json({
+    const result = await createAccountingYear(
+      req.body,
+      req.user.id
+    );
+
+    res.status(201).json({
       message: "Accounting Year created successfully",
       data: result,
     });
   } catch (error) {
     console.error(error);
 
-    return res.status(500).json({
-      message: "Failed to save organization group",
+    res.status(500).json({
+      message: "Failed to create Accounting Year",
       error: error instanceof Error ? error.message : error,
     });
   }
 };
-
 export const getAccountingYearController = async (
   req: Request,
   res: Response
@@ -65,7 +73,7 @@ export const getAccountingYearByIdController = async (
 
     if (!result) {
       return res.status(404).json({
-        message: "Organization group not found",
+        message: "Accounting Year not found",
       });
     }
 
@@ -75,7 +83,7 @@ export const getAccountingYearByIdController = async (
     });
   } catch (error: any) {
     return res.status(500).json({
-      message: "Failed to fetch organization group",
+      message: "Failed to fetch Accounting Year",
       error: error.message,
     });
   }
