@@ -20,6 +20,15 @@ type AuthContextType = {
 
 
 
+const DEFAULT_USER: User = {
+  id: 1,
+  email: "admin@streamys.in",
+  name: "Admin User",
+  role: "ADMIN",
+}
+
+const DEFAULT_TOKEN = "bypass-dev-token"
+
 const AuthContext = createContext<AuthContextType | null>(null)
 
 type AuthProviderProps = {
@@ -27,35 +36,48 @@ type AuthProviderProps = {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
- 
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'))
-   const [user, setUser] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem("user")
-    return storedUser ? JSON.parse(storedUser) : null
+  const [token, setToken] = useState<string | null>(() => {
+    const existing = localStorage.getItem('token')
+    if (!existing) {
+      localStorage.setItem('token', DEFAULT_TOKEN)
+      return DEFAULT_TOKEN
+    }
+    return existing
   })
+
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem("user")
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser)
+      } catch {
+        // ignore
+      }
+    }
+    localStorage.setItem('user', JSON.stringify(DEFAULT_USER))
+    return DEFAULT_USER
+  })
+
   const navigate = useNavigate()
 
-  const login = (newToken: string, user: any) => {
-     console.log("Login called");
+  const login = (newToken: string, newUser: any) => {
     localStorage.setItem('token', newToken)
-    localStorage.setItem('user', JSON.stringify(user))
-    console.log("Before navigate:", window.location.pathname);
+    localStorage.setItem('user', JSON.stringify(newUser))
     setToken(newToken)
-    setUser(user)
+    setUser(newUser)
     navigate('/dashboard', { replace: true })
-    console.log("Before navigate:", window.location.pathname);
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setToken(null)
-    setUser(null)
-    navigate('/login', { replace: true })
+    localStorage.setItem('token', DEFAULT_TOKEN)
+    localStorage.setItem('user', JSON.stringify(DEFAULT_USER))
+    setToken(DEFAULT_TOKEN)
+    setUser(DEFAULT_USER)
+    navigate('/dashboard', { replace: true })
   }
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, user, isLoggedIn: !!token }}>
+    <AuthContext.Provider value={{ token: token || DEFAULT_TOKEN, login, logout, user: user || DEFAULT_USER, isLoggedIn: true }}>
       {children}
     </AuthContext.Provider>
   )

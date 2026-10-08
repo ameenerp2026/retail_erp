@@ -5,6 +5,7 @@ import {
   DollarSign,
   ShieldCheck,
   Settings,
+  Boxes,
 } from "lucide-react";
 
 export interface Tab {
@@ -56,7 +57,7 @@ export const MODULE_ROUTES: ModuleRoute[] = [
   },
 
   {
-    label: "securities",
+    label: "Securities",
     icon: ShieldCheck,
     basePath: "/securities",
     tabs:[
@@ -77,5 +78,20 @@ export const MODULE_ROUTES: ModuleRoute[] = [
       { label: "E-Invoice Generator", path: "e-invoice"},
       { label: "E-Way Bill Generator", path: "e-way-bill"},
     ]
+  },
+
+  {
+    label: "Inventory",
+    icon: Boxes,
+    basePath: "/inventory",
+    tabs: [
+      { label: "Inventory Dashboard", path: "dashboard" },
+      { label: "Product Setup", path: "product-setup" },
+      { label: "Warehouse Management", path: "warehouse-management" },
+      { label: "Inventory Management", path: "inventory-management" },
+      { label: "Inventory Operations", path: "inventory-operations" },
+      { label: "Reports", path: "reports" },
+      { label: "Configuration", path: "configuration" },
+    ],
   },
 ];

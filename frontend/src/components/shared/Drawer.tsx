@@ -9,7 +9,7 @@ type DrawerProps = {
   title?: string
   description?: string
   children: React.ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'product'
 }
 
 const sizeMap = {
@@ -17,6 +17,7 @@ const sizeMap = {
   md:  'w-[500px]',
   lg:  'w-[600px]',
   xl:  'w-[750px]',
+  product: 'w-[min(640px,95vw)]',
 }
 
 export default function Drawer({
