@@ -36,7 +36,7 @@ app.use('/api/auth',authRoutes)
 app.use('/api/admin/user-logs', userLogsRoutes)
 app.use("/api/organization", organizationRoutes);
 app.use("/api/organizationUnit", organizationUnit);
-app.use('/api/organization/businessLocation', businessLocation);
+app.use('/api/organization', businessLocation);
 app.use('/api/financeMonth',financeMonth);
 app.use("/api/gstManagement", gstInManagement);
 app.use('/api/gst-states',gstStateRoutes);
