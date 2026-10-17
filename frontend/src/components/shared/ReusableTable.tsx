@@ -25,7 +25,7 @@ export default function ReusableTable<T extends object>({
                              [&_.ant-table-thead_th]:tracking-wide
                              [&_.ant-table-thead_th]:bg-white 
                              [&_.ant-table-thead_tr_th]:whitespace-nowrap 
-                             [&_.ant-table-cell]:whitespace-nowrap
+                             [&_.ant-table-cell]:break-words
             ">
               <Table
                 columns={columns}
