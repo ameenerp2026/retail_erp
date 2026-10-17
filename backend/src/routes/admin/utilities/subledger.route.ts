@@ -10,12 +10,12 @@ import type {
 } from '../../../types/Subledgerimport.types.js'
 import prisma from '../../../config/prisma.js'
 import { authMiddleware } from '../../../middleware/auth.middleware.js'
-// NOTE: adjust this path to wherever subLedgerService actually lives in your project.
+import { authorize } from '../../../middleware/authorize.js'
 import { subLedgerService } from '../../../services/admin/finance/SubLedger.service.js'
 
 const router = Router()
 router.use(authMiddleware)
-
+router.use(authorize('DATA_IMPORT'))
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -333,7 +333,7 @@ function describeCreateError(err: unknown): string {
 }
 
 // Read-only: validates the file and returns a per-row preview. No DB writes.
-router.post('/import/preview', upload.single('file'), async (req: Request, res: Response) => {
+router.post('/import/preview', authorize('SUB_LEDGER_VIEW'), upload.single('file'), async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' })
   }
@@ -372,7 +372,7 @@ router.post('/import/preview', upload.single('file'), async (req: Request, res: 
 // Commit: re-validates the same file, then creates every row that isn't 'error'
 // through the same subLedgerService.createSubLedger used by the manual create
 // flow, so imports get identical validation and audit fields as a hand-typed row.
-router.post('/import', upload.single('file'), async (req: Request, res: Response) => {
+router.post('/import', authorize('SUB_LEDGER_CREATE'), upload.single('file'), async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' })
   }

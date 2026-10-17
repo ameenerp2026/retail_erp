@@ -170,6 +170,13 @@ const permissions = [
     description: "Edit account classes",
   },
   {
+    code: "ACCOUNT_CLASS_UPDATE",
+    name: "Update Account Class",
+    module: "Finance",
+    screen: "Account Classes",
+    description: "Update account classes",
+  },
+  {
     code: "ACCOUNT_CLASS_DELETE",
     name: "Delete Account Class",
     module: "Finance",

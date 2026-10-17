@@ -10,8 +10,6 @@ import apiClient from '../../../services/apiClient'
 import { exportToPDF, exportToCSV, ExportColumn } from '@/utils/exportData'
 import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext";
-import Can from "@/context/Can";
-
 
 export interface OrganizationUnit {
   id: number;

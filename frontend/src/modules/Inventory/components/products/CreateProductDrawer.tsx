@@ -477,7 +477,7 @@ export default function CreateProductDrawer({ isOpen, onClose, product }: Props)
   }
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose} size="product">
+    <Drawer isOpen={isOpen} onClose={onClose} size="xl">
       {/* Header (design: big blue title + subtitle, bare × at top-right) */}
       <div className="flex items-start justify-between px-7 pt-6 pb-4">
         <div>
