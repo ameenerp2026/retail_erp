@@ -109,9 +109,7 @@ const MODULE_STYLES: Record<string, string> = {
   Utilities: 'bg-teal-50 text-teal-600',
 }
 
-function formatJson(value: unknown) {
-  return JSON.stringify(value, null, 2)
-}
+
 
 function formatDateTime(d: Date) {
   const date = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -158,11 +156,10 @@ export default function UserLogs() {
   }
 
   const dateButtonLabel = dateRange.start
-    ? `${dateRange.start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}${
-        dateRange.end && !isSameCalendarDay(dateRange.start, dateRange.end)
-          ? ` – ${dateRange.end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`
-          : ''
-      }`
+    ? `${dateRange.start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}${dateRange.end && !isSameCalendarDay(dateRange.start, dateRange.end)
+      ? ` – ${dateRange.end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`
+      : ''
+    }`
     : 'Posted Date'
 
   return (
@@ -202,11 +199,10 @@ export default function UserLogs() {
                 key={filter}
                 type="button"
                 onClick={() => setActiveFilter(filter)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-[#1B2A4A] text-white'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${isActive
+                  ? 'bg-[#1B2A4A] text-white'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
               >
                 {filter}
               </button>
@@ -245,9 +241,8 @@ export default function UserLogs() {
                 <button
                   type="button"
                   onClick={() => canExpand && toggleExpanded(log.id)}
-                  className={`flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition ${
-                    canExpand ? 'cursor-pointer hover:bg-slate-50/60' : 'cursor-default'
-                  }`}
+                  className={`flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition ${canExpand ? 'cursor-pointer hover:bg-slate-50/60' : 'cursor-default'
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${meta.badge}`}>
@@ -258,9 +253,8 @@ export default function UserLogs() {
                         <span className={`text-[13px] font-semibold tracking-wide ${meta.text}`}>{log.severity}</span>
                         <span className="text-[13px] font-semibold text-[#043793]">{log.action}</span>
                         <span
-                          className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${
-                            MODULE_STYLES[log.module] ?? 'bg-slate-100 text-slate-600'
-                          }`}
+                          className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${MODULE_STYLES[log.module] ?? 'bg-slate-100 text-slate-600'
+                            }`}
                         >
                           {log.module}
                         </span>
@@ -284,16 +278,6 @@ export default function UserLogs() {
                     )}
                   </div>
                 </button>
-
-                {canExpand && isExpanded && log.diff && (
-                  <div className="px-5 pb-5">
-                    <pre className="overflow-x-auto rounded-xl bg-slate-50 px-4 py-3.5 text-xs leading-relaxed text-slate-600">
-                      {`{\n  "before": ${formatJson(log.diff.before).replace(/\n/g, '\n  ')},\n  "after": ${formatJson(
-                        log.diff.after
-                      ).replace(/\n/g, '\n  ')}\n}`}
-                    </pre>
-                  </div>
-                )}
               </div>
             )
           })
