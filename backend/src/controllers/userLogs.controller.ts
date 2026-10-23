@@ -7,7 +7,7 @@ export const getUserLogsHandler = async (
 ) => {
   try {
     const page = Number(req.query.page ?? 1)
-    const limit = Number(req.query.limit ?? 20)
+    const limit = Number(req.query.limit ?? 10)
 
     if (
       !Number.isInteger(page) ||

@@ -1,13 +1,11 @@
 import express from "express";
 import { authorize } from "../../../middleware/authorize.js";
 import {
-  // createFinanceMonthController,
   getFinanceMonthsController,
-  getFinanceMonthByIdController,
-  // updateFinanceMonthController,
-  // deleteFinanceMonthController
+  getFinanceMonthByIdController
 } from "../../../controllers/admin/organization/FinanceMonth.controller.js";
-import {authMiddleware }from '../../../middleware/auth.middleware.js'
+import { authMiddleware } from '../../../middleware/auth.middleware.js'
+
 const router = express.Router();
 router.use(authMiddleware);
 

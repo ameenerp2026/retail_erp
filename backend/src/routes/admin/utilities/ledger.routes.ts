@@ -10,12 +10,12 @@ import type {
 } from '../../../types/Ledgerimport.types.js'
 import prisma from '../../../config/prisma.js'
 import { authMiddleware } from '../../../middleware/auth.middleware.js'
-// NOTE: adjust this path to wherever ledgerService actually lives in your
-// project (the same module createLedgerHandler imports from).
+import { authorize } from '../../../middleware/authorize.js'
 import { ledgerService } from '../../../services/admin/finance/Ledger.service.js'
 
 const router = Router()
 router.use(authMiddleware)
+router.use(authorize('DATA_IMPORT'))
 
 const upload = multer({
   storage: multer.memoryStorage(),

@@ -1,5 +1,3 @@
-import React from "react";
-
 interface RoleWizardData {
   roleName: string;
   description: string;

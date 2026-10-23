@@ -10,8 +10,6 @@ import apiClient from '../../../services/apiClient'
 import { exportToPDF, exportToCSV, ExportColumn } from '@/utils/exportData'
 import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext";
-import Can from "@/context/Can";
-
 
 export interface OrganizationUnit {
   id: number;
@@ -51,16 +49,6 @@ function OrganizationUnit() {
 
   const { hasPermission, permissions, user } = useAuth();
 
-  console.log("Current user:", user);
-  console.log("Current permissions:", permissions);
-  console.log(
-    "Can view Org Unit:",
-    hasPermission("ORG_UNIT_VIEW")
-  );
-
-  
-
-  
 //This RBAC check ensures that only users with the "ORG_UNIT_VIEW" permission can access the Organization Unit page. If a user lacks this permission, they will see a message indicating that they do not have access to view Organization Units.
     if (!hasPermission("ORG_UNIT_VIEW")) {
     return (
@@ -141,19 +129,14 @@ const fetchUnits = async () => {
   const startIndex = (currentPage - 1) * rowsPerPage
   const currentUnits = filteredUnits.slice(startIndex, startIndex + rowsPerPage)
 
-
-
-  
-  const handleAddClick = () => {
-    setEditingUnit(null)
-    setIsModalOpen(true)
-  }
-
-  const handleEditClick = (row: OrganizationUnit) => {
+const handleAddClick = () => {
+  setEditingUnit(null);
+  setIsModalOpen(true);
+};
+ const handleEditClick = (row: OrganizationUnit) => {
     setEditingUnit(row)
     setIsModalOpen(true)
   }
-
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setEditingUnit(null)
@@ -163,7 +146,6 @@ const fetchUnits = async () => {
     setLoading(true)
     const isEdit = editingUnit !== null;
     try {
-      console.log('OrgUnitFormData',data)
       if (isEdit) {
         await apiClient.put(
     `/api/organizationUnit/org-unit/${editingUnit.id}`,
@@ -190,7 +172,6 @@ const fetchUnits = async () => {
   }
 
   const handleDeleteClick = (row: OrganizationUnit) => {
-    console.log('deleteOrganizationUnit',OrganizationUnit)
     setUnitToDelete(row)
     setDeleteModalOpen(true)
   }
@@ -268,7 +249,7 @@ const fetchUnits = async () => {
           )}
           </div>
           <button
-            onClick={handleAddClick}
+           onClick={handleAddClick}
             disabled={loading}
             className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 sm:px-4"
           >

@@ -30,7 +30,7 @@ type Props = {
   editData: OrganizationUnit | null;
   loading: boolean;
   onClose: () => void;
-  onSave: (data: OrgUnitFormData) => void;
+  onSave: (data: OrgUnitFormData) => Promise<void>;
 }
 
 export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
@@ -57,24 +57,18 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
   const countries = getCountries()
   const states = selectedCountry ? getStates(selectedCountry) : []
 
-
-  useEffect(() => {
-    console.log('editData',editData)
+useEffect(() => {
   if (editData) {
-    if (editData) {
-      console.log("🔥 OrgUnitForm editData:", editData);
     reset({
-     
-       name: editData.organizationUnit,
-  type: editData.unitType as OrgUnitFormData["type"],
-  gstin: editData.gstIn,
-  manager: editData.manager,
-  group: String(editData.organizationGroupId),
-   country: editData.country,
+      name: editData.organizationUnit,
+      type: editData.unitType as OrgUnitFormData["type"],
+      gstin: editData.gstIn,
+      manager: editData.manager,
+      group: String(editData.organizationGroupId),
+      country: editData.country,
       state: editData.state,
-  address: editData.address,
+      address: editData.address,
     });
-  }
   }
 }, [editData, reset]);
 const [groups, setGroups] = useState<any[]>([]);
@@ -90,19 +84,9 @@ useEffect(() => {
 
 
   const onSubmit = async(data: OrgUnitFormData) => {
-    onSave(data )
+  
     try{
-    const res = await apiClient.post('/api/organizationUnit/org-unit',data)
-    
-      if (res.status !== 201) {
-  throw new Error("Save failed");
-}
-
-
-      const result = await res.data;
-      console.log('API Response:', result)
-
-     
+    await onSave(data);
     } catch (err) {
       console.error(err)
     //  toast.error('Failed to save')

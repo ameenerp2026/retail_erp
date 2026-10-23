@@ -10,7 +10,7 @@ import {
   updateRoleHandler,
   deleteRoleHandler,
   cloneRoleHandler,
-} from '../../../controllers/admin/securities/Roles.controller.js'
+} from '../../../controllers/admin/securities/roles.controller.js'
 
 const router = Router()
 

@@ -84,6 +84,11 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Retrieve permissions assigned through the user's roles
+//     console.log("Prisma userRole model:", prisma.userRole);
+// console.log(
+//   "Prisma client location:",
+//   require.resolve("@prisma/client")
+// );
     const userRoles = await prisma.userRole.findMany({
       where: { userId: user.id },
       include: {

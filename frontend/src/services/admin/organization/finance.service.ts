@@ -29,7 +29,6 @@ export const getActivity = async (_periodId?: number | string): Promise<Activity
     return MOCK_FINANCE_ACTIVITY
   })
 }
-
 export const financeService = {
   getFinanceData,
   getFinanceStats,

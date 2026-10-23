@@ -12,13 +12,23 @@ interface CreateAuditLogInput {
 export const createAuditLog = async (
   input: CreateAuditLogInput,
 ) => {
+    let userName = input.userName ?? null;
+    if (!userName && input.userId != null) {
+    const user = await prisma.user.findUnique({
+      where: { id: input.userId },
+      select: { name: true, email: true },
+    });
+
+    userName = user?.name ?? user?.email ?? null;
+  }
+
   return prisma.auditLog.create({
     data: {
-      level: input.level ?? 'INFO',
+      level: input.level ?? "INFO",
       action: input.action,
       module: input.module,
       userId: input.userId ?? null,
-      userName: input.userName ?? null,
+      userName,
       description: input.description ?? null,
       ipAddress: input.ipAddress ?? null,
     },
