@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import type { ColumnsType } from 'antd/es/table'
+import { useMemo, useState } from "react";
+import type { ColumnsType } from "antd/es/table";
 import {
   Search,
   Download,
@@ -9,203 +9,224 @@ import {
   Trash2,
   CheckCircle2,
   Clock3,
-} from 'lucide-react'
-import ReusableTable from '@/components/shared/ReusableTable'
-import UserFormModal from '../components/Users/UserFormModal'
-import type { AddUserFormData } from '@/components/forms/validate.schema'
-import toast from 'react-hot-toast'
+} from "lucide-react";
+import ReusableTable from "@/components/shared/ReusableTable";
+import UserFormModal from "../components/Users/UserFormModal";
+import type { AddUserFormData } from "@/components/forms/validate.schema";
+import toast from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 
-type UserStatus = 'Active' | 'Inactive' | 'Pending'
+type UserStatus = "Active" | "Inactive" | "Pending";
 
 type SecuritiesUser = {
-  id: string
-  userId: string
-  name: string
-  email: string
-  role: string
-  orgUnit: string
-  onboarded: boolean
-  lastLogin: string | null
-  status: UserStatus
-}
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+  orgUnit: string;
+  onboarded: boolean;
+  lastLogin: string | null;
+  status: UserStatus;
+};
 
 const INITIAL_USERS: SecuritiesUser[] = [
   {
-    id: 'USR-001',
-    userId: 'USR-001',
-    name: 'Admin User',
-    email: 'admin@streamys.in',
-    role: 'Super Admin',
-    orgUnit: 'HQ - Mumbai',
+    id: "USR-001",
+    userId: "USR-001",
+    name: "Admin User",
+    email: "admin@streamys.in",
+    role: "Super Admin",
+    orgUnit: "HQ - Mumbai",
     onboarded: true,
-    lastLogin: '21 May 2026',
-    status: 'Active',
+    lastLogin: "21 May 2026",
+    status: "Active",
   },
   {
-    id: 'USR-002',
-    userId: 'USR-002',
-    name: 'Priya Sharma',
-    email: 'priya.sharma@retailshop.in',
-    role: 'Finance Manager',
-    orgUnit: 'HQ - Mumbai',
+    id: "USR-002",
+    userId: "USR-002",
+    name: "Priya Sharma",
+    email: "priya.sharma@retailshop.in",
+    role: "Finance Manager",
+    orgUnit: "HQ - Mumbai",
     onboarded: true,
-    lastLogin: '21 May 2026',
-    status: 'Active',
+    lastLogin: "21 May 2026",
+    status: "Active",
   },
   {
-    id: 'USR-003',
-    userId: 'USR-003',
-    name: 'Raj Kumar',
-    email: 'raj.kumar@retailshop.in',
-    role: 'Branch Manager',
-    orgUnit: 'Delhi North',
+    id: "USR-003",
+    userId: "USR-003",
+    name: "Raj Kumar",
+    email: "raj.kumar@retailshop.in",
+    role: "Branch Manager",
+    orgUnit: "Delhi North",
     onboarded: true,
-    lastLogin: '20 May 2026',
-    status: 'Active',
+    lastLogin: "20 May 2026",
+    status: "Active",
   },
   {
-    id: 'USR-004',
-    userId: 'USR-004',
-    name: 'Meena Joshi',
-    email: 'meena.joshi@retailshop.in',
-    role: 'GST Operator',
-    orgUnit: 'Bangalore Central',
+    id: "USR-004",
+    userId: "USR-004",
+    name: "Meena Joshi",
+    email: "meena.joshi@retailshop.in",
+    role: "GST Operator",
+    orgUnit: "Bangalore Central",
     onboarded: true,
-    lastLogin: '19 May 2026',
-    status: 'Active',
+    lastLogin: "19 May 2026",
+    status: "Active",
   },
   {
-    id: 'USR-005',
-    userId: 'USR-005',
-    name: 'Suresh Reddy',
-    email: 'suresh.reddy@retailshop.in',
-    role: 'Branch Manager',
-    orgUnit: 'Hyderabad Central',
+    id: "USR-005",
+    userId: "USR-005",
+    name: "Suresh Reddy",
+    email: "suresh.reddy@retailshop.in",
+    role: "Branch Manager",
+    orgUnit: "Hyderabad Central",
     onboarded: false,
-    lastLogin: '10 May 2026',
-    status: 'Inactive',
+    lastLogin: "10 May 2026",
+    status: "Inactive",
   },
   {
-    id: 'USR-006',
-    userId: 'USR-006',
-    name: 'Arun Patel',
-    email: 'arun.patel@retailshop.in',
-    role: 'Data Entry',
-    orgUnit: 'Pune West',
+    id: "USR-006",
+    userId: "USR-006",
+    name: "Arun Patel",
+    email: "arun.patel@retailshop.in",
+    role: "Data Entry",
+    orgUnit: "Pune West",
     onboarded: true,
-    lastLogin: '21 May 2026',
-    status: 'Active',
+    lastLogin: "21 May 2026",
+    status: "Active",
   },
   {
-    id: 'USR-007',
-    userId: 'USR-007',
-    name: 'Bikash Roy',
-    email: 'bikash.roy@retailshop.in',
-    role: 'Auditor',
-    orgUnit: 'Kolkata East',
+    id: "USR-007",
+    userId: "USR-007",
+    name: "Bikash Roy",
+    email: "bikash.roy@retailshop.in",
+    role: "Auditor",
+    orgUnit: "Kolkata East",
     onboarded: false,
     lastLogin: null,
-    status: 'Pending',
+    status: "Pending",
   },
-]
+];
 
 const ROLE_STYLES: Record<string, string> = {
-  'Super Admin': 'bg-rose-50 text-rose-600',
-  'Finance Manager': 'bg-blue-50 text-blue-600',
-  'Branch Manager': 'bg-emerald-50 text-emerald-600',
-  'GST Operator': 'bg-amber-50 text-amber-600',
-  'Data Entry': 'bg-sky-50 text-sky-600',
-  Auditor: 'bg-violet-50 text-violet-600',
-}
+  "Super Admin": "bg-rose-50 text-rose-600",
+  "Finance Manager": "bg-blue-50 text-blue-600",
+  "Branch Manager": "bg-emerald-50 text-emerald-600",
+  "GST Operator": "bg-amber-50 text-amber-600",
+  "Data Entry": "bg-sky-50 text-sky-600",
+  Auditor: "bg-violet-50 text-violet-600",
+};
 
 const STATUS_STYLES: Record<UserStatus, string> = {
-  Active: 'bg-emerald-50 text-emerald-600',
-  Inactive: 'bg-rose-50 text-rose-600',
-  Pending: 'bg-amber-50 text-amber-600',
-}
+  Active: "bg-emerald-50 text-emerald-600",
+  Inactive: "bg-rose-50 text-rose-600",
+  Pending: "bg-amber-50 text-amber-600",
+};
 
 const AVATAR_PALETTE = [
-  'bg-violet-100 text-violet-700',
-  'bg-pink-100 text-pink-700',
-  'bg-emerald-100 text-emerald-700',
-  'bg-amber-100 text-amber-700',
-  'bg-rose-100 text-rose-700',
-  'bg-indigo-100 text-indigo-700',
-  'bg-teal-100 text-teal-700',
-]
+  "bg-violet-100 text-violet-700",
+  "bg-pink-100 text-pink-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-amber-100 text-amber-700",
+  "bg-rose-100 text-rose-700",
+  "bg-indigo-100 text-indigo-700",
+  "bg-teal-100 text-teal-700",
+];
 
 function initials(name: string) {
-  const parts = name.trim().split(/\s+/)
-  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase()
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
 function avatarColor(seed: string) {
-  const idx = seed.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % AVATAR_PALETTE.length
-  return AVATAR_PALETTE[idx]
+  const idx =
+    seed.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0) %
+    AVATAR_PALETTE.length;
+  return AVATAR_PALETTE[idx];
 }
 
 export default function Users() {
-  const [users, setUsers] = useState<SecuritiesUser[]>(INITIAL_USERS)
-  const [query, setQuery] = useState('')
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<SecuritiesUser | null>(null)
+  const [users, setUsers] = useState<SecuritiesUser[]>(INITIAL_USERS);
+  const [query, setQuery] = useState("");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<SecuritiesUser | null>(null);
+
+  const { hasPermission } = useAuth();
+
+  const canView = hasPermission("USER_VIEW");
+  const canCreate = hasPermission("USER_CREATE");
+  const canEdit = hasPermission("USER_EDIT");
+  const canDelete = hasPermission("USER_DELETE");
+  const canAssignRole = hasPermission("USER_ROLE_ASSIGN");
 
   const filteredUsers = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return users
+    const q = query.trim().toLowerCase();
+    if (!q) return users;
     return users.filter(
       (u) =>
         u.name.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
         u.role.toLowerCase().includes(q) ||
-        u.orgUnit.toLowerCase().includes(q)
-    )
-  }, [users, query])
+        u.orgUnit.toLowerCase().includes(q),
+    );
+  }, [users, query]);
 
-  const activeCount = useMemo(() => users.filter((u) => u.status === 'Active').length, [users])
+  const activeCount = useMemo(
+    () => users.filter((u) => u.status === "Active").length,
+    [users],
+  );
 
-  const isModalOpen = isAddOpen || editingUser !== null
-  const modalMode = editingUser ? 'edit' : 'create'
+  const isModalOpen = isAddOpen || editingUser !== null;
+  const modalMode = editingUser ? "edit" : "create";
 
   function closeModal() {
-    setIsAddOpen(false)
-    setEditingUser(null)
+    setIsAddOpen(false);
+    setEditingUser(null);
   }
 
   async function handleCreateUser(payload: AddUserFormData) {
+    if (!canCreate) return;
     try {
-      const emailTaken = users.some((u) => u.email.toLowerCase() === payload.email.toLowerCase())
+      const emailTaken = users.some(
+        (u) => u.email.toLowerCase() === payload.email.toLowerCase(),
+      );
       if (emailTaken) {
-        throw new Error(`A user with ${payload.email} already exists`)
+        throw new Error(`A user with ${payload.email} already exists`);
       }
 
       // TODO: replace with real API call, e.g.
       // const created = await api.post('/securities/users', payload)
-      const nextIndex = users.length + 1
-      const userId = `USR-${String(nextIndex).padStart(3, '0')}`
+      const nextIndex = users.length + 1;
+      const userId = `USR-${String(nextIndex).padStart(3, "0")}`;
       const newUser: SecuritiesUser = {
         id: userId,
         userId,
         name: payload.fullName,
         email: payload.email,
         role: payload.role,
-        orgUnit: payload.orgUnit || '—',
+        orgUnit: payload.orgUnit || "—",
         onboarded: false,
         lastLogin: null,
-        status: 'Pending',
-      }
+        status: "Pending",
+      };
 
-      setUsers((prev) => [...prev, newUser])
-      closeModal()
-      toast.success(`${payload.fullName} was added`)
+      setUsers((prev) => [...prev, newUser]);
+      closeModal();
+      toast.success(`${payload.fullName} was added`);
     } catch (err) {
-      const description = err instanceof Error ? err.message : 'Failed to add user. Please try again.'
-      toast.error(description)
+      const description =
+        err instanceof Error
+          ? err.message
+          : "Failed to add user. Please try again.";
+      toast.error(description);
     }
   }
 
   async function handleUpdateUser(payload: AddUserFormData) {
-    if (!editingUser) return
+    if (!canEdit || !editingUser) return;
+    // if (!editingUser) return;
     try {
       // TODO: replace with real API call, e.g.
       // const updated = await api.patch(`/securities/users/${editingUser.id}`, payload)
@@ -216,72 +237,83 @@ export default function Users() {
                 ...u,
                 name: payload.fullName,
                 email: payload.email,
-                role: payload.role,
+                role: canAssignRole ? payload.role : u.role,
                 orgUnit: payload.orgUnit || u.orgUnit,
               }
-            : u
-        )
-      )
-      closeModal()
-      toast.success(`${payload.fullName} was updated`)
+            : u,
+        ),
+      );
+      closeModal();
+      toast.success(`${payload.fullName} was updated`);
     } catch (err) {
-      const description = err instanceof Error ? err.message : 'Failed to update user. Please try again.'
-      toast.error(description)
+      const description =
+        err instanceof Error
+          ? err.message
+          : "Failed to update user. Please try again.";
+      toast.error(description);
     }
   }
 
   async function handleModalSubmit(payload: AddUserFormData) {
-    if (modalMode === 'edit') await handleUpdateUser(payload)
-    else await handleCreateUser(payload)
+    if (modalMode === "edit") await handleUpdateUser(payload);
+    else await handleCreateUser(payload);
   }
 
   async function handleDelete(user: SecuritiesUser) {
+    if (!canDelete) return;
     try {
       // TODO: replace with real API call, e.g.
       // await api.delete(`/securities/users/${user.id}`)
-      setUsers((prev) => prev.filter((u) => u.id !== user.id))
-      toast.success(`${user.name} was removed`)
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      toast.success(`${user.name} was removed`);
     } catch (err) {
-      const description = err instanceof Error ? err.message : 'Failed to delete user. Please try again.'
-      toast.error(description)
+      const description =
+        err instanceof Error
+          ? err.message
+          : "Failed to delete user. Please try again.";
+      toast.error(description);
     }
   }
 
   const columns: ColumnsType<SecuritiesUser> = [
     {
-      title: 'User',
-      dataIndex: 'name',
-      key: 'name',
+      title: "User",
+      dataIndex: "name",
+      key: "name",
       render: (_: string, record) => (
         <div className="flex items-center gap-3 py-1">
           <div
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarColor(
-              record.name
+              record.name,
             )}`}
           >
             {initials(record.name)}
           </div>
           <div>
-            <div className="text-sm font-semibold text-[#043793]">{record.name}</div>
+            <div className="text-sm font-semibold text-[#043793]">
+              {record.name}
+            </div>
             <div className="text-xs text-[#94A3B8]">{record.userId}</div>
           </div>
         </div>
       ),
     },
     {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-      render: (email: string) => <span className="text-sm text-[#64748B]">{email}</span>,
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+      render: (email: string) => (
+        <span className="text-sm text-[#64748B]">{email}</span>
+      ),
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
       render: (role: string) => (
         <span
           className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${
-            ROLE_STYLES[role] ?? 'bg-slate-100 text-slate-600'
+            ROLE_STYLES[role] ?? "bg-slate-100 text-slate-600"
           }`}
         >
           {role}
@@ -289,16 +321,18 @@ export default function Users() {
       ),
     },
     {
-      title: 'Org Unit',
-      dataIndex: 'orgUnit',
-      key: 'orgUnit',
-      render: (orgUnit: string) => <span className="text-sm text-[#334155]">{orgUnit}</span>,
+      title: "Org Unit",
+      dataIndex: "orgUnit",
+      key: "orgUnit",
+      render: (orgUnit: string) => (
+        <span className="text-sm text-[#334155]">{orgUnit}</span>
+      ),
     },
     {
-      title: 'Onboarded',
-      dataIndex: 'onboarded',
-      key: 'onboarded',
-      align: 'center',
+      title: "Onboarded",
+      dataIndex: "onboarded",
+      key: "onboarded",
+      align: "center",
       render: (onboarded: boolean) =>
         onboarded ? (
           <CheckCircle2 size={17} className="mx-auto text-emerald-500" />
@@ -307,9 +341,9 @@ export default function Users() {
         ),
     },
     {
-      title: 'Last Login',
-      dataIndex: 'lastLogin',
-      key: 'lastLogin',
+      title: "Last Login",
+      dataIndex: "lastLogin",
+      key: "lastLogin",
       render: (lastLogin: string | null) =>
         lastLogin ? (
           <span className="text-sm text-[#94A3B8]">{lastLogin}</span>
@@ -318,32 +352,36 @@ export default function Users() {
         ),
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status: UserStatus) => (
-        <span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[status]}`}>
+        <span
+          className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[status]}`}
+        >
           {status}
         </span>
       ),
     },
     {
-      title: 'Actions',
-      key: 'actions',
-      align: 'center',
+      title: "Actions",
+      key: "actions",
+      align: "center",
       render: (_: unknown, record) => (
         <div className="flex items-center justify-center gap-3">
-          <button
-            type="button"
-            aria-label={`Edit ${record.name}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              setEditingUser(record)
-            }}
-            className="text-[#4FC3F7] transition hover:cursor-pointer"
-          >
-            <Pencil size={15} />
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              aria-label={`Edit ${record.name}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingUser(record);
+              }}
+              className="text-[#4FC3F7] transition hover:cursor-pointer"
+            >
+              <Pencil size={15} />
+            </button>
+          )}
           <button
             type="button"
             aria-label={`Email ${record.name}`}
@@ -352,21 +390,27 @@ export default function Users() {
           >
             <Mail size={15} />
           </button>
-          <button
-            type="button"
-            aria-label={`Delete ${record.name}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleDelete(record)
-            }}
-            className="text-[#EF4444] transition hover:cursor-pointer"
-          >
-            <Trash2 size={15} />
-          </button>
+          {canDelete && (
+            <button
+              type="button"
+              aria-label={`Delete ${record.name}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(record);
+              }}
+              className="text-[#EF4444] transition hover:cursor-pointer"
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
         </div>
       ),
     },
-  ]
+  ];
+
+  if (!canView) {
+    return <p>You do not have permission to view users.</p>;
+  }
 
   return (
     <div className="space-y-5">
@@ -385,19 +429,24 @@ export default function Users() {
             <Download size={15} />
             Export
           </button>
-          <button
-            type="button"
-            onClick={() => setIsAddOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-[#1B2A4A] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#152140]"
-          >
-            <Plus size={15} />
-            Add User
-          </button>
+          {canCreate && (
+            <button
+              type="button"
+              onClick={() => setIsAddOpen(true)}
+              className="flex items-center gap-2 rounded-lg bg-[#1B2A4A] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#152140]"
+            >
+              <Plus size={15} />
+              Add User
+            </button>
+          )}
         </div>
       </div>
 
       <div className="relative max-w-sm">
-        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search
+          size={16}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+        />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -406,7 +455,11 @@ export default function Users() {
         />
       </div>
 
-      <ReusableTable<SecuritiesUser> columns={columns} data={filteredUsers} rowKey="id" />
+      <ReusableTable<SecuritiesUser>
+        columns={columns}
+        data={filteredUsers}
+        rowKey="id"
+      />
 
       <UserFormModal
         isOpen={isModalOpen}
@@ -423,7 +476,8 @@ export default function Users() {
         }
         onClose={closeModal}
         onSubmit={handleModalSubmit}
+        canAssignRole={canAssignRole}
       />
     </div>
-  )
+  );
 }

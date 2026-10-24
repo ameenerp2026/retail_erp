@@ -1,10 +1,4 @@
-import {
-  Shield,
-  Users,
-  Pencil,
-  Copy,
-  Trash2,
-} from "lucide-react";
+import { Shield, Users, Pencil, Copy, Trash2 } from "lucide-react";
 
 import { getRoleColor } from "../../../utils/RoleTheme";
 
@@ -26,6 +20,9 @@ interface SecurityCardProps {
   updatedAt?: string;
   color?: string;
   actions?: CardActions;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canClone?: boolean;
 }
 
 export function SecuritiesCard({
@@ -35,6 +32,9 @@ export function SecuritiesCard({
   userCount,
   permissionCount,
   actions,
+  canEdit = false,
+  canDelete = false,
+  canClone = false,
 }: SecurityCardProps) {
   const primaryColor = getRoleColor(roleName);
 
@@ -91,31 +91,36 @@ export function SecuritiesCard({
 
       <div className="mx-4 border-t border-slate-200 mt-auto">
         <div className="flex flex-wrap items-center gap-2 mt-3">
-          <button
-            type="button"
-            onClick={actions?.onEdit}
-            className="flex items-center h-9 px-3 rounded gap-2 text-sm text-blue-500 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
-          >
-            <Pencil size={13} />
-            Edit
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={actions?.onEdit}
+              className="flex items-center h-9 px-3 rounded gap-2 text-sm text-blue-500 bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+            >
+              <Pencil size={13} />
+              Edit
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={actions?.onClone}
-            className="flex items-center h-9 px-3 rounded gap-2 bg-green-50 text-sm text-green-500 hover:bg-green-100 transition cursor-pointer"
-          >
-            <Copy size={13} />
-            Clone
-          </button>
-
-          <button
-            type="button"
-            onClick={actions?.onDelete}
-            className="flex items-center h-9 px-3 rounded gap-2 text-sm text-red-500 bg-red-50 hover:bg-red-100 transition cursor-pointer"
-          >
-            <Trash2 size={13} />
-          </button>
+          {canClone && (
+            <button
+              type="button"
+              onClick={actions?.onClone}
+              className="flex items-center h-9 px-3 rounded gap-2 bg-green-50 text-sm text-green-500 hover:bg-green-100 transition cursor-pointer"
+            >
+              <Copy size={13} />
+              Clone
+            </button>
+          )}
+          {canDelete && (
+            <button
+              type="button"
+              onClick={actions?.onDelete}
+              className="flex items-center h-9 px-3 rounded gap-2 text-sm text-red-500 bg-red-50 hover:bg-red-100 transition cursor-pointer"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
         </div>
       </div>
     </div>

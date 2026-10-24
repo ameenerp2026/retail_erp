@@ -58,7 +58,7 @@ function RoleWizardSteps({ currentStep }: Props) {
                             <p className="text-xs text-slate-500">Step {step.id }</p>
                             <p className={`text-sm font-medium${
                                 IsActive
-                            ? 'text-[#[#043793]'
+                            ? 'text-[#043793]'
                             : 'text-slate-400'
                             }`}
                             >

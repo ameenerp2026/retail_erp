@@ -1,27 +1,35 @@
-import { X } from 'lucide-react'
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Modal } from '@/components/shared/Modal'
-import FormInput from '@/components/forms/FormInput'
-import { gstinSchema, type GstinFormData } from '@/components/forms/validate.schema'
-import { getStates } from '@/services/location.service'
-import { useOrganizationUnits } from '@/hooks/admin/organization/useOrganizationUnits'
+import { X } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Modal } from "@/components/shared/Modal";
+import FormInput from "@/components/forms/FormInput";
+import {
+  gstinSchema,
+  type GstinFormData,
+} from "@/components/forms/validate.schema";
+import { getStates } from "@/services/location.service";
+import { useOrganizationUnits } from "@/hooks/admin/organization/useOrganizationUnits";
 
 type GSTINModalProps = {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (data: GstinFormData) => void
-  loading?: boolean
-}
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: GstinFormData) => void  | Promise<void>;
+  loading?: boolean;
+};
 
 const TYPE_OPTIONS = [
-  { label: 'Regular', value: 'Regular' },
-  { label: 'Composition', value: 'Composition' },
-  { label: 'Sez', value: 'Sez' },
-]
+  { label: "Regular", value: "Regular" },
+  { label: "Composition", value: "Composition" },
+  { label: "Sez", value: "Sez" },
+];
 
-export default function GSTINModal({ isOpen, onClose, onSave, loading }: GSTINModalProps) {
+export default function GSTINModal({
+  isOpen,
+  onClose,
+  onSave,
+  loading,
+}: GSTINModalProps) {
   const {
     register,
     handleSubmit,
@@ -30,34 +38,36 @@ export default function GSTINModal({ isOpen, onClose, onSave, loading }: GSTINMo
   } = useForm<GstinFormData>({
     resolver: zodResolver(gstinSchema),
     defaultValues: {
-      gstin: '',
-      state: '',
-      orgUnit: '',
+      gstin: "",
+      state: "",
+      orgUnit: "",
       type: undefined,
     },
-  })
+  });
 
   useEffect(() => {
     if (isOpen) {
-      reset({ gstin: '', state: '', orgUnit: '', type: undefined })
+      reset({ gstin: "", state: "", orgUnit: "", type: undefined });
     }
-  }, [isOpen, reset])
+  }, [isOpen, reset]);
 
   // GST is India-specific — load Indian states
-  const stateOptions = getStates('IN').map((s) => ({ label: s.name, value: s.name }))
+  const stateOptions = getStates("IN").map((s) => ({
+    label: s.name,
+    value: s.name,
+  }));
 
-  const { data: organizationUnits = [] } = useOrganizationUnits()
+  const { data: organizationUnits = [] } = useOrganizationUnits();
   const orgUnitOptions = organizationUnits.map(
     (unit: { id: number; organizationUnit: string }) => ({
       label: unit.organizationUnit,
       value: String(unit.id),
-    })
-  )
+    }),
+  );
 
-  const onSubmit = (data: GstinFormData) => {
-    onSave(data)
-    onClose()
-  }
+  const onSubmit = async (data: GstinFormData) => {
+    await onSave(data);
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="md">
@@ -78,7 +88,7 @@ export default function GSTINModal({ isOpen, onClose, onSave, loading }: GSTINMo
           label="GSTIN"
           placeholder="enter GSTIN number"
           maxLength={15}
-          {...register('gstin', {
+          {...register("gstin", {
             onChange: (e) => (e.target.value = e.target.value.toUpperCase()),
           })}
           error={errors.gstin?.message}
@@ -89,14 +99,14 @@ export default function GSTINModal({ isOpen, onClose, onSave, loading }: GSTINMo
             label="State"
             type="select"
             options={stateOptions}
-            {...register('state')}
+            {...register("state")}
             error={errors.state?.message}
           />
           <FormInput
             label="Org Unit"
             type="select"
             options={orgUnitOptions}
-            {...register('orgUnit')}
+            {...register("orgUnit")}
             error={errors.orgUnit?.message}
           />
         </div>
@@ -105,7 +115,7 @@ export default function GSTINModal({ isOpen, onClose, onSave, loading }: GSTINMo
           label="Type"
           type="select"
           options={TYPE_OPTIONS}
-          {...register('type')}
+          {...register("type")}
           error={errors.type?.message}
         />
 
@@ -123,10 +133,10 @@ export default function GSTINModal({ isOpen, onClose, onSave, loading }: GSTINMo
             disabled={loading}
             className="h-11 flex-1 rounded-xl bg-[#2563EB] text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? 'Saving...' : 'Add GSTIN'}
+            {loading ? "Saving..." : "Add GSTIN"}
           </button>
         </div>
       </form>
     </Modal>
-  )
+  );
 }

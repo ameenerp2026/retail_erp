@@ -3,6 +3,8 @@ import { Modal } from "@/components/shared/Modal";
 import YearListItem from "./components/YearListItem";
 import PeriodGrid from "./components/PeriodGrid";
 import AccountingYearForm from "./components/AccountingYearForm";
+import { useAuth } from "@/context/AuthContext";
+import Can from "@/context/Can";
 import {
   AccountingYear,
   Period,
@@ -11,18 +13,19 @@ import {
 } from "@/types/accounting";
 import apiClient from "@/services/apiClient";
 import toast from "react-hot-toast";
-import {
-  formatDate,
-  formatDateRange,
-} from "@/utils/dateFormat";
+import { formatDate, formatDateRange } from "@/utils/dateFormat";
 import { Plus } from "lucide-react";
 import PeriodDetailModal from "./components/PeriodDetailModal";
 
 export default function AccountingYearPage() {
+  const { hasPermission } = useAuth();
+  if (!hasPermission("ACCOUNT_GROUP_VIEW")) {
+    return <p>You do not have permission to view accounting years.</p>;
+  }
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [selectedYearId, setSelectedYearId] =
-    useState<number | null>(null);
+  const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
 
   const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null);
 
@@ -30,38 +33,32 @@ export default function AccountingYearPage() {
 
   const [loading, setLoading] = useState(false);
 
-  const selectedYear = years.find(
-    (y) => y.id === selectedYearId
-  );
+  const selectedYear = years.find((y) => y.id === selectedYearId);
   const mapYearStatus = (status: string): YearStatus => {
-    if (status === 'OPEN') return 'Active'
-    if (status === 'CLOSED') return 'Closed'
-    return 'Pending'
-  }
+    if (status === "OPEN") return "Active";
+    if (status === "CLOSED") return "Closed";
+    return "Pending";
+  };
 
   const fetchAccountingYear = async () => {
     try {
       setLoading(true);
 
       const yearData = await apiClient.get(
-        "/api/accountingYear/accounting-Year"
+        "/api/accountingYear/accounting-Year",
       );
 
-      const formattedYears: AccountingYear[] =
-        yearData.data.data.map((year: any) => ({
+      const formattedYears: AccountingYear[] = yearData.data.data.map(
+        (year: any) => ({
           id: year.id,
           label: year.yearName,
 
-          dateRange: formatDateRange(
-            year.fromDate,
-            year.toDate
-          ),
+          dateRange: formatDateRange(year.fromDate, year.toDate),
 
           status: mapYearStatus(year.status),
 
           closedPeriods: year.financeMonths.filter(
-            (m: any) =>
-              m.financeStatus === "Closed"
+            (m: any) => m.financeStatus === "Closed",
           ).length,
 
           totalPeriods: year.financeMonths.length,
@@ -69,7 +66,8 @@ export default function AccountingYearPage() {
           financeMonths: year.financeMonths,
 
           createdBy: year.createdBy,
-        }));
+        }),
+      );
 
       setYears(formattedYears);
 
@@ -79,14 +77,15 @@ export default function AccountingYearPage() {
     } catch (error) {
       console.error(error);
 
-      toast.error(
-        "Failed to fetch accounting years"
-      );
+      toast.error("Failed to fetch accounting years");
     } finally {
       setLoading(false);
     }
   };
-  const handleCreateYear = async (data: { fromDate: string; toDate: string }) => {
+  const handleCreateYear = async (data: {
+    fromDate: string;
+    toDate: string;
+  }) => {
     try {
       await apiClient.post("/api/accountingYear/accounting-Year", data);
       toast.success("Accounting Year created successfully");
@@ -95,7 +94,7 @@ export default function AccountingYearPage() {
     } catch (error: any) {
       console.error(error);
       toast.error(
-        error?.response?.data?.message || "Failed to save accounting year"
+        error?.response?.data?.message || "Failed to save accounting year",
       );
     }
   };
@@ -104,68 +103,54 @@ export default function AccountingYearPage() {
     fetchAccountingYear();
   }, []);
 
-  const getPeriodsForYear = (
-    year?: AccountingYear
-  ): Period[] => {
+  const getPeriodsForYear = (year?: AccountingYear): Period[] => {
     if (!year) return [];
 
-    return (year.financeMonths ?? []).map(
-      (month: any, idx: number) => {
-        const start = new Date(month.startDate);
-        const end = new Date(month.endDate);
-        const now = new Date();
+    return (year.financeMonths ?? []).map((month: any, idx: number) => {
+      const start = new Date(month.startDate);
+      const end = new Date(month.endDate);
+      const now = new Date();
 
-        return {
-          id: month.id,
-          month: month.period.split(" ")[0],
-          year: month.period.split(" ")[1],
+      return {
+        id: month.id,
+        month: month.period.split(" ")[0],
+        year: month.period.split(" ")[1],
 
-          status: month.financeStatus as PeriodStatus,
+        status: month.financeStatus as PeriodStatus,
 
-          sequenceNumber: `#${String(
-            idx + 1
-          ).padStart(2, "0")}`,
+        sequenceNumber: `#${String(idx + 1).padStart(2, "0")}`,
 
-          accountingYear: year.label,
+        accountingYear: year.label,
 
-          startDate: formatDate(start),
+        startDate: formatDate(start),
 
-          endDate: formatDate(end),
+        endDate: formatDate(end),
 
-          isCurrentPeriod:
-            now >= start && now <= end,
+        isCurrentPeriod: now >= start && now <= end,
 
-          createdBy: month.createdBy ?? "Admin",
+        createdBy: month.createdBy ?? "Admin",
 
-          createdOn: formatDate(
-            new Date(month.createdAt)
-          ),
+        createdOn: formatDate(new Date(month.createdAt)),
 
-          updatedBy: month.updatedBy ?? "Admin",
+        updatedBy: month.updatedBy ?? "Admin",
 
-          updatedOn: formatDate(
-            new Date(month.updatedAt)
-          ),
+        updatedOn: formatDate(new Date(month.updatedAt)),
 
-          auditLog: (month.auditLogs ?? []).map((log: any) => ({
-            action: log.action,
-            by: log.performedBy?.name ?? 'Admin',
-            date: formatDate(new Date(log.createdAt)),
-          })),
-        };
-      }
-    );
+        auditLog: (month.auditLogs ?? []).map((log: any) => ({
+          action: log.action,
+          by: log.performedBy?.name ?? "Admin",
+          date: formatDate(new Date(log.createdAt)),
+        })),
+      };
+    });
   };
 
   return (
     <div className="page-shell">
-
       {/* Header */}
       <div className="page-header">
         <div className="min-w-0">
-          <h1 className="page-title">
-            Accounting Year
-          </h1>
+          <h1 className="page-title">Accounting Year</h1>
 
           <p className="page-subtitle">
             Fiscal year setup and period configuration
@@ -173,34 +158,30 @@ export default function AccountingYearPage() {
         </div>
 
         <div className="page-actions">
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
-          >
-            <Plus size={16} />
-
-            New Accounting Year
-          </button>
+          <Can permission="ACCOUNT_GROUP_CREATE">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+            >
+              <Plus size={16} />
+              New Accounting Year
+            </button>
+          </Can>
         </div>
       </div>
 
       {/* Content */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:gap-6">
-
         {/* Year List */}
         <div className="min-w-0 space-y-3">
           {years.map((year) => (
             <YearListItem
               key={year.id}
               year={year}
-              isSelected={
-                year.id === selectedYearId
-              }
-              onSelect={() =>
-                setSelectedYearId(year.id)
-              }
+              isSelected={year.id === selectedYearId}
+              onSelect={() => setSelectedYearId(year.id)}
             />
           ))}
         </div>

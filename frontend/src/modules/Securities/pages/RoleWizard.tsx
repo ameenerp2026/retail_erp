@@ -1,15 +1,11 @@
- import {useState} from 'react'
- import RoleWizardSteps from '../components/RoleWizard/RoleWizardSteps'
- import RoleInformation from '../components/RoleWizard/RoleInformation'
-import PermissionMatrix from '../components/RoleWizard/PermissionMatrix'
-import ReviewConfirm from '../components/RoleWizard/ReviewConfirm'
+import { useState } from "react";
+import RoleWizardSteps from "../components/RoleWizard/RoleWizardSteps";
+import RoleInformation from "../components/RoleWizard/RoleInformation";
+import PermissionMatrix from "../components/RoleWizard/PermissionMatrix";
+import ReviewConfirm from "../components/RoleWizard/ReviewConfirm";
+import { useAuth } from "@/context/AuthContext";
 
-
-export type AccessLevel =
-  | "STANDARD"
-  | "MANAGER"
-  | "ADMIN"
-  | "SUPER_ADMIN";
+export type AccessLevel = "STANDARD" | "MANAGER" | "ADMIN" | "SUPER_ADMIN";
 
 export interface RoleWizardData {
   roleName: string;
@@ -19,32 +15,59 @@ export interface RoleWizardData {
 }
 
 function RoleWizard() {
-   const [currentStep, setCurrentStep] = useState(1);
-   const [roleData, setRoleData] = useState<RoleWizardData>({
-     roleName: '',
-  description: '',
-  accessLevel: 'STANDARD',
-  permissions: []
-   })
+  const [currentStep, setCurrentStep] = useState(1);
+  const [roleData, setRoleData] = useState<RoleWizardData>({
+    roleName: "",
+    description: "",
+    accessLevel: "STANDARD",
+    permissions: [],
+  });
 
+  const { hasPermission } = useAuth();
+  const canCreateRole = hasPermission("ROLE_CREATE");
 
-  const handleNext=()=>{
-    setCurrentStep((prev)=>Math.min(prev+1,3))
-    console.log('currentStep',currentStep)
-    console.log('roleData',roleData)
-  }
+  const handleNext = () => {
+    setCurrentStep((prev) => Math.min(prev + 1, 3));
+    console.log("currentStep", currentStep);
+    console.log("roleData", roleData);
+  };
 
-  const handleBack=()=>{
-    setCurrentStep((prev)=>Math.max(prev-1,1))
+  const handleBack = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleEditStep = (step: number) => {
+    setCurrentStep(step);
+  };
+
+  const handleCreateRole = () => {
+    if (!canCreateRole) return;
+
+    if (!roleData.roleName.trim() || !roleData.description.trim()) {
+      alert("Please enter the role name and description.");
+      setCurrentStep(1);
+      return;
+    }
+
+    if (roleData.permissions.length === 0) {
+      alert("Please select at least one permission.");
+      setCurrentStep(2);
+      return;
+    }
+
+    // Temporary: confirm the data before connecting the API.
+    console.log("Role ready to create:", roleData);
+  };
+
+  if (!canCreateRole) {
+    return <p>You do not have permission to create roles.</p>;
   }
 
   return (
     <div className="page-shell">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#043793]">
-          Role Wizard
-        </h1>
+        <h1 className="text-2xl font-bold text-[#043793]">Role Wizard</h1>
 
         <p className="mt-1 text-sm text-slate-500">
           Create a new role with fine-grained permission control
@@ -54,35 +77,36 @@ function RoleWizard() {
       {/* Steps */}
       <RoleWizardSteps currentStep={currentStep} />
 
-      <div className='mt-8 flex justify-center items-center'>
+      <div className="mt-8 flex justify-center items-center">
         {currentStep === 1 && (
-          <RoleInformation 
-          roledata={roleData}
-          setRoleData={setRoleData}
-          onNext={handleNext}
+          <RoleInformation
+            roledata={roleData}
+            setRoleData={setRoleData}
+            onNext={handleNext}
           />
         )}
 
         {currentStep === 2 && (
-           <PermissionMatrix 
-          roledata={roleData}
-          setRoleData={setRoleData}
-          onNext={handleNext}
-          onBack={handleBack}
+          <PermissionMatrix
+            roledata={roleData}
+            setRoleData={setRoleData}
+            onNext={handleNext}
+            onBack={handleBack}
           />
         )}
 
-          {currentStep === 3 && (
-           <ReviewConfirm 
-          roledata={roleData}
-          setRoleData={setRoleData}
-          onNext={handleNext}
-          onBack={handleBack}
+        {currentStep === 3 && (
+          <ReviewConfirm
+            roledata={roleData}
+            setRoleData={setRoleData}
+            onEditStep={handleEditStep}
+            onCreate={handleCreateRole}
+            onBack={handleBack}
           />
         )}
       </div>
-      </div>
-  )
+    </div>
+  );
 }
 
-export default RoleWizard
+export default RoleWizard;
