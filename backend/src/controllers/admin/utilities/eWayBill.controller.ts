@@ -1,5 +1,30 @@
 import { Request, Response } from "express";
 import { ewaybillService, TRANSPORT_MODES } from "../../../services/admin/utilities/EwayBill.service.js";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { createAuditLog } from "../../../services/admin/userLogs.service.js";
+
+const logEWayBillAction = async (
+  req: Request,
+  action: string,
+  description: string,
+  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
+): Promise<void> => {
+  try {
+    const user = (req as AuthRequest).user;
+
+    await createAuditLog({
+      level,
+      action,
+      module: "E-Way Bill",
+      userId: user?.id ?? null,
+      userName: user?.email ?? null,
+      description,
+      ipAddress: req.ip,
+    });
+  } catch (error) {
+    console.error("Failed to create E-Way Bill audit log", error);
+  }
+};
 
 // Function to fetch dropdown/lookup + reference data for the e-way bill form
 export const getFormOptionsHandler = async (
@@ -78,7 +103,12 @@ export const createEWayBillHandler = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     const data = await ewaybillService.createEWayBill(req.body, userId);
-
+    await logEWayBillAction(
+      req,
+      "CREATED E_WAY_BILL",
+      "E-Way Bill created successfully",
+      "SUCCESS"
+    );
     return res.status(201).json({
       success: true,
       message: "E-Way Bill created successfully",
@@ -105,6 +135,13 @@ export const createEWayBillHandler = async (req: Request, res: Response) => {
       });
     }
     console.error(err);
+    await logEWayBillAction(
+      req,
+      "E-Way Bill",
+      `Failed to create E-Way Bill: ${err instanceof Error ? err.message : "Unknown error"
+      }`,
+      "ERROR"
+    );
     return res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 };

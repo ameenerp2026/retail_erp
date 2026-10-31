@@ -1,5 +1,30 @@
 import { Request, Response } from "express";
 import { einvoiceService } from "../../../services/admin/utilities/Einvoice.service.js";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { createAuditLog } from "../../../services/admin/userLogs.service.js";
+
+const logEInvoiceAction = async (
+  req: Request,
+  action: string,
+  description: string,
+  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
+): Promise<void> => {
+  try {
+    const user = (req as AuthRequest).user;
+
+    await createAuditLog({
+      level,
+      action,
+      module: "E-Invoice",
+      userId: user?.id ?? null,
+      userName: user?.email ?? null,
+      description,
+      ipAddress: req.ip,
+    });
+  } catch (error) {
+    console.error("Failed to create E-Invoice audit log", error);
+  }
+};
 
 // Function to fetch dropdown/lookup data for the e-invoice form
 export const getFormOptionsHandler = async (
@@ -65,6 +90,13 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
     const userId = (req as any).user?.id;
     const data = await einvoiceService.createEInvoice(req.body, userId);
 
+    await logEInvoiceAction(
+      req,
+      "CREATED E_INVOICE",
+      "E-Invoice created successfully",
+      "SUCCESS"
+    );
+
     return res.status(201).json({
       success: true,
       message: "E-Invoice created successfully",
@@ -91,6 +123,13 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
       });
     }
     console.error(err);
+    await logEInvoiceAction(
+      req,
+      "E-Invoice",
+      `Failed to create E-Invoice: ${err instanceof Error ? err.message : "Unknown error"
+      }`,
+      "ERROR"
+    );
     return res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 };

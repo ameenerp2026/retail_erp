@@ -1,5 +1,31 @@
 import { Request, Response } from "express";
 import * as accountGroupService from "../../../services/admin/finance/AccountGroup.service.js";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { createAuditLog } from "../../../services/admin/userLogs.service.js";
+
+
+const logAccGroupAction = async (
+  req: Request,
+  action: string,
+  description: string,
+  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
+): Promise<void> => {
+
+  try {
+    const user = (req as AuthRequest).user
+    await createAuditLog({
+      level,
+      action,
+      module: "Account Group",
+      userId: user?.id ?? null,
+      userName: user?.email ?? null,
+      description,
+      ipAddress: req.ip,
+    })
+  } catch (error) {
+    console.error("Failed to create account group audit log", error);
+  }
+}
 
 /**
  * Get all groups
@@ -123,6 +149,12 @@ export const createAccountGroup = async (
 
     const data = await accountGroupService.createAccountGroup(req.body, userId);
 
+    await logAccGroupAction(req,
+      "CREATED ACCOUNT_GROUP",
+      `Account Group created: ${data.rootGroupName}`,
+      "SUCCESS"
+    )
+
     res.status(201).json({
       success: true,
       message: "Account Group created successfully",
@@ -131,6 +163,13 @@ export const createAccountGroup = async (
   } catch (error) {
     console.error(error);
 
+    await logAccGroupAction(
+      req,
+      "Account Group",
+      `Failed to create account group: ${error instanceof Error ? error.message : "Unknown error"
+      }`,
+      "ERROR"
+    );
     res.status(500).json({
       success: false,
       message: "Failed to create account group",
@@ -150,6 +189,13 @@ export const updateAccountGroup = async (
 
     const data = await accountGroupService.updateAccountGroup(id, req.body);
 
+    await logAccGroupAction(
+      req,
+      "UPDATED ACCOUNT_GROUP",
+      `Account Group updated: ${data.rootGroupName}`,
+      "SUCCESS"
+    );
+
     res.status(200).json({
       success: true,
       message: "Account Group updated successfully",
@@ -158,6 +204,13 @@ export const updateAccountGroup = async (
   } catch (error) {
     console.error(error);
 
+    await logAccGroupAction(
+      req,
+      "Account Group",
+      `Failed to update account group ID ${req.params.id}: ${error instanceof Error ? error.message : "Unknown error"
+      }`,
+      "ERROR"
+    );
     res.status(500).json({
       success: false,
       message: "Failed to update account group",
@@ -175,7 +228,14 @@ export const deleteAccountGroup = async (
   try {
     const id = Number(req.params.id);
 
-    await accountGroupService.deleteAccountGroup(id);
+    const data = await accountGroupService.deleteAccountGroup(id);
+
+    await logAccGroupAction(
+      req,
+      "DELETED ACCOUNT_GROUP",
+      `Account Group deleted: ${data.rootGroupName}`,
+      "SUCCESS"
+    );
 
     res.status(200).json({
       success: true,
@@ -183,7 +243,13 @@ export const deleteAccountGroup = async (
     });
   } catch (error) {
     console.error(error);
-
+    await logAccGroupAction(
+      req,
+      "Account Group",
+      `Failed to delete account group ID ${req.params.id}: ${error instanceof Error ? error.message : "Unknown error"
+      }`,
+      "ERROR"
+    );
     res.status(500).json({
       success: false,
       message: "Failed to delete account group",
