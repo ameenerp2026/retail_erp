@@ -1,6 +1,33 @@
 import { Request, Response } from "express";
 import * as accountClassService from "../../../services/admin/finance/AccountClass.service.js";
-import {activeAccountGroups} from "../../../services/admin/finance/AccountGroup.service.js"
+import { activeAccountGroups } from "../../../services/admin/finance/AccountGroup.service.js"
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { createAuditLog } from "../../../services/admin/userLogs.service.js";
+
+const logAccClassAction = async (
+  req: Request,
+  action: string,
+  description: string,
+  level: 'SUCCESS' | 'ERROR' | 'WARNING' | 'INFO' = 'SUCCESS',
+): Promise<void> => {
+
+  try {
+    const user = (req as AuthRequest).user
+    await createAuditLog({
+      level,
+      action,
+      module: "Account Class",
+      userId: user?.id ?? null,
+      userName: user?.email ?? null,
+      description,
+      ipAddress: req.ip,
+    })
+  } catch (error) {
+    console.error("Failed to create account class audit log", error);
+
+  }
+
+}
 
 /**
  * POST /api/account-classes
@@ -21,8 +48,13 @@ export const createAccountClassHandler = async (req: Request, res: Response) => 
   }
 
   try {
-        const userId = (req as any).user?.id;
-        const data = await accountClassService.createAccountClass(req.body, userId);
+    const userId = (req as any).user?.id;
+    const data = await accountClassService.createAccountClass(req.body, userId);
+    await logAccClassAction(req,
+      "CREATED ACCOUNT_CLASS",
+      `Account Class created: ${data.className}`,
+      "SUCCESS"
+    )
 
     return res.status(201).json({
       success: true,
@@ -43,6 +75,13 @@ export const createAccountClassHandler = async (req: Request, res: Response) => 
       });
     }
     console.error(err);
+    await logAccClassAction(
+      req,
+      "Account Class",
+      `Failed to create account class: ${err instanceof Error ? err.message : "Unknown error"
+      }`,
+      "ERROR"
+    );
     return res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 };
@@ -142,6 +181,13 @@ export const updateAccountClassHandler = async (req: Request, res: Response) => 
       userId
     );
 
+    await logAccClassAction(
+      req,
+      "UPDATED ACCOUNT_CLASS",
+      `Account Class updated: ${data.className}`,
+      "SUCCESS"
+    );
+
     return res.status(200).json({
       success: true,
       message: "Account Class updated successfully",
@@ -163,6 +209,13 @@ export const updateAccountClassHandler = async (req: Request, res: Response) => 
       });
     }
     console.error(err);
+    await logAccClassAction(
+      req,
+      "Account Class",
+      `Failed to update account class ID ${id}: ${err instanceof Error ? err.message : "Unknown error"
+      }`,
+      "ERROR"
+    );
     return res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 };
@@ -177,6 +230,13 @@ export const deleteAccountClassHandler = async (req: Request, res: Response) => 
     const userId = (req as any).user?.id;
     await accountClassService.deleteAccountClass(Number(id));
 
+    await logAccClassAction(
+      req,
+      "DELETED ACCOUNT_CLASS",
+      `Account Class deleted: ID ${id}`,
+      "SUCCESS"
+    );
+
     return res.status(200).json({
       success: true,
       message: "Account Class deleted successfully",
@@ -186,6 +246,14 @@ export const deleteAccountClassHandler = async (req: Request, res: Response) => 
       return res.status(404).json({ error: "Account Class not found" });
     }
     console.error(err);
+
+    await logAccClassAction(
+      req,
+      "Account Class",
+      `Failed to delete account class ID ${id}: ${err instanceof Error ? err.message : "Unknown error"
+      }`,
+      "ERROR"
+    );
     return res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 };
