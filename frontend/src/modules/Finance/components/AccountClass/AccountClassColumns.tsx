@@ -1,12 +1,14 @@
-import type { ColumnsType } from 'antd/es/table'
-import { Pencil, Trash2, Layers } from 'lucide-react'
-import ActiveInactiveBadge from '@/components/shared/ActiveInactiveBadge'
-import ParentGroupBadge from '@/components/shared/ParentGroupBadge'
-import type { AccountClassRecord } from '@/types/accountClass'
+import type { ColumnsType } from "antd/es/table";
+import { Pencil, Trash2, Layers } from "lucide-react";
+import ActiveInactiveBadge from "@/components/shared/ActiveInactiveBadge";
+import ParentGroupBadge from "@/components/shared/ParentGroupBadge";
+import type { AccountClassRecord } from "@/types/accountClass";
 
 export function getAccountClassColumns(
-  onEdit:   (record: AccountClassRecord) => void,
+  onEdit: (record: AccountClassRecord) => void,
   onDelete: (record: AccountClassRecord) => void,
+  canEdit: boolean,
+  canDelete: boolean,
 ): ColumnsType<AccountClassRecord> {
   return [
     {
@@ -15,12 +17,16 @@ export function getAccountClassColumns(
       render: (_, record) => (
         <div className="flex items-center gap-3">
           {/* Colored icon */}
-          <div className={`w-8 h-8 rounded-lg ${record.iconBgColor} flex items-center justify-center flex-shrink-0`}>
+          <div
+            className={`w-8 h-8 rounded-lg ${record.iconBgColor} flex items-center justify-center flex-shrink-0`}
+          >
             <Layers size={14} className={`${record.iconColor}`} />
           </div>
           <div>
             <p className="text-[#043793] font-medium text-sm">{record.name}</p>
-            <p className="text-[11px] text-[#9CA3AF] font-mono">{record.code}</p>
+            <p className="text-[11px] text-[#9CA3AF] font-mono">
+              {record.code}
+            </p>
           </div>
         </div>
       ),
@@ -72,20 +78,24 @@ export function getAccountClassColumns(
       width: 80,
       render: (_, record) => (
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => onEdit(record)}
-            className="text-[#4FC3F7] hover:text-blue-500 transition"
-          >
-            <Pencil size={14} />
-          </button>
-          <button
-            onClick={() => onDelete(record)}
-            className="text-[#CBD5E1] hover:text-red-500 transition"
-          >
-            <Trash2 size={14} />
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => onEdit(record)}
+              className="text-[#4FC3F7] hover:text-blue-500 transition"
+            >
+              <Pencil size={14} />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              onClick={() => onDelete(record)}
+              className="text-[#CBD5E1] hover:text-red-500 transition"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
       ),
     },
-  ]
+  ];
 }

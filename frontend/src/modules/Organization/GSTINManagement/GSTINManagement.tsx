@@ -9,29 +9,35 @@ import { GSTINRecord } from "@/types/gstin";
 import type { GstinFormData } from "@/components/forms/validate.schema";
 import ReusableTable from "@/components/shared/ReusableTable";
 //import { gstinService } from "@/services/gstinService";
+import Can from "@/context/Can";
+import { useAuth } from "@/context/useAuth";
 import {
   useGSTINs,
   useCreateGSTIN,
 } from "../../../hooks/admin/organization/useGSTIN";
 export default function GSTINManagement() {
+  const { hasPermission } = useAuth();
+
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: gstins = [] } = useGSTINs();
   const createGSTINMutation = useCreateGSTIN();
-  
-  function handleAddGSTIN(data: GstinFormData) {
-    createGSTINMutation.mutate(data, {
-      onSuccess: () => {
-        toast.success("GSTIN added successfully");
-      },
 
-      onError: (error: any) => {
-        console.error("Create GSTIN failed:", error);
+  async function handleAddGSTIN(data: GstinFormData) {
+    try {
+      await createGSTINMutation.mutateAsync(data);
 
-        toast.error(error?.response?.data?.message || "Failed to add GSTIN");
-      },
-    });
+      toast.success("GSTIN added successfully");
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Create GSTIN failed:", error);
+
+      toast.error(
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || "Failed to add GSTIN",
+      );
+    }
   }
 
   const filteredRecords = useMemo(() => {
@@ -51,7 +57,10 @@ export default function GSTINManagement() {
     //     // call API to re-verify
   }
 
-  const columns = getGSTINColumns(handleReVerify);
+  const columns = getGSTINColumns(
+    handleReVerify,
+    hasPermission("GSTIN_MANAGE"),
+  );
   const totalGSTINs = gstins.length;
 
   //  const verifiedCount = gstins.filter(
@@ -86,6 +95,13 @@ export default function GSTINManagement() {
       count: 0,
     },
   ];
+  if (!hasPermission("GSTIN_VIEW")) {
+    return (
+      <div className="page-shell">
+        You do not have permission to view GSTIN management.
+      </div>
+    );
+  }
   return (
     <div className="page-shell">
       <div className="page-header">
@@ -95,16 +111,18 @@ export default function GSTINManagement() {
             GST registration, verification and compliance tracking
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
-        >
-          <span>
-            <Plus size={18} />
-          </span>{" "}
-          Add GSTIN
-        </button>
+        <Can permission="GSTIN_MANAGE">
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white"
+          >
+            <span>
+              <Plus size={18} />
+            </span>{" "}
+            Add GSTIN
+          </button>
+        </Can>
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
@@ -136,6 +154,7 @@ export default function GSTINManagement() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleAddGSTIN}
+        loading={createGSTINMutation.isPending}
       />
     </div>
   );

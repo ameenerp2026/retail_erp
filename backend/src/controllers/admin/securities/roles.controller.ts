@@ -70,6 +70,19 @@ export const getRolesHandler = async (_req: Request, res: Response) => {
   }
 }
 
+export const getPermissionsHandler = async (_req: Request, res: Response) => {
+  try {
+    const permissions = await roleService.getPermissions()
+
+    return res.status(200).json({
+      message: 'Permissions fetched successfully',
+      data: permissions,
+    })
+  } catch (error) {
+    return handleError(res, error)
+  }
+}
+
 export const getRoleByIdHandler = async (
   req: Request,
   res: Response,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Activity, AlertTriangle, Check, ImagePlus, Printer, SquarePen, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Drawer from '@/components/shared/Drawer'
@@ -251,7 +251,7 @@ function GeneralSection({
 
 /* ---------------- Inventory Tab ---------------- */
 
-function InventorySection({ product: _product }: { product?: Product | null }) {
+function InventorySection() {
   const [tracking, setTracking] = useState({ batch: false, serial: false, expiry: false })
   const toggle = (key: keyof typeof tracking) => setTracking((t) => ({ ...t, [key]: !t[key] }))
 
@@ -616,30 +616,12 @@ type Props = {
 
 export default function CreateProductDrawer({ isOpen, onClose, product, onProductCreated }: Props) {
   const isView = !!product
+  // Drawer state is seeded from the product prop. The parent gives this drawer
+  // a `key` that changes on every open, so it remounts and re-seeds cleanly —
+  // no reset effect needed.
   const [activeTab, setActiveTab] = useState<DrawerTabKey>('history')
 
-  const [formData, setFormData] = useState<ProductFormData>({
-    productCode: '',
-    oemCode: 'PRD-001',
-    productName: '',
-    group: 'Electronics',
-    department: 'Electronics',
-    section: 'Mobiles',
-    brand: 'Samsung',
-    uom: 'PCS',
-    productType: 'Finished Good',
-    vendor: 'Samsung India Pvt Ltd',
-    attr1: 'Color',
-    attr2: 'Storage',
-    status: 'Active',
-  })
-
-  // Synchronize initial state when opening drawer
-  useEffect(() => {
-    if (isOpen) {
-      if (product) {
-        setActiveTab('history')
-        setFormData({
+  const [formData, setFormData] = useState<ProductFormData>(product ? {
           productCode: product.productCode || '',
           oemCode: product.prdCode || 'PRD-001',
           productName: product.productName || '',
@@ -653,10 +635,7 @@ export default function CreateProductDrawer({ isOpen, onClose, product, onProduc
           attr1: 'Color',
           attr2: 'Storage',
           status: product.status || 'Active',
-        })
-      } else {
-        setActiveTab('general')
-        setFormData({
+        } : {
           productCode: '',
           oemCode: 'PRD-001',
           productName: '',
@@ -670,11 +649,7 @@ export default function CreateProductDrawer({ isOpen, onClose, product, onProduc
           attr1: 'Color',
           attr2: 'Storage',
           status: 'Active',
-        })
-        setActiveTab('history')
-      }
-    }
-  }, [isOpen, product?.id])
+        } as ProductFormData)
 
   const tabs = ALL_TABS
   const current = activeTab
@@ -707,7 +682,7 @@ export default function CreateProductDrawer({ isOpen, onClose, product, onProduc
 
   const sectionMap: Record<DrawerTabKey, React.ReactNode> = {
     general: <GeneralSection formData={formData} setFormData={setFormData} />,
-    inventory: <InventorySection product={product} />,
+    inventory: <InventorySection />,
     pricing: <PricingSection product={product} />,
     tax: <TaxSection product={product} />,
     images: <ImagesSection />,

@@ -1,19 +1,5 @@
 import { Filter } from 'lucide-react'
-import type { FinancePeriodStatus } from '@/types/finance'
-
-export type FinanceFilterState = {
-  fy: string
-  organization: string
-  search: string
-  status: 'All' | FinancePeriodStatus
-}
-
-export const DEFAULT_FINANCE_FILTERS: FinanceFilterState = {
-  fy: 'FY 2025-26',
-  organization: '',
-  search: '',
-  status: 'All',
-}
+import type { FinanceFilterState } from '../financeFilterState'
 
 const FY_OPTIONS = ['FY 2025-26', 'FY 2024-25', 'FY 2023-24']
 const ORG_OPTIONS = ['RetailShop India', 'RetailShop UAE', 'RetailShop KSA']

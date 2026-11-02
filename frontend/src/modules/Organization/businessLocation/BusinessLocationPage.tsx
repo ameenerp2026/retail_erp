@@ -1,39 +1,47 @@
-import { useMemo, useState } from 'react'
-import { Plus, Search, Filter, Download } from 'lucide-react'
-import BusinessLocationForm from './components/BusinessLocationForm'
-import toast from 'react-hot-toast'
-import type { BusinessLocationRow } from '../../../types/admin/organization/businessLocation' 
-import BusinessLocationTable from './components/BusinessLocationTable'
-import Pagination from '../components/Pagination'
-import { BUSINESS_LOCATION_QUERY_KEY ,useBusinessLocations} from '@/hooks/admin/organization/useBusinessLocation'
-import { exportToPDF, ExportColumn } from '@/utils/exportData'
- import { useQueryClient } from '@tanstack/react-query';     
-import {deleteBusinessLocation} from '@/services/admin/organization/businessLocation.service'
+import { useMemo, useState } from "react";
+import { Plus, Search, Filter, Download } from "lucide-react";
+import BusinessLocationForm from "./components/BusinessLocationForm";
+import toast from "react-hot-toast";
+import type { BusinessLocationRow } from "../../../types/admin/organization/businessLocation";
+import BusinessLocationTable from "./components/BusinessLocationTable";
+import Pagination from "../components/Pagination";
+import {
+  BUSINESS_LOCATION_QUERY_KEY,
+  useBusinessLocations,
+} from "@/hooks/admin/organization/useBusinessLocation";
+import { exportToPDF, ExportColumn } from "@/utils/exportData";
+import { useQueryClient } from "@tanstack/react-query";
+import { deleteBusinessLocation } from "@/services/admin/organization/businessLocation.service";
+import Can from "@/context/Can";
 
-const ROWS_PER_PAGE = 10
-type ViewMode = 'list' | 'create' | 'edit'
+const ROWS_PER_PAGE = 10;
+type ViewMode = "list" | "create" | "edit";
 
 const businessLocationColumns: ExportColumn<BusinessLocationRow>[] = [
-  { header: 'Location Name', accessor: (l) => l.locationName },
-  { header: 'Type', accessor: (l) => l.locationType },
-  { header: 'Category', accessor: (l) => l.businessCategory },
-  { header: 'Address', accessor: (l) => [l.addressLine1, l.addressLine2].filter(Boolean).join(', ') },
-  { header: 'City', accessor: (l) => l.city },
-  { header: 'State', accessor: (l) => l.state },
-  { header: 'Pin Code', accessor: (l) => l.pinCode },
-  { header: 'Contact Person', accessor: (l) => l.contactPerson },
-  { header: 'Phone', accessor: (l) => l.phoneNumber || '—' },
-  { header: 'Status', accessor: (l) => l.status },
-]
+  { header: "Location Name", accessor: (l) => l.locationName },
+  { header: "Type", accessor: (l) => l.locationType },
+  { header: "Category", accessor: (l) => l.businessCategory },
+  {
+    header: "Address",
+    accessor: (l) =>
+      [l.addressLine1, l.addressLine2].filter(Boolean).join(", "),
+  },
+  { header: "City", accessor: (l) => l.city },
+  { header: "State", accessor: (l) => l.state },
+  { header: "Pin Code", accessor: (l) => l.pinCode },
+  { header: "Contact Person", accessor: (l) => l.contactPerson },
+  { header: "Phone", accessor: (l) => l.phoneNumber || "—" },
+  { header: "Status", accessor: (l) => l.status },
+];
 
 function BusinessLocationPage() {
-  const queryClient = useQueryClient(); 
- // const deleteMutation = useDeleteBusinessLocation()
-  const [view, setView] = useState<ViewMode>('list')
-const [selectedLocation, setSelectedLocation] =
-  useState<BusinessLocationRow | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
+  const queryClient = useQueryClient();
+  // const deleteMutation = useDeleteBusinessLocation()
+  const [view, setView] = useState<ViewMode>("list");
+  const [selectedLocation, setSelectedLocation] =
+    useState<BusinessLocationRow | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
 const {
   data: locations = [],
@@ -42,66 +50,62 @@ const {
 } = useBusinessLocations()
 
   const filteredLocations = useMemo(() => {
-    const term = searchTerm.toLowerCase().trim()
-    if (!term) return locations
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return locations;
     return locations.filter((loc: BusinessLocationRow) =>
       [loc.locationName, loc.city, loc.state, loc.addressLine1].some((field) =>
         field?.toLowerCase().includes(term),
       ),
-    )
-  }, [locations, searchTerm])
+    );
+  }, [locations, searchTerm]);
 
-  const totalPages = Math.ceil(filteredLocations.length / ROWS_PER_PAGE)
-  const startIndex = (currentPage - 1) * ROWS_PER_PAGE
-  const currentLocations = filteredLocations.slice(startIndex, startIndex + ROWS_PER_PAGE)
+  const totalPages = Math.ceil(filteredLocations.length / ROWS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const currentLocations = filteredLocations.slice(
+    startIndex,
+    startIndex + ROWS_PER_PAGE,
+  );
 
-const handleCreate = () => {
-  setSelectedLocation(null)
-  setView('create')
-}
+  const handleCreate = () => {
+    setSelectedLocation(null);
+    setView("create");
+  };
 
   const handleEdit = (row: BusinessLocationRow) => {
-  setSelectedLocation(row)
-  setView('edit')
-}
-  
+    setSelectedLocation(row);
+    setView("edit");
+  };
 
-const handleDelete = async (
-  row: BusinessLocationRow
-) => {
-  try {
-    await deleteBusinessLocation(row.id)
-     await queryClient.invalidateQueries({
-      queryKey: BUSINESS_LOCATION_QUERY_KEY,
-    });
-    toast.success(
-      'Business location deleted successfully'
-    )
-  } catch (error) {
-    console.error('Delete error:', error)
-    toast.error(
-      'Failed to delete business location'
-    )
+  const handleDelete = async (row: BusinessLocationRow) => {
+    try {
+      await deleteBusinessLocation(row.id);
+      await queryClient.invalidateQueries({
+        queryKey: BUSINESS_LOCATION_QUERY_KEY,
+      });
+      toast.success("Business location deleted successfully");
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete business location");
+    }
+  };
+  if (view === "create") {
+    return (
+      <BusinessLocationForm
+        onBack={() => setView("list")}
+        onSaved={() => setView("list")}
+      />
+    );
   }
-}
-  if (view === 'create') {
-  return (
-    <BusinessLocationForm
-      onBack={() => setView('list')}
-      onSaved={() => setView('list')}
-    />
-  )
-}
 
-if (view === 'edit' && selectedLocation) {
-  return (
-    <BusinessLocationForm
-      location={selectedLocation}
-      onBack={() => setView('list')}
-      onSaved={() => setView('list')}
-    />
-  )
-}
+  if (view === "edit" && selectedLocation) {
+    return (
+      <BusinessLocationForm
+        location={selectedLocation}
+        onBack={() => setView("list")}
+        onSaved={() => setView("list")}
+      />
+    );
+  }
   // if (view === 'form') {
   //   return <BusinessLocationForm onBack={() => setView('list')} onSaved={() => setView('list')} />
   // }
@@ -117,20 +121,16 @@ if (view === 'edit' && selectedLocation) {
           </p>
         </div>
         <div className="page-actions">
-          <button
-            type="button"
-            
-               onClick={
-                handleCreate}
-            className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-95"
-          >
-            <Plus size={18} />
-            Add Location
-          </button>
-
-
-
-          
+          <Can permission="BUSINESS_LOCATION_CREATE">
+            <button
+              type="button"
+              onClick={handleCreate}
+              className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-95"
+            >
+              <Plus size={18} />
+              Add Location
+            </button>
+          </Can>
         </div>
       </div>
 
@@ -147,8 +147,8 @@ if (view === 'edit' && selectedLocation) {
               placeholder="Search location name, code or city..."
               value={searchTerm}
               onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setCurrentPage(1)
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
               }}
               className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm focus:border-[#043793] focus:outline-none"
             />
@@ -165,9 +165,9 @@ if (view === 'edit' && selectedLocation) {
           type="button"
           onClick={() =>
             exportToPDF(filteredLocations, businessLocationColumns, {
-              filename: 'business-locations.pdf',
-              title: 'Business Locations',
-              orientation: 'landscape',
+              filename: "business-locations.pdf",
+              title: "Business Locations",
+              orientation: "landscape",
             })
           }
           className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer"
@@ -189,7 +189,8 @@ if (view === 'edit' && selectedLocation) {
       {/* Footer / Pagination */}
       <div className="mt-2 flex items-center justify-between">
         <p className="text-xs text-slate-500 sm:text-sm">
-          Showing {currentLocations.length} of {filteredLocations.length} locations
+          Showing {currentLocations.length} of {filteredLocations.length}{" "}
+          locations
         </p>
       </div>
       <Pagination
@@ -201,7 +202,7 @@ if (view === 'edit' && selectedLocation) {
         onPageChange={setCurrentPage}
       />
     </div>
-  )
+  );
 }
 
-export default BusinessLocationPage
+export default BusinessLocationPage;

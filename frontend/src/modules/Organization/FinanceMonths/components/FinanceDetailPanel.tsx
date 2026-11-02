@@ -10,7 +10,7 @@ type Props = {
 }
 
 export default function PeriodDetailPanel({ period, onClose }: Props) {
-  const { data: activityItems = [] } = useGetFinanceActivity(period.id)
+  const { data: activityItems = [] } = useGetFinanceActivity()
 
   const formattedStatus = (period.financeStatus
     ? period.financeStatus.charAt(0).toUpperCase() + period.financeStatus.slice(1).toLowerCase()

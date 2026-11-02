@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Pencil,
@@ -48,36 +48,17 @@ function CreateBrandDrawer({
   onSave: (brand: Brand) => void
 }) {
   const isEdit = !!initialData
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [country, setCountry] = useState('')
-  const [status, setStatus] = useState<string>('')
-  const [description, setDescription] = useState('')
-  const [websiteUrl, setWebsiteUrl] = useState('')
+  // State is initialized from the brand being edited; the parent passes a `key`
+  // that changes on every open, so the drawer remounts and re-seeds cleanly.
+  const [code, setCode] = useState(initialData?.code ?? '')
+  const [name, setName] = useState(initialData?.name ?? '')
+  const [country, setCountry] = useState(initialData?.country ?? '')
+  const [status, setStatus] = useState<string>(initialData?.status ?? '')
+  const [description, setDescription] = useState(initialData?.description ?? '')
+  const [websiteUrl, setWebsiteUrl] = useState(initialData?.websiteUrl ?? '')
   const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(initialData?.logoUrl ?? null)
   const logoInputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (initialData) {
-      setCode(initialData.code)
-      setName(initialData.name)
-      setCountry(initialData.country || '')
-      setStatus(initialData.status)
-      setDescription(initialData.description)
-      setWebsiteUrl(initialData.websiteUrl || '')
-      setLogoPreview(initialData.logoUrl || null)
-    } else {
-      setCode('')
-      setName('')
-      setCountry('')
-      setStatus('')
-      setDescription('')
-      setWebsiteUrl('')
-      setLogoFile(null)
-      setLogoPreview(null)
-    }
-  }, [initialData, isOpen])
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -683,19 +664,17 @@ export default function BrandsTab() {
     queryFn: inventorySetupService.getBrands,
   })
 
-  const [brands, setBrands] = useState<Brand[]>(() => serverBrands)
+  // Local edits (add / edit / delete / import) overlaid on top of the server
+  // list; `null` means the component still shows exactly what the server
+  // returned. This replaces the previous effect that copied server data into
+  // local state (a synchronous setState inside a hook body).
+  const [localBrands, setLocalBrands] = useState<Brand[] | null>(null)
+  const brands = localBrands ?? serverBrands
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Brand | null>(null)
-
-  // Keep state synchronized with server data
-  useMemo(() => {
-    if (serverBrands.length > 0 && brands.length === 0) {
-      setBrands(serverBrands)
-    }
-  }, [serverBrands, brands.length])
 
   const currentBrands = brands.length > 0 ? brands : serverBrands
 
@@ -735,24 +714,27 @@ export default function BrandsTab() {
   }
 
   const handleSaveBrand = (brand: Brand) => {
-    setBrands((prev) => {
-      const exists = prev.some((b) => b.id === brand.id)
+    setLocalBrands((prev) => {
+      const base = prev ?? serverBrands
+      const exists = base.some((b) => b.id === brand.id)
       if (exists) {
-        return prev.map((b) => (b.id === brand.id ? brand : b))
+        return base.map((b) => (b.id === brand.id ? brand : b))
       }
-      return [brand, ...prev]
+      return [brand, ...base]
     })
   }
 
   const handleDeleteBrand = () => {
     if (!deleteTarget) return
-    setBrands((prev) => prev.filter((b) => b.id !== deleteTarget.id))
+    setLocalBrands(
+      (prev) => (prev ?? serverBrands).filter((b) => b.id !== deleteTarget.id),
+    )
     toast.success(`Brand "${deleteTarget.name}" deleted`)
     setDeleteTarget(null)
   }
 
   const handleImportBrands = (newBrands: Brand[]) => {
-    setBrands((prev) => [...newBrands, ...prev])
+    setLocalBrands((prev) => [...newBrands, ...(prev ?? serverBrands)])
   }
 
   return (
@@ -838,6 +820,7 @@ export default function BrandsTab() {
 
       {/* Create / Edit Brand Drawer */}
       <CreateBrandDrawer
+        key={`${createOpen ? editingBrand?.id ?? 'new' : 'closed'}-${editingBrand?.code ?? ''}`}
         isOpen={createOpen}
         onClose={() => {
           setCreateOpen(false)

@@ -1,4 +1,4 @@
-import { useEffect, useState, type SubmitEvent } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { Modal } from '@/components/shared/Modal'
@@ -50,13 +50,11 @@ export default function CreateLedgerModal({
   ledgerId,
   initialValues,
 }: Props) {
-  const [form, setForm] = useState<CreateLedgerFormValues>(EMPTY)
-
-  useEffect(() => {
-    if (isOpen) {
-      setForm(mode === 'edit' && initialValues ? initialValues : EMPTY)
-    }
-  }, [isOpen, mode, initialValues])
+  // State is seeded from the edit payload; the parent passes a `key` that
+  // changes on every open, so the modal remounts and re-seeds cleanly.
+  const [form, setForm] = useState<CreateLedgerFormValues>(
+    mode === 'edit' && initialValues ? initialValues : EMPTY,
+  )
 
   const { data: accountGroups = [], isLoading: loadingGroups } = useQuery({
     queryKey: ['account-groups'],

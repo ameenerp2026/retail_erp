@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { useState,useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { OrgUnitFormData, orgUnitSchema } from '@/components/forms/validate.schema'
 import apiClient from "@/services/apiClient";
@@ -37,8 +37,8 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
   const {
     register,
     handleSubmit,
+    control,
     reset,
-    watch,
     formState: { errors }
   } = useForm<OrgUnitFormData>({
     resolver: zodResolver(orgUnitSchema),
@@ -53,7 +53,7 @@ export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
     address: '',
   },
   })
-  const selectedCountry = watch('country')
+  const selectedCountry = useWatch({ name: 'country', control })
   const countries = getCountries()
   const states = selectedCountry ? getStates(selectedCountry) : []
 
@@ -71,7 +71,7 @@ useEffect(() => {
     });
   }
 }, [editData, reset]);
-const [groups, setGroups] = useState<any[]>([]);
+const [groups, setGroups] = useState<{ id: number; shortName: string; organizationGroup?: string }[]>([]);
 useEffect(() => {
   const fetchGroups = async () => {
     const groups = await apiClient.get('/api/organization/org-group')
@@ -178,7 +178,7 @@ useEffect(() => {
                 
               >
               <option value='' disabled>Select org-group</option>
-              {groups && groups.map((group:any)=>(
+              {groups && groups.map((group)=>(
                   <option key={group.id}value={group.id}>
                     {group.shortName}
                     </option>

@@ -240,12 +240,13 @@ export const addUserSchema = z.object({
     .min(1, 'Email Address is required')
     .email('Invalid email'),
 
-  role: z.string()
-    .min(1, 'Select role'),
+  roleId: z.number()
+    .int('Select a valid role')
+    .positive('Select role'),
 
-  orgUnit: z.string().optional(),
+  organizationUnitId: z.number().int().positive().optional(),
 
-  reportingManager: z.string().trim().optional(),
+  reportingManagerId: z.number().int().positive().optional(),
 
   password: z.string()
     .trim()
@@ -254,7 +255,6 @@ export const addUserSchema = z.object({
       message: 'Password must be at least 8 characters',
     }),
 
-  sendOnboardingEmail: z.boolean(),
 })
 
 export type AddUserFormData = z.infer<typeof addUserSchema>

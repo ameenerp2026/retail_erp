@@ -1,114 +1,98 @@
-import { useState } from "react";
-import { SecuritiesCard } from "../components/SecuritiesCard";
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { SecuritiesCard } from '../components/SecuritiesCard'
+import {
+  cloneRole,
+  deleteRole,
+  getRoleRequestError,
+  getRoles,
+} from '@/services/admin/securities/role.service'
 
 function Roles() {
-  const [_isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const rolesQuery = useQuery({
+    queryKey: ['security-roles'],
+    queryFn: getRoles,
+  })
 
-  const roles = [
-    {
-      id: 1,
-      roleName: "Super Admin",
-      roleType: "SUPER ADMIN",
-      description: "Full system access across all modules.",
-      userCount: 2,
-      permissionCount: 48,
-      status: "ACTIVE",
-      createdAt: "2026-08-01",
-      updatedAt: "2026-08-10",
-      color: "RED" as const,
-    },
-    {
-      id: 2,
-      roleName: "Finance Manager",
-      roleType: "MANAGER",
-      description:
-        "Manage finance, ledgers, accounting and financial reports.",
-      userCount: 8,
-      permissionCount: 18,
-      status: "ACTIVE",
-      createdAt: "2026-08-02",
-      updatedAt: "2026-08-12",
-      color: "BLUE" as const,
-    },
-    {
-      id: 3,
-      roleName: "Inventory Manager",
-      roleType: "MANAGER",
-      description:
-        "Manage inventory, warehouses and stock movement.",
-      userCount: 5,
-      permissionCount: 21,
-      status: "ACTIVE",
-      createdAt: "2026-08-03",
-      updatedAt: "2026-08-15",
-      color: "GREEN" as const,
-    },
-    {
-      id: 4,
-      roleName: "Sales Manager",
-      roleType: "MANAGER",
-      description:
-        "Manage sales activities and customer operations.",
-      userCount: 10,
-      permissionCount: 15,
-      status: "ACTIVE",
-      createdAt: "2026-08-04",
-      updatedAt: "2026-08-15",
-      color: "ORANGE" as const,
-    },
-    {
-      id: 5,
-      roleName: "Store Manager",
-      roleType: "MANAGER",
-      description:
-        "Manage daily store operations and employees.",
-      userCount: 4,
-      permissionCount: 12,
-      status: "ACTIVE",
-      createdAt: "2026-08-05",
-      updatedAt: "2026-08-16",
-      color: "PURPLE" as const,
-    },
-    {
-      id: 6,
-      roleName: "Employee",
-      roleType: "STANDARD",
-      description:
-        "Basic access to assigned modules and screens.",
-      userCount: 25,
-      permissionCount: 6,
-      status: "ACTIVE",
-      createdAt: "2026-08-06",
-      updatedAt: "2026-08-16",
-      color: "GRAY" as const,
-    },
-  ];
+  const handleClone = async (id: number) => {
+    try {
+      await cloneRole(id)
+      await queryClient.invalidateQueries({ queryKey: ['security-roles'] })
+      toast.success('Role cloned successfully')
+    } catch (error) {
+      toast.error(getRoleRequestError(error))
+    }
+  }
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!window.confirm(`Delete the role "${name}"?`)) return
+
+    try {
+      await deleteRole(id)
+      await queryClient.invalidateQueries({ queryKey: ['security-roles'] })
+      toast.success('Role deleted successfully')
+    } catch (error) {
+      toast.error(getRoleRequestError(error))
+    }
+  }
+
+
+
 
   return (
-    <>
-      <div className="page-shell">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Roles</h1>
-            <p className="page-subtitle">Manage user roles and permissions</p>
-          </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="page-actions flex items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white cursor-pointer"
-          >
-            <span>+</span> Create Role
-          </button>
+    <div className='page-shell'>
+      <div className='page-header'>
+        <div>
+          <h1 className='page-title'>Roles</h1>
+          <p className='page-subtitle'>Manage user roles and permissions</p>
         </div>
+        <button
+          type='button'
+          onClick={() => navigate('/securities/role-wizard')}
+          className='page-actions flex cursor-pointer items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 py-2.5 text-sm font-medium text-white'
+        >
+          <span>+</span> Create Role
+        </button>
       </div>
-      <div className="w-full p-6">
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {roles.map((role) => (
-            <SecuritiesCard key={role.id} {...role} />
+
+      {rolesQuery.isLoading ? (
+        <p className='py-8 text-center text-sm text-slate-500'>Loading roles...</p>
+      ) : rolesQuery.error ? (
+        <p role='alert' className='py-8 text-center text-sm text-red-600'>
+          Failed to load roles: {getRoleRequestError(rolesQuery.error)}
+        </p>
+      ) : rolesQuery.data?.length === 0 ? (
+        <p className='py-8 text-center text-sm text-slate-500'>
+          No roles have been created yet.
+        </p>
+      ) : (
+        <div className='grid w-full grid-cols-1 gap-4 p-6 md:grid-cols-2 xl:grid-cols-3'>
+          {rolesQuery.data?.map((role) => (
+            <SecuritiesCard
+              key={role.id}
+              id={role.id}
+              roleName={role.name}
+              roleType={role.roleType.replace('_', ' ')}
+              description={role.description ?? ''}
+              userCount={role.userCount}
+              permissionCount={role.permissionCount}
+              status={role.status}
+              createdAt={role.createdAt}
+              updatedAt={role.updatedAt}
+              actions={{
+                onEdit: () => navigate(`/securities/role-wizard/${role.id}`),
+                onClone: () => void handleClone(role.id),
+                onDelete: () => void handleDelete(role.id, role.name),
+              }}
+            />
           ))}
         </div>
-      </div>
-    </>
-  );
+      )}
+    </div>
+  )
 }
 
-export default Roles;
+export default Roles

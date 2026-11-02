@@ -1,17 +1,17 @@
 // components/GSTStateDetails/GSTStateColumns.tsx
-import type { ColumnsType } from 'antd/es/table'
-import { ChevronRight } from 'lucide-react'
-import YesNoBadge from '@/components/shared/YesNoBadge'
-import SEZBadge from './SEZBadge'
-import type { GSTStateRecord } from '@/types/gstState'
-import { formatDate } from '@/utils/dateFormat'
+import type { ColumnsType } from "antd/es/table";
+import { ChevronRight } from "lucide-react";
+import YesNoBadge from "@/components/shared/YesNoBadge";
+import SEZBadge from "./SEZBadge";
+import type { GSTStateRecord } from "@/types/gstState";
+import { formatDate } from "@/utils/dateFormat";
 
 export function getGSTStateColumns(
   onView: (record: GSTStateRecord) => void,
   // onLinkedClick: (record: GSTStateRecord) => void,
-  onToggleField: (record: GSTStateRecord, field: 'igst' | 'cgstSgst') => void
+  onToggleField: (record: GSTStateRecord, field: "igst" | "cgstSgst") => void,
+  canManage: boolean,
 ): ColumnsType<GSTStateRecord> {
- 
   return [
     {
       title: "CODE",
@@ -37,7 +37,11 @@ export function getGSTStateColumns(
       dataIndex: "igst",
       key: "igst",
       render: (val, record) => (
-        <YesNoBadge value={val} onToggle={() => onToggleField(record, 'igst')} />
+        <YesNoBadge
+          value={val}
+          onToggle={() => onToggleField(record, "igst")}
+          disabled={!canManage}
+        />
       ),
     },
     {
@@ -45,7 +49,11 @@ export function getGSTStateColumns(
       dataIndex: "cgstSgst",
       key: "cgstSgst",
       render: (val, record) => (
-        <YesNoBadge value={val} onToggle={() => onToggleField(record, 'cgstSgst')} />
+        <YesNoBadge
+          value={val}
+          onToggle={() => onToggleField(record, "cgstSgst")}
+          disabled={!canManage}
+        />
       ),
     },
     {
@@ -72,7 +80,9 @@ export function getGSTStateColumns(
       title: "LAST UPDATED",
       dataIndex: "lastUpdated",
       key: "lastUpdated",
-      render: (val) => <span className="text-slate-400">{formatDate(val)}</span>,
+      render: (val) => (
+        <span className="text-slate-400">{formatDate(val)}</span>
+      ),
     },
     {
       title: "CREATED BY",
@@ -92,5 +102,5 @@ export function getGSTStateColumns(
     //     </button>
     //   ),
     // },
-  ]
+  ];
 }

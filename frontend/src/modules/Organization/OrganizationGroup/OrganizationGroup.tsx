@@ -1,123 +1,124 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Lock, Save, Upload, Unlock } from "lucide-react"
-import { useState } from 'react'
-import FormInput from '../../../components/forms/FormInput'
-import { organizationSchema, type OrganizationFormData } from '../../../components/forms/validate.schema'
-import toast from 'react-hot-toast' 
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Lock, Save, Upload, Unlock } from "lucide-react";
+import { useState } from "react";
+import FormInput from "../../../components/forms/FormInput";
+import {
+  organizationSchema,
+  type OrganizationFormData,
+} from "../../../components/forms/validate.schema";
+import toast from "react-hot-toast";
 import apiClient from "../../../services/apiClient";
-import { getCountries, getStates } from '../../../services/location.service'
+import { getCountries, getStates } from "../../../services/location.service";
+import Can from "@/context/Can";
 
-type RecordStatus = 'DRAFT' | 'LOCKED' | 'ACTIVE'
+type RecordStatus = "DRAFT" | "LOCKED" | "ACTIVE";
 
 function OrganizationGroup() {
-  const [status, setStatus] = useState<RecordStatus>('DRAFT')
-  const isLocked = status === 'LOCKED'
+  const [status, setStatus] = useState<RecordStatus>("DRAFT");
+  const isLocked = status === "LOCKED";
   const {
     register,
+    control,
     handleSubmit,
-    watch,
     formState: { errors },
-    getValues
+    getValues,
   } = useForm<OrganizationFormData>({
-
     resolver: zodResolver(organizationSchema),
     defaultValues: {
-      shortName: '',
-      financialYear: 'April-March',
-      currency: '',
-      companyName: '',
-      cinNumber: '',
-      panNumber: '',
-      email: '',
-      phoneNumber: '',
-      website: '',
-      address: '',
+      shortName: "",
+      financialYear: "April-March",
+      currency: "",
+      companyName: "",
+      cinNumber: "",
+      panNumber: "",
+      email: "",
+      phoneNumber: "",
+      website: "",
+      address: "",
       state: "",
-      country: '',
-      pinCode: '560068'
-    }
-  })
-
+      country: "",
+      pinCode: "560068",
+    },
+  });
 
   // Save Changes - runs validation
   const onSave = async (data: OrganizationFormData) => {
     try {
-      const formData = new FormData()
+      const formData = new FormData();
       // Loop all fields and append
       Object.entries(data).forEach(([key, value]) => {
-        if (key === 'logo' && value instanceof FileList && value[0]) {
-          formData.append('logo', value[0]) // actual file
+        if (key === "logo" && value instanceof FileList && value[0]) {
+          formData.append("logo", value[0]); // actual file
         } else if (value !== undefined && value !== null) {
-          formData.append(key, String(value)) // convert other fields to string
+          formData.append(key, String(value)); // convert other fields to string
         }
-      })
-      console.log('formData',formData)
-      const res =  await apiClient.post('/api/organization/org-group',data) 
-       
+      });
+      console.log("formData", formData);
+      const res = await apiClient.post("/api/organization/org-group", data);
 
       if (res.status !== 201) {
-  throw new Error("Save failed");
-}
-
+        throw new Error("Save failed");
+      }
 
       const result = await res.data;
-      console.log('API Response:', result)
+      console.log("API Response:", result);
 
-      setStatus('ACTIVE')
-      toast.success('Saved successfully')
-
+      setStatus("ACTIVE");
+      toast.success("Saved successfully");
     } catch (err) {
-      console.error(err)
-      toast.error('Failed to save')
+      console.error(err);
+      toast.error("Failed to save");
     }
-  }
+  };
 
   // Lock Record - no validation
   const handleLock = () => {
-    const data = getValues()
-    console.log('Locking without validation:', data)
+    const data = getValues();
+    console.log("Locking without validation:", data);
     // Optional minimal check
     if (!data.companyName) {
-      toast.error('Company Name required to lock')
-      return
+      toast.error("Company Name required to lock");
+      return;
     }
     // TODO: replace with API call
     // await fetch('/api/company/lock', { method: 'POST', body: JSON.stringify(data) })
-    setStatus('LOCKED')
-    toast.success('Record locked. Click Unlock to edit.')
-  }
+    setStatus("LOCKED");
+    toast.success("Record locked. Click Unlock to edit.");
+  };
   // Unlock Record
   const handleUnlock = () => {
-    console.log('Unlocking record')
+    console.log("Unlocking record");
     // TODO: replace with API call later
     // await fetch('/api/company/unlock', { method: 'POST' })
-    setStatus('DRAFT')
-    toast.success('Unlocked - you can edit now')
-  }
- // const logoFiles = watch('logo')
+    setStatus("DRAFT");
+    toast.success("Unlocked - you can edit now");
+  };
+  // const logoFiles = watch('logo')
   //const fileName = logoFiles?.[0]?.name
 
-  const selectedCountry = watch('country')
-  const countries = getCountries()
-  const states = selectedCountry ? getStates(selectedCountry) : []
+  const selectedCountry = useWatch({ name: "country", control });
+  const countries = getCountries();
+  const states = selectedCountry ? getStates(selectedCountry) : [];
 
   return (
-
-    <form onSubmit={handleSubmit(onSave, (errors) => {
-      console.log(errors);
-    })} className="page-shell">
+    <form
+      onSubmit={handleSubmit(onSave, (errors) => {
+        console.log(errors);
+      })}
+      className="page-shell"
+    >
       <div className="page-header">
         <div>
-          <h2 className="page-title">
-            Org Group — Company Master
-          </h2>
-          <p className="page-subtitle">Core company identity and registration details</p>
+          <h2 className="page-title">Org Group — Company Master</h2>
+          <p className="page-subtitle">
+            Core company identity and registration details
+          </p>
         </div>
         <div className="page-actions">
           {isLocked ? (
             <button
-              type='button'
+              type="button"
               onClick={handleUnlock}
               className="flex items-center gap-2 rounded-xl border border-amber-600 bg-amber-500 px-4 py-2.5 text-sm font-medium text-white"
             >
@@ -125,24 +126,31 @@ function OrganizationGroup() {
             </button>
           ) : (
             <button
-              type='button'
+              type="button"
               onClick={handleLock}
               className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4"
             >
-              <Lock size={14} /> <span className="hidden sm:inline">Lock Record</span>
+              <Lock size={14} />{" "}
+              <span className="hidden sm:inline">Lock Record</span>
             </button>
           )}
 
-          <button
-            type='submit'
-            disabled={isLocked}
-            className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 sm:px-4"
-          >
-            <Save size={14} /><span>Save Changes</span>
-          </button>
+          <Can permission="ORG_GROUP_CREATE">
+            <button
+              type="submit"
+              disabled={isLocked}
+              className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 sm:px-4"
+            >
+              <Save size={14} />
+              <span>Save Changes</span>
+            </button>
+          </Can>
         </div>
       </div>
-      <fieldset disabled={isLocked} className="space-y-4 disabled:opacity-60 sm:space-y-6">
+      <fieldset
+        disabled={isLocked}
+        className="space-y-4 disabled:opacity-60 sm:space-y-6"
+      >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-4">
             <div className="section-card h-full">
@@ -173,30 +181,30 @@ function OrganizationGroup() {
                 )} */}
               </div>
               <FormInput
-                label='Short Name'
+                label="Short Name"
                 required
-                placeholder='short name'
-                {...register('shortName')}
+                placeholder="short name"
+                {...register("shortName")}
                 error={errors.shortName?.message}
               />
               <FormInput
-                label='Financial Year'
+                label="Financial Year"
                 readOnly
-                {...register('financialYear')}
+                {...register("financialYear")}
                 error={errors.financialYear?.message}
               />
               <FormInput
                 label="Base Currency"
-                type='select'
+                type="select"
                 required
                 options={[
                   { label: "INR - Indian Rupee", value: "INR" },
                   { label: "USD - US Dollar", value: "USD" },
                   { label: "EUR - Euro", value: "EUR" },
                   { label: "GBP - British Pound", value: "GBP" },
-                  { label: "AED - UAE Dirham", value: "AED" }
+                  { label: "AED - UAE Dirham", value: "AED" },
                 ]}
-                {...register('currency')}
+                {...register("currency")}
                 error={errors.currency?.message}
               />
             </div>
@@ -207,93 +215,97 @@ function OrganizationGroup() {
                 <p className="section-title text-[#043793]">Company Details</p>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormInput
-                    label='Company Name'
+                    label="Company Name"
                     required
-                    placeholder='company name'
-                    {...register('companyName')}
+                    placeholder="company name"
+                    {...register("companyName")}
                     error={errors.companyName?.message}
                   />
                   <FormInput
-                    label='CIN Number'
+                    label="CIN Number"
                     required
-                    placeholder='L12345AB2024PTC123456'
-                    {...register('cinNumber')}
+                    placeholder="L12345AB2024PTC123456"
+                    {...register("cinNumber")}
                     error={errors.cinNumber?.message}
                   />
 
                   <FormInput
-                    label='PAN Number'
+                    label="PAN Number"
                     required
-                    placeholder='ABCDE1234F'
-                    {...register('panNumber')}
+                    placeholder="ABCDE1234F"
+                    {...register("panNumber")}
                     error={errors.panNumber?.message}
                   />
                   <FormInput
-                    label='Email Address'
+                    label="Email Address"
                     type="email"
                     required
-                    placeholder='email'
-                    {...register('email')}
+                    placeholder="email"
+                    {...register("email")}
                     error={errors.email?.message}
                   />
                   <FormInput
-                    label='Phone Number'
+                    label="Phone Number"
                     required
-                    placeholder='Phone Number'
-                    {...register('phoneNumber')}
+                    placeholder="Phone Number"
+                    {...register("phoneNumber")}
                     error={errors.phoneNumber?.message}
                   />
                   <FormInput
-                    label='Website'
-                    placeholder='https://example.com'
+                    label="Website"
+                    placeholder="https://example.com"
                     required
-                    {...register('website')}
+                    {...register("website")}
                     error={errors.website?.message}
                   />
                 </div>
                 <div className="grid grid-cols-1">
                   <FormInput
-                    label='Registered Address'
+                    label="Registered Address"
                     type="textarea"
                     required
-                    placeholder='Enter Address'
-                    {...register('address')}
+                    placeholder="Enter Address"
+                    {...register("address")}
                     error={errors.address?.message}
                   />
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormInput
                     label="Country"
-                    type='select'
+                    type="select"
                     required
-                    options={countries.map((c) => ({ label: c.name, value: c.isoCode }))}
-                    {...register('country')}
+                    options={countries.map((c) => ({
+                      label: c.name,
+                      value: c.isoCode,
+                    }))}
+                    {...register("country")}
                     error={errors.country?.message}
                   />
                   <FormInput
                     label="State"
-                    type='select'
+                    type="select"
                     required
-                    options={states.map((s) => ({ label: s.name, value: s.isoCode }))}
-                    {...register('state')}
+                    options={states.map((s) => ({
+                      label: s.name,
+                      value: s.isoCode,
+                    }))}
+                    {...register("state")}
                     error={errors.state?.message}
                   />
                   <FormInput
-                    label='Pin Code'
+                    label="Pin Code"
                     required
-                    {...register('pinCode')}
+                    {...register("pinCode")}
                     error={errors.pinCode?.message}
                   />
                 </div>
-
               </div>
             </div>
           </div>
         </div>
       </fieldset>
     </form>
-    
-  )
+  );
 }
 
-export default OrganizationGroup
+export default OrganizationGroup;
