@@ -8,6 +8,7 @@ type Props = {
   onRefresh: (currency: CurrencyRecord) => void;
   canEdit: boolean;
   canDelete: boolean;
+  canRefresh: boolean;
 };
 
 export default function CurrencyCard({
@@ -17,6 +18,7 @@ export default function CurrencyCard({
   onRefresh,
   canEdit,
   canDelete,
+  canRefresh,
 }: Props) {
   const { code, name, symbol, exchangeRate, isBase, lastUpdated } = currency;
 
@@ -69,14 +71,18 @@ export default function CurrencyCard({
             {exchangeRate.toFixed(4)}
           </p>
         </div>
+
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => onRefresh(currency)}
-            title="Refresh rate"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-[#21B6A8] hover:bg-slate-50 transition"
-          >
-            <RefreshCw size={14} />
-          </button>
+          {canRefresh && (
+            <button
+              onClick={() => onRefresh(currency)}
+              title="Refresh rate"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-[#21B6A8] hover:bg-slate-50 transition"
+            >
+              <RefreshCw size={14} />
+            </button>
+          )}
+
           {canEdit && (
             <button
               onClick={() => onEdit(currency)}
@@ -86,7 +92,8 @@ export default function CurrencyCard({
               <Pencil size={14} />
             </button>
           )}
-          {canDelete && !isBase && (
+
+          {!isBase && canDelete && (
             <button
               onClick={() => onDelete(currency)}
               title="Delete currency"

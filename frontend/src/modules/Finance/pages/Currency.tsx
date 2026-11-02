@@ -19,6 +19,9 @@ export default function CurrencyPage() {
   const queryClient = useQueryClient();
 
   const { hasPermission } = useAuth();
+  const canCreate = hasPermission("CURRENCY_CREATE");
+  const canEdit = hasPermission("CURRENCY_EDIT");
+  const canDelete = hasPermission("CURRENCY_DELETE");
 
   const { data: currencies = [], isLoading } = useQuery({
     queryKey: ["currencies"],
@@ -37,10 +40,16 @@ export default function CurrencyPage() {
       closeModal();
       toast.success("Currency added successfully!");
     },
-    onError: (error: unknown) => {
-      toast.error(
-        getApiErrorMessage(error, "Failed to add currency"),
-      );
+    onError: (error: any) => {
+      const fieldErrors = (error?.response?.data?.errors ?? {}) as Record<
+        string,
+        string[]
+      >;
+      const apiMessage =
+        error?.response?.data?.error ||
+        Object.values(fieldErrors)?.[0]?.[0] ||
+        "Failed to add currency";
+      toast.error(apiMessage);
     },
   });
 
@@ -63,10 +72,16 @@ export default function CurrencyPage() {
       closeModal();
       toast.success("Currency updated successfully!");
     },
-    onError: (error: unknown) => {
-      toast.error(
-        getApiErrorMessage(error, "Failed to update currency"),
-      );
+    onError: (error: any) => {
+      const fieldErrors = (error?.response?.data?.errors ?? {}) as Record<
+        string,
+        string[]
+      >;
+      const apiMessage =
+        error?.response?.data?.error ||
+        Object.values(fieldErrors)?.[0]?.[0] ||
+        "Failed to update currency";
+      toast.error(apiMessage);
     },
   });
 
@@ -79,8 +94,10 @@ export default function CurrencyPage() {
       setDeleting(null);
       toast.success("Currency deleted");
     },
-    onError: (error: unknown) => {
-      toast.error(getApiErrorMessage(error, "Failed to delete currency"));
+    onError: (error: any) => {
+      const apiMessage =
+        error?.response?.data?.error || "Failed to delete currency";
+      toast.error(apiMessage);
       setDeleting(null);
     },
   });
@@ -104,6 +121,7 @@ export default function CurrencyPage() {
   }
 
   function openEdit(currency: CurrencyRecord) {
+    if (!canEdit) return;
     setEditing(currency);
     setIsModalOpen(true);
   }
@@ -114,6 +132,7 @@ export default function CurrencyPage() {
   }
 
   function handleFormSubmit(data: CurrencyFormData) {
+    if (editing ? !canEdit : !canCreate) return;
     const payload = {
       code: data.code.trim(),
       name: data.name.trim(),
@@ -129,6 +148,7 @@ export default function CurrencyPage() {
   }
 
   function handleDelete(currency: CurrencyRecord) {
+    if (!canDelete) return;
     setDeleting(currency);
   }
 
@@ -138,10 +158,12 @@ export default function CurrencyPage() {
   }
 
   function handleRefresh(currency: CurrencyRecord) {
+    if (!canEdit) return;
     refreshMutation.mutate(currency.id);
   }
 
   function handleRefreshAll() {
+    if (!canEdit) return;
     currencies.forEach((currency) => refreshMutation.mutate(currency.id));
   }
 
@@ -159,26 +181,31 @@ export default function CurrencyPage() {
           </p>
         </div>
         <div className="page-actions">
-          <button
-            type="button"
-            onClick={handleRefreshAll}
-            disabled={refreshMutation.isPending}
-            className="flex h-9 items-center gap-2 rounded-[14px] border border-slate-200 bg-[#F5F7FB] px-3 text-xs font-semibold text-slate-500 disabled:opacity-50 sm:px-4"
-          >
-            <RefreshCw
-              size={13}
-              className={refreshMutation.isPending ? "animate-spin" : ""}
-            />
-            <span className="hidden sm:inline">Refresh Rates</span>
-          </button>
-          <button
-            type="button"
-            onClick={openAdd}
-            className="flex h-9 items-center gap-2 rounded-[14px] bg-[linear-gradient(#093055,#043793)] px-3 text-xs font-semibold text-white sm:px-4"
-          >
-            <Plus size={13} />
-            <span className="hidden sm:inline">Add Currency</span>
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={handleRefreshAll}
+              disabled={refreshMutation.isPending}
+              className="flex h-9 items-center gap-2 rounded-[14px] border border-slate-200 bg-[#F5F7FB] px-3 text-xs font-semibold text-slate-500 disabled:opacity-50 sm:px-4"
+            >
+              <RefreshCw
+                size={13}
+                className={refreshMutation.isPending ? "animate-spin" : ""}
+              />
+              <span className="hidden sm:inline">Refresh Rates</span>
+            </button>
+          )}
+
+          {canCreate && (
+            <button
+              type="button"
+              onClick={openAdd}
+              className="flex h-9 items-center gap-2 rounded-[14px] bg-[linear-gradient(#093055,#043793)] px-3 text-xs font-semibold text-white sm:px-4"
+            >
+              <Plus size={13} />
+              <span className="hidden sm:inline">Add Currency</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -190,8 +217,9 @@ export default function CurrencyPage() {
             onEdit={openEdit}
             onDelete={handleDelete}
             onRefresh={handleRefresh}
-            canEdit={hasPermission("CURRENCY_EDIT")}
-            canDelete={hasPermission("CURRENCY_DELETE")}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canRefresh={canEdit}
           />
         ))}
       </div>
