@@ -12,7 +12,8 @@ type ScopeOptions = {
   field: string;
   resource: "organizationGroup" 
   | "organizationUnit"
-  | "businessLocation";
+  | "businessLocation"
+  |"uom"
 };
 
 

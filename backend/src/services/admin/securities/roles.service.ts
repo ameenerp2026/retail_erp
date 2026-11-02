@@ -65,6 +65,20 @@ export const getRoles = async () => {
   })
 }
 
+export const getPermissions = async () => {
+  return prisma.permission.findMany({
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      module: true,
+      screen: true,
+      description: true,
+    },
+    orderBy: [{ module: 'asc' }, { name: 'asc' }],
+  })
+}
+
 export const getRoleById = async (id: number) => {
   return prisma.role.findUnique({
     where: { id },

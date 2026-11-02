@@ -68,6 +68,7 @@ export default function AppRoutes() {
         <Route path="/securities" element={<Securities />}>
         <Route path="roles" element={<Roles />} />
           <Route path="role-wizard" element={<RoleWizard />} /> 
+          <Route path="role-wizard/:id" element={<RoleWizard />} />
           <Route path="users" element={<Users />} />
           <Route path="user-logs" element={<UserLogs />} />
           <Route path="user-licenses" element={<UserLicenses />} />

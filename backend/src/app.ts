@@ -20,6 +20,9 @@ import eInvoiceRoutes from './routes/admin/utilities/eInvoice.routes.js'
 import eWayBillRoutes from './routes/admin/utilities/eWayBill.routes.js'
 import gstStateRoutes from "./routes/admin/organization/gstState.routes.js";
 import userLogsRoutes from "./routes/userLogs.routes.js";
+import rolesRoutes from "./routes/admin/securities/roles.routes.js";
+import usersRoutes from "./routes/admin/securities/users.routes.js";
+import uomRoutes from "./routes/Inventory/productSetup/uom.routes.js"
 //import securityRoutes from "./routes/admin/securities/security.routes.js";
 const app = express();
 
@@ -46,11 +49,14 @@ app.use('/api/finance/account-class',accountClassRoutes);
 app.use('/api/finance/ledgers',ledgerRoutes);
 app.use('/api/finance/sub-ledgers',subLedgerRoutes); 
 app.use('/api/finance/currencies',currencyRoutes);
+app.use('/api/securities/users', usersRoutes);
+app.use('/api/securities', rolesRoutes);
 app.use('/api/utilities',utilitiesRoutes);
 app.use('/api/utilities/ledgers', ledgerImportRoutes);
 app.use('/api/utilities/subledgers', subLedgerImportRoutes);
 app.use('/api/utilities/e-invoice', eInvoiceRoutes);
 app.use('/api/utilities/e-way-bill', eWayBillRoutes);
+app.use('/api/productSetup/uom',uomRoutes)
 //app.use('/api/securities', securityRoutes);
 
 

@@ -1,113 +1,35 @@
 import { useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnsType } from 'antd/es/table'
 import {
   Search,
   Download,
   Plus,
   Pencil,
-  Mail,
-  Trash2,
   CheckCircle2,
   Clock3,
+  Power,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import ReusableTable from '@/components/shared/ReusableTable'
 import UserFormModal from '../components/Users/UserFormModal'
 import type { AddUserFormData } from '@/components/forms/validate.schema'
-import toast from 'react-hot-toast'
+import {
+  getRoles,
+} from '@/services/admin/securities/role.service'
+import {
+  createUser,
+  getUserById,
+  getUserRequestError,
+  getUserOrganizationUnits,
+  getUsers,
+  updateUser,
+  updateUserStatus,
+  type SecurityUserListItem,
+} from '@/services/admin/securities/user.service'
 
-type UserStatus = 'Active' | 'Inactive' | 'Pending'
-
-type SecuritiesUser = {
-  id: string
-  userId: string
-  name: string
-  email: string
-  role: string
-  orgUnit: string
-  onboarded: boolean
-  lastLogin: string | null
-  status: UserStatus
-}
-
-const INITIAL_USERS: SecuritiesUser[] = [
-  {
-    id: 'USR-001',
-    userId: 'USR-001',
-    name: 'Admin User',
-    email: 'admin@streamys.in',
-    role: 'Super Admin',
-    orgUnit: 'HQ - Mumbai',
-    onboarded: true,
-    lastLogin: '21 May 2026',
-    status: 'Active',
-  },
-  {
-    id: 'USR-002',
-    userId: 'USR-002',
-    name: 'Priya Sharma',
-    email: 'priya.sharma@retailshop.in',
-    role: 'Finance Manager',
-    orgUnit: 'HQ - Mumbai',
-    onboarded: true,
-    lastLogin: '21 May 2026',
-    status: 'Active',
-  },
-  {
-    id: 'USR-003',
-    userId: 'USR-003',
-    name: 'Raj Kumar',
-    email: 'raj.kumar@retailshop.in',
-    role: 'Branch Manager',
-    orgUnit: 'Delhi North',
-    onboarded: true,
-    lastLogin: '20 May 2026',
-    status: 'Active',
-  },
-  {
-    id: 'USR-004',
-    userId: 'USR-004',
-    name: 'Meena Joshi',
-    email: 'meena.joshi@retailshop.in',
-    role: 'GST Operator',
-    orgUnit: 'Bangalore Central',
-    onboarded: true,
-    lastLogin: '19 May 2026',
-    status: 'Active',
-  },
-  {
-    id: 'USR-005',
-    userId: 'USR-005',
-    name: 'Suresh Reddy',
-    email: 'suresh.reddy@retailshop.in',
-    role: 'Branch Manager',
-    orgUnit: 'Hyderabad Central',
-    onboarded: false,
-    lastLogin: '10 May 2026',
-    status: 'Inactive',
-  },
-  {
-    id: 'USR-006',
-    userId: 'USR-006',
-    name: 'Arun Patel',
-    email: 'arun.patel@retailshop.in',
-    role: 'Data Entry',
-    orgUnit: 'Pune West',
-    onboarded: true,
-    lastLogin: '21 May 2026',
-    status: 'Active',
-  },
-  {
-    id: 'USR-007',
-    userId: 'USR-007',
-    name: 'Bikash Roy',
-    email: 'bikash.roy@retailshop.in',
-    role: 'Auditor',
-    orgUnit: 'Kolkata East',
-    onboarded: false,
-    lastLogin: null,
-    status: 'Pending',
-  },
-]
+type UserStatus = 'Active' | 'Inactive'
+const EMPTY_USERS: SecurityUserListItem[] = []
 
 const ROLE_STYLES: Record<string, string> = {
   'Super Admin': 'bg-rose-50 text-rose-600',
@@ -121,7 +43,6 @@ const ROLE_STYLES: Record<string, string> = {
 const STATUS_STYLES: Record<UserStatus, string> = {
   Active: 'bg-emerald-50 text-emerald-600',
   Inactive: 'bg-rose-50 text-rose-600',
-  Pending: 'bg-amber-50 text-amber-600',
 }
 
 const AVATAR_PALETTE = [
@@ -140,29 +61,69 @@ function initials(name: string) {
 }
 
 function avatarColor(seed: string) {
-  const idx = seed.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % AVATAR_PALETTE.length
-  return AVATAR_PALETTE[idx]
+  const index =
+    seed.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) %
+    AVATAR_PALETTE.length
+  return AVATAR_PALETTE[index]
+}
+
+function formatLastLogin(value: string | null) {
+  if (!value) return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
 }
 
 export default function Users() {
-  const [users, setUsers] = useState<SecuritiesUser[]>(INITIAL_USERS)
+  const queryClient = useQueryClient()
   const [query, setQuery] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<SecuritiesUser | null>(null)
+  const [editingUser, setEditingUser] = useState<SecurityUserListItem | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
+  const usersQuery = useQuery({
+    queryKey: ['security-users'],
+    queryFn: getUsers,
+  })
+  const rolesQuery = useQuery({
+    queryKey: ['security-roles'],
+    queryFn: getRoles,
+  })
+  const orgUnitsQuery = useQuery({
+    queryKey: ['security-user-org-units'],
+    queryFn: getUserOrganizationUnits,
+  })
+  const userDetailsQuery = useQuery({
+    queryKey: ['security-user', editingUser?.id],
+    queryFn: () => getUserById(editingUser!.id),
+    enabled: editingUser !== null,
+  })
+
+  const users = usersQuery.data?.data ?? EMPTY_USERS
   const filteredUsers = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return users
-    return users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.role.toLowerCase().includes(q) ||
-        u.orgUnit.toLowerCase().includes(q)
+    const term = query.trim().toLowerCase()
+    if (!term) return users
+    return users.filter((user) =>
+      [
+        user.name,
+        user.email,
+        user.role?.name ?? '',
+        user.orgUnit?.name ?? '',
+      ].some((value) => value.toLowerCase().includes(term)),
     )
-  }, [users, query])
+  }, [query, users])
 
-  const activeCount = useMemo(() => users.filter((u) => u.status === 'Active').length, [users])
+  const editingDetails = userDetailsQuery.data
+  const initialValues = useMemo<Partial<AddUserFormData> | undefined>(() => {
+    if (!editingDetails) return undefined
+    return {
+      fullName: editingDetails.name,
+      email: editingDetails.email,
+      roleId: editingDetails.role?.id ?? 0,
+      organizationUnitId: editingDetails.orgUnit?.id,
+      reportingManagerId: editingDetails.reportingManager?.id,
+      password: '',
+    }
+  }, [editingDetails])
 
   const isModalOpen = isAddOpen || editingUser !== null
   const modalMode = editingUser ? 'edit' : 'create'
@@ -172,98 +133,60 @@ export default function Users() {
     setEditingUser(null)
   }
 
-  async function handleCreateUser(payload: AddUserFormData) {
+  async function handleModalSubmit(form: AddUserFormData) {
+    setSubmitting(true)
     try {
-      const emailTaken = users.some((u) => u.email.toLowerCase() === payload.email.toLowerCase())
-      if (emailTaken) {
-        throw new Error(`A user with ${payload.email} already exists`)
+      const payload = {
+        name: form.fullName.trim(),
+        email: form.email.trim(),
+        roleId: form.roleId,
+        organizationUnitId: form.organizationUnitId ?? null,
+        reportingManagerId: form.reportingManagerId ?? null,
       }
 
-      // TODO: replace with real API call, e.g.
-      // const created = await api.post('/securities/users', payload)
-      const nextIndex = users.length + 1
-      const userId = `USR-${String(nextIndex).padStart(3, '0')}`
-      const newUser: SecuritiesUser = {
-        id: userId,
-        userId,
-        name: payload.fullName,
-        email: payload.email,
-        role: payload.role,
-        orgUnit: payload.orgUnit || '—',
-        onboarded: false,
-        lastLogin: null,
-        status: 'Pending',
+      if (editingUser) {
+        await updateUser(editingUser.id, payload)
+        toast.success(`${form.fullName} was updated`)
+      } else {
+        await createUser({ ...payload, password: form.password ?? '' })
+        toast.success(`${form.fullName} was added`)
       }
 
-      setUsers((prev) => [...prev, newUser])
+      await queryClient.invalidateQueries({ queryKey: ['security-users'] })
       closeModal()
-      toast.success(`${payload.fullName} was added`)
-    } catch (err) {
-      const description = err instanceof Error ? err.message : 'Failed to add user. Please try again.'
-      toast.error(description)
+    } catch (error) {
+      toast.error(getUserRequestError(error))
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  async function handleUpdateUser(payload: AddUserFormData) {
-    if (!editingUser) return
+  async function handleToggleStatus(user: SecurityUserListItem) {
+    const nextStatus = !user.isActive
     try {
-      // TODO: replace with real API call, e.g.
-      // const updated = await api.patch(`/securities/users/${editingUser.id}`, payload)
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === editingUser.id
-            ? {
-                ...u,
-                name: payload.fullName,
-                email: payload.email,
-                role: payload.role,
-                orgUnit: payload.orgUnit || u.orgUnit,
-              }
-            : u
-        )
-      )
-      closeModal()
-      toast.success(`${payload.fullName} was updated`)
-    } catch (err) {
-      const description = err instanceof Error ? err.message : 'Failed to update user. Please try again.'
-      toast.error(description)
+      await updateUserStatus(user.id, nextStatus)
+      await queryClient.invalidateQueries({ queryKey: ['security-users'] })
+      toast.success(`${user.name} ${nextStatus ? 'activated' : 'deactivated'}`)
+    } catch (error) {
+      toast.error(getUserRequestError(error))
     }
   }
 
-  async function handleModalSubmit(payload: AddUserFormData) {
-    if (modalMode === 'edit') await handleUpdateUser(payload)
-    else await handleCreateUser(payload)
-  }
-
-  async function handleDelete(user: SecuritiesUser) {
-    try {
-      // TODO: replace with real API call, e.g.
-      // await api.delete(`/securities/users/${user.id}`)
-      setUsers((prev) => prev.filter((u) => u.id !== user.id))
-      toast.success(`${user.name} was removed`)
-    } catch (err) {
-      const description = err instanceof Error ? err.message : 'Failed to delete user. Please try again.'
-      toast.error(description)
-    }
-  }
-
-  const columns: ColumnsType<SecuritiesUser> = [
+  const columns: ColumnsType<SecurityUserListItem> = [
     {
       title: 'User',
       dataIndex: 'name',
       key: 'name',
       render: (_: string, record) => (
-        <div className="flex items-center gap-3 py-1">
+        <div className='flex items-center gap-3 py-1'>
           <div
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarColor(
-              record.name
-            )}`}
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarColor(record.name)}`}
           >
             {initials(record.name)}
           </div>
           <div>
-            <div className="text-sm font-semibold text-[#043793]">{record.name}</div>
-            <div className="text-xs text-[#94A3B8]">{record.userId}</div>
+            <div className='text-sm font-semibold text-[#043793]'>{record.name}</div>
+            <div className='text-xs text-[#94A3B8]'>{record.code}</div>
           </div>
         </div>
       ),
@@ -272,27 +195,30 @@ export default function Users() {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
-      render: (email: string) => <span className="text-sm text-[#64748B]">{email}</span>,
+      render: (email: string) => <span className='text-sm text-[#64748B]'>{email}</span>,
     },
     {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (role: string) => (
-        <span
-          className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${
-            ROLE_STYLES[role] ?? 'bg-slate-100 text-slate-600'
-          }`}
-        >
-          {role}
-        </span>
-      ),
+      render: (_: unknown, record) => {
+        const roleName = record.role?.name ?? 'Unassigned'
+        return (
+          <span
+            className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${ROLE_STYLES[roleName] ?? 'bg-slate-100 text-slate-600'}`}
+          >
+            {roleName}
+          </span>
+        )
+      },
     },
     {
       title: 'Org Unit',
       dataIndex: 'orgUnit',
       key: 'orgUnit',
-      render: (orgUnit: string) => <span className="text-sm text-[#334155]">{orgUnit}</span>,
+      render: (_: unknown, record) => (
+        <span className='text-sm text-[#334155]'>{record.orgUnit?.name ?? '—'}</span>
+      ),
     },
     {
       title: 'Onboarded',
@@ -301,94 +227,99 @@ export default function Users() {
       align: 'center',
       render: (onboarded: boolean) =>
         onboarded ? (
-          <CheckCircle2 size={17} className="mx-auto text-emerald-500" />
+          <CheckCircle2 size={17} className='mx-auto text-emerald-500' />
         ) : (
-          <Clock3 size={17} className="mx-auto text-slate-300" />
+          <Clock3 size={17} className='mx-auto text-slate-300' />
         ),
     },
     {
       title: 'Last Login',
       dataIndex: 'lastLogin',
       key: 'lastLogin',
-      render: (lastLogin: string | null) =>
-        lastLogin ? (
-          <span className="text-sm text-[#94A3B8]">{lastLogin}</span>
-        ) : (
-          <span className="text-sm text-[#94A3B8]">Never</span>
-        ),
+      render: (lastLogin: string | null) => (
+        <span className='text-sm text-[#94A3B8]'>
+          {formatLastLogin(lastLogin) ?? 'Never'}
+        </span>
+      ),
     },
     {
       title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: UserStatus) => (
-        <span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[status]}`}>
-          {status}
-        </span>
-      ),
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (isActive: boolean) => {
+        const status: UserStatus = isActive ? 'Active' : 'Inactive'
+        return (
+          <span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[status]}`}>
+            {status}
+          </span>
+        )
+      },
     },
     {
       title: 'Actions',
       key: 'actions',
       align: 'center',
       render: (_: unknown, record) => (
-        <div className="flex items-center justify-center gap-3">
+        <div className='flex items-center justify-center gap-3'>
           <button
-            type="button"
+            type='button'
             aria-label={`Edit ${record.name}`}
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={(event) => {
+              event.stopPropagation()
               setEditingUser(record)
             }}
-            className="text-[#4FC3F7] transition hover:cursor-pointer"
+            className='text-[#4FC3F7] transition hover:cursor-pointer'
           >
             <Pencil size={15} />
           </button>
           <button
-            type="button"
-            aria-label={`Email ${record.name}`}
-            onClick={(e) => e.stopPropagation()}
-            className="text-[#22C55E] transition hover:cursor-pointer"
-          >
-            <Mail size={15} />
-          </button>
-          <button
-            type="button"
-            aria-label={`Delete ${record.name}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleDelete(record)
+            type='button'
+            aria-label={`${record.isActive ? 'Deactivate' : 'Activate'} ${record.name}`}
+            title={record.isActive ? 'Deactivate user' : 'Activate user'}
+            onClick={(event) => {
+              event.stopPropagation()
+              void handleToggleStatus(record)
             }}
-            className="text-[#EF4444] transition hover:cursor-pointer"
+            className={`${record.isActive ? 'text-rose-500' : 'text-emerald-500'} transition hover:cursor-pointer`}
           >
-            <Trash2 size={15} />
+            <Power size={15} />
           </button>
         </div>
       ),
     },
   ]
 
+  const lookupsError =
+    rolesQuery.error || orgUnitsQuery.error
+      ? getUserRequestError(rolesQuery.error ?? orgUnitsQuery.error)
+      : undefined
+  const activeCount =
+    usersQuery.data?.counts.active ?? users.filter((user) => user.isActive).length
+  const userDetailsError = userDetailsQuery.error
+    ? getUserRequestError(userDetailsQuery.error)
+    : undefined
+
   return (
-    <div className="space-y-5">
-      <div className="flex items-start justify-between">
+    <div className='space-y-5'>
+      <div className='flex items-start justify-between'>
         <div>
-          <h1 className="text-2xl font-semibold text-[#043793]">Users</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            {users.length} users — {activeCount} active
+          <h1 className='text-2xl font-semibold text-[#043793]'>Users</h1>
+          <p className='mt-1 text-sm text-slate-400'>
+            {usersQuery.data?.counts.total ?? users.length} users — {activeCount} active
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className='flex items-center gap-3'>
           <button
-            type="button"
-            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            type='button'
+            className='flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50'
           >
             <Download size={15} />
             Export
           </button>
           <button
-            type="button"
+            type='button'
             onClick={() => setIsAddOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-[#1B2A4A] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#152140]"
+            className='flex items-center gap-2 rounded-lg bg-[#1B2A4A] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#152140]'
           >
             <Plus size={15} />
             Add User
@@ -396,33 +327,50 @@ export default function Users() {
         </div>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      <div className='relative max-w-sm'>
+        <Search size={16} className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400' />
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search users, roles..."
-          className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 outline-none transition focus:border-[#1B2A4A] focus:ring-2 focus:ring-[#1B2A4A]/10"
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder='Search users, roles...'
+          className='w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 outline-none transition focus:border-[#1B2A4A] focus:ring-2 focus:ring-[#1B2A4A]/10'
         />
       </div>
 
-      <ReusableTable<SecuritiesUser> columns={columns} data={filteredUsers} rowKey="id" />
+      {usersQuery.isLoading ? (
+        <p className='py-8 text-center text-sm text-slate-500'>Loading users...</p>
+      ) : usersQuery.error ? (
+        <p role='alert' className='py-8 text-center text-sm text-red-600'>
+          Failed to load users: {getUserRequestError(usersQuery.error)}
+        </p>
+      ) : (
+        <ReusableTable<SecurityUserListItem>
+          columns={columns}
+          data={filteredUsers}
+          rowKey='id'
+        />
+      )}
+
+      {editingUser && userDetailsError && (
+        <p role='alert' className='text-sm text-red-600'>
+          Failed to load user details: {userDetailsError}
+        </p>
+      )}
 
       <UserFormModal
         isOpen={isModalOpen}
         mode={modalMode}
-        initialValues={
-          editingUser
-            ? {
-                fullName: editingUser.name,
-                email: editingUser.email,
-                role: editingUser.role,
-                orgUnit: editingUser.orgUnit,
-              }
-            : undefined
-        }
+        initialValues={initialValues}
+        editingUserId={editingUser?.id}
         onClose={closeModal}
         onSubmit={handleModalSubmit}
+        roles={rolesQuery.data ?? []}
+        orgUnits={orgUnitsQuery.data ?? []}
+        managers={users}
+        lookupsLoading={rolesQuery.isLoading || orgUnitsQuery.isLoading}
+        lookupsError={lookupsError}
+        detailsError={userDetailsError}
+        submitting={submitting}
       />
     </div>
   )
