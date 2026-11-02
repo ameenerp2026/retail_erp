@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AppRoutes from "./routes/routes"
 import { Toaster } from 'react-hot-toast'
-import { AuthProvider } from "./context/AuthContext"
+import { AuthProvider } from "./context/AuthProvider"
 
 const queryClient = new QueryClient({
   defaultOptions: {
