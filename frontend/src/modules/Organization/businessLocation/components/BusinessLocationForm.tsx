@@ -1,4 +1,4 @@
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, useWatch, Controller } from 'react-hook-form'
 import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
@@ -67,7 +67,6 @@ function BusinessLocationForm(
     register,
     control,
     handleSubmit,
-    watch,
     reset,
     formState: { errors },
   } = useForm<businessLocationFormData>({
@@ -162,8 +161,8 @@ const updateMutation =
   createMutation.isPending ||
   updateMutation.isPending
 
-  const country = watch('country')
-  const state = watch('state')
+  const country = useWatch({ name: 'country', control })
+  const state = useWatch({ name: 'state', control })
  // const locationCode = watch('locationCode')
 
   const countries = getCountries()
@@ -172,7 +171,7 @@ const updateMutation =
   data:gstins=[],
 }=useGSTINs();
 
-const gstinOptions = gstins.map((gstin:any) => ({
+const gstinOptions = gstins.map((gstin: { id: number; gstin: string }) => ({
   label: gstin.gstin,
   value: String(gstin.id),
 }))
@@ -216,14 +215,15 @@ const onSave = async (
 
     onSaved?.(data)
 
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       'Business location save failed:',
       error
     )
 
     toast.error(
-      error?.response?.data?.message ||
+      (error as { response?: { data?: { message?: string } } })?.response
+        ?.data?.message ||
       'Failed to save business location'
     )
   }

@@ -161,6 +161,18 @@ export default function UomTab() {
     setNameError('')
   }
 
+  // Filter logic — pure helper at component scope, all inputs passed as args so
+  // the memos below have no missing dependencies.
+  const applyUomFilters = (list: Uom[], query: string, status: string) => {
+    return list.filter((u) => {
+      const matchesSearch = u.name.toLowerCase().includes(query.toLowerCase())
+      const matchesStatus = status === 'All' || u.status === status
+      return matchesSearch && matchesStatus
+    })
+  }
+
+ 
+  // Export handler
   const handleExport = () => {
     exportToCSV(
       uoms,

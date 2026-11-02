@@ -32,13 +32,13 @@ type UserStatus = 'Active' | 'Inactive'
 const EMPTY_USERS: SecurityUserListItem[] = []
 
 const ROLE_STYLES: Record<string, string> = {
-  'Super Admin': 'bg-rose-50 text-rose-600',
-  'Finance Manager': 'bg-blue-50 text-blue-600',
-  'Branch Manager': 'bg-emerald-50 text-emerald-600',
-  'GST Operator': 'bg-amber-50 text-amber-600',
-  'Data Entry': 'bg-sky-50 text-sky-600',
-  Auditor: 'bg-violet-50 text-violet-600',
-}
+  "Super Admin": "bg-rose-50 text-rose-600",
+  "Finance Manager": "bg-blue-50 text-blue-600",
+  "Branch Manager": "bg-emerald-50 text-emerald-600",
+  "GST Operator": "bg-amber-50 text-amber-600",
+  "Data Entry": "bg-sky-50 text-sky-600",
+  Auditor: "bg-violet-50 text-violet-600",
+};
 
 const STATUS_STYLES: Record<UserStatus, string> = {
   Active: 'bg-emerald-50 text-emerald-600',
@@ -46,18 +46,18 @@ const STATUS_STYLES: Record<UserStatus, string> = {
 }
 
 const AVATAR_PALETTE = [
-  'bg-violet-100 text-violet-700',
-  'bg-pink-100 text-pink-700',
-  'bg-emerald-100 text-emerald-700',
-  'bg-amber-100 text-amber-700',
-  'bg-rose-100 text-rose-700',
-  'bg-indigo-100 text-indigo-700',
-  'bg-teal-100 text-teal-700',
-]
+  "bg-violet-100 text-violet-700",
+  "bg-pink-100 text-pink-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-amber-100 text-amber-700",
+  "bg-rose-100 text-rose-700",
+  "bg-indigo-100 text-indigo-700",
+  "bg-teal-100 text-teal-700",
+];
 
 function initials(name: string) {
-  const parts = name.trim().split(/\s+/)
-  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase()
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
 function avatarColor(seed: string) {
@@ -125,12 +125,12 @@ export default function Users() {
     }
   }, [editingDetails])
 
-  const isModalOpen = isAddOpen || editingUser !== null
-  const modalMode = editingUser ? 'edit' : 'create'
+  const isModalOpen = isAddOpen || editingUser !== null;
+  const modalMode = editingUser ? "edit" : "create";
 
   function closeModal() {
-    setIsAddOpen(false)
-    setEditingUser(null)
+    setIsAddOpen(false);
+    setEditingUser(null);
   }
 
   async function handleModalSubmit(form: AddUserFormData) {
@@ -174,9 +174,9 @@ export default function Users() {
 
   const columns: ColumnsType<SecurityUserListItem> = [
     {
-      title: 'User',
-      dataIndex: 'name',
-      key: 'name',
+      title: "User",
+      dataIndex: "name",
+      key: "name",
       render: (_: string, record) => (
         <div className='flex items-center gap-3 py-1'>
           <div
@@ -221,10 +221,10 @@ export default function Users() {
       ),
     },
     {
-      title: 'Onboarded',
-      dataIndex: 'onboarded',
-      key: 'onboarded',
-      align: 'center',
+      title: "Onboarded",
+      dataIndex: "onboarded",
+      key: "onboarded",
+      align: "center",
       render: (onboarded: boolean) =>
         onboarded ? (
           <CheckCircle2 size={17} className='mx-auto text-emerald-500' />
@@ -256,9 +256,9 @@ export default function Users() {
       },
     },
     {
-      title: 'Actions',
-      key: 'actions',
-      align: 'center',
+      title: "Actions",
+      key: "actions",
+      align: "center",
       render: (_: unknown, record) => (
         <div className='flex items-center justify-center gap-3'>
           <button
@@ -287,7 +287,11 @@ export default function Users() {
         </div>
       ),
     },
-  ]
+  ];
+
+  if (!canView) {
+    return <p>You do not have permission to view users.</p>;
+  }
 
   const lookupsError =
     rolesQuery.error || orgUnitsQuery.error

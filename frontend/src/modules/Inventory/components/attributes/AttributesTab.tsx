@@ -1,34 +1,11 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { Pencil, Plus, Upload, Download, Filter, X } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-export interface AttributeDef {
-  key: string
-  label: string
-  title: string
-}
-
-export const DEFAULT_ATTRIBUTES: AttributeDef[] = [
-  { key: 'col_1', label: 'Attribute 1', title: 'Color' },
-  { key: 'col_2', label: 'Attribute 2', title: 'Size' },
-  { key: 'col_3', label: 'Attribute 3', title: 'Material' },
-  { key: 'col_4', label: 'Attribute 4', title: 'Unit' },
-  { key: 'col_5', label: 'Attribute 5', title: 'Weight' },
-  { key: 'col_6', label: 'Attribute 6', title: 'Fit' },
-  { key: 'col_7', label: 'Attribute 7', title: 'Fabric' },
-  { key: 'col_8', label: 'Attribute 8', title: 'Variant' },
-]
-
-export const ATTRIBUTE_COLUMNS = [
-  { key: 'col_1', label: 'Attribute 1', title: 'Color', hasPlus: true },
-  { key: 'col_2', label: 'Attribute 2', title: 'Size', hasPlus: false },
-  { key: 'col_3', label: 'Attribute 3', title: 'Material', hasPlus: false },
-  { key: 'col_4', label: 'Attribute 4', title: 'Unit', hasPlus: false },
-  { key: 'col_5', label: 'Attribute 5', title: 'Weight', hasPlus: false },
-  { key: 'col_6', label: 'Attribute 6', title: 'Fit', hasPlus: false },
-  { key: 'col_7', label: 'Attribute 7', title: 'Fabric', hasPlus: false },
-  { key: 'col_8', label: 'Attribute 8', title: 'Variant', hasPlus: false },
-]
+import {
+  ATTRIBUTE_COLUMNS,
+  DEFAULT_ATTRIBUTES,
+  type AttributeDef,
+} from './attributeDefs'
 
 interface TableRowData {
   id: string
@@ -201,13 +178,9 @@ function AddNewAttributeModal({
   attributeTitle?: string
   onSave: (name: string) => void
 }) {
+  // Seeded once per open: the parent gives the modal a key that changes every
+  // time it opens, so this component remounts and the input starts empty.
   const [name, setName] = useState('')
-
-  useEffect(() => {
-    if (isOpen) {
-      setName('')
-    }
-  }, [isOpen])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -290,13 +263,9 @@ export function EditAttributesModal({
   attributes?: AttributeDef[]
   onSave?: (updated: AttributeDef[]) => void
 }) {
+  // Seeded once per open via a changing key from the parent (same pattern as
+  // the other modals), so no reset effect is needed.
   const [formAttrs, setFormAttrs] = useState<AttributeDef[]>(attributes)
-
-  useEffect(() => {
-    if (isOpen) {
-      setFormAttrs(attributes)
-    }
-  }, [isOpen, attributes])
 
   const handleTitleChange = (key: string, value: string) => {
     setFormAttrs((prev) =>
@@ -587,6 +556,7 @@ export default function AttributesTab() {
 
       {/* Add New Attribute Modal (triggered by + New button or [+] icon) */}
       <AddNewAttributeModal
+        key={`new-attr-${newAttrModalOpen}`}
         isOpen={newAttrModalOpen}
         onClose={() => setNewAttrModalOpen(false)}
         attributeTitle={selectedAttributeTitle}
@@ -595,6 +565,7 @@ export default function AttributesTab() {
 
       {/* Edit Attributes Modal (retained from previous request) */}
       <EditAttributesModal
+        key={`edit-attr-${editModalOpen}-${attributes.map((a) => a.key + a.title).join('|')}`}
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         attributes={attributes}

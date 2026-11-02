@@ -42,6 +42,8 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextArea
     const labelClass = "text-[12px] text-[#94A3B8] font-semibold block my-1"
     // File input with custom button
     if (type === 'file') {
+      const fileValue = rest.value as unknown as FileList | null | undefined
+      const chosenFileName = fileValue?.[0]?.name || 'No file chosen'
       return (
         <div className="space-y-1">
           <label className={labelClass}>
@@ -57,9 +59,7 @@ const FormInput = forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextArea
               {...rest}
             />
             <div className={`${baseClass} flex items-center justify-between`}>
-              <span className="text-gray-500">
-                {(rest as any).value?.[0]?.name || 'No file chosen'}
-              </span>
+            <span className="text-gray-500">{chosenFileName}</span>
               <span className="bg-[#043793] text-white px-4 py-1 rounded-lg text-xs">
                 {buttonText}
               </span>

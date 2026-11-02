@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom"
 import DashBoardLayout from "../layouts/DashBoardLayout"
 import LoginForm from "../modules/auth/pages/LoginForm"
 import DashBoard from "../modules/dashboard/pages/DashBoard"
+import Organization from '../modules/Organization/pages/Organization'
 import OrganizationGroup from '../modules/Organization/OrganizationGroup/OrganizationGroup'
 import OrganizationUnit from '../modules/Organization/OrganizationUnit/OrganizationUnit';
 import BusinessLocationPage from '../modules/Organization/businessLocation/BusinessLocationPage'
@@ -46,7 +47,8 @@ export default function AppRoutes() {
     >
       <Route path="/dashboard" element={<DashBoard />} />
 
-      <Route path="/organization">
+      <Route path="/organization" element={<Organization />}>
+        <Route index element={<Navigate to="org-group" replace />} />
         <Route path="org-group" element={<OrganizationGroup />} />
         <Route path="org-unit" element={<OrganizationUnit />} />
         <Route path='businessLocation' element={<BusinessLocationPage />} />
@@ -59,6 +61,7 @@ export default function AppRoutes() {
       </Route>
 
       <Route path="/finance" element={<Finance />}>
+        <Route index element={<Navigate to="account-group" replace />} />
         <Route path="account-group" element={<AccountGroup />} />
         <Route path="account-class" element={<AccountClass />} />
         <Route path="ledger" element={<Ledger />} />

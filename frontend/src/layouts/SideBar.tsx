@@ -2,7 +2,7 @@ import { MODULE_ROUTES } from "@/config/navigationConfig";
 import { forwardRef, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, X, ChevronDown, ChevronRight, ChevronsUpDown, Package } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/useAuth";
 
 type SidebarProps = {
   open?: boolean;

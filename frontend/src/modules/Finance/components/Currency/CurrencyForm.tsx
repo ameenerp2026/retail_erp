@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { X } from 'lucide-react'
 import { currencySchema, type CurrencyFormData } from '@/components/forms/validate.schema'
@@ -17,8 +17,8 @@ export default function CurrencyForm({ currency, onClose, onSubmit, isSubmitting
 
   const {
     register,
+    control,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<CurrencyFormData>({
@@ -32,7 +32,7 @@ export default function CurrencyForm({ currency, onClose, onSubmit, isSubmitting
     },
   })
 
-  const isBase = watch('isBase')
+  const isBase = useWatch({ name: 'isBase', control })
 
   return (
     <div className="w-full bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden">

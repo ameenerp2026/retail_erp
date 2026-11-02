@@ -36,15 +36,17 @@ const EMPTY_VALUES: AddUserFormData = {
 }
 
 const inputClasses =
-  'w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#1B2A4A] focus:ring-2 focus:ring-[#1B2A4A]/10'
+  "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#1B2A4A] focus:ring-2 focus:ring-[#1B2A4A]/10";
 
-const errorInputClasses = 'border-red-300 focus:border-red-400 focus:ring-red-100'
+const errorInputClasses =
+  "border-red-300 focus:border-red-400 focus:ring-red-100";
 
 function generatePassword() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$'
-  let out = ''
-  for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)]
-  return out
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$";
+  let out = "";
+  for (let i = 0; i < 10; i++)
+    out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
 }
 
 export default function UserFormModal({
@@ -64,16 +66,17 @@ export default function UserFormModal({
 }: UserFormModalProps) {
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setValue,
     setError,
-    control,
+  
     formState: { errors },
   } = useForm<AddUserFormData>({
     resolver: zodResolver(addUserSchema),
     defaultValues: EMPTY_VALUES,
-  })
+  });
 
   useEffect(() => {
     if (isOpen && (mode === 'create' || initialValues)) {

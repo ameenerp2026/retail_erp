@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState, useRef } from "react"
-import { Download, Plus, Search, X} from "lucide-react"
-import OrgUnitTable from "./components/OrgUnitTable"
-import Pagination from "../components/Pagination"
-import { Modal } from '@/components/shared/Modal'
-import { OrgUnitForm } from "./components/OrgUnitForm"
-import { DeleteConfirmForm } from "../components/DeleteConfirmForm"
-import { OrgUnitFormData } from "@/components/forms/validate.schema"
-import apiClient from '../../../services/apiClient'
-import { exportToPDF, exportToCSV, ExportColumn } from '@/utils/exportData'
-import toast from "react-hot-toast"
-import { useAuth } from "@/context/AuthContext";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { Download, Plus, Search, X } from "lucide-react";
+import OrgUnitTable from "./components/OrgUnitTable";
+import Pagination from "../components/Pagination";
+import { Modal } from "@/components/shared/Modal";
+import { OrgUnitForm } from "./components/OrgUnitForm";
+import { DeleteConfirmForm } from "../components/DeleteConfirmForm";
+import { OrgUnitFormData } from "@/components/forms/validate.schema";
+import apiClient from "../../../services/apiClient";
+import { exportToPDF, exportToCSV, ExportColumn } from "@/utils/exportData";
+import toast from "react-hot-toast";
+import { useAuth } from "@/context/useAuth";
+import Can from "@/context/Can";
 
 
 export interface OrganizationUnit {
@@ -32,22 +33,21 @@ export interface OrganizationUnit {
   };
 }
 
-
-type StatusFilter = "all" | "Active" | "Inactive"
+type StatusFilter = "all" | "Active" | "Inactive";
 
 const orgUnitColumns: ExportColumn<OrganizationUnit>[] = [
-  { header: 'Unit ID', accessor: (u) => u.id },
-  { header: 'Name', accessor: (u) => `${u.organizationUnit} (${u.organizationGroup.shortName})` },
-  { header: 'Type', accessor: (u) => u.unitType },
-  { header: 'GSTIN', accessor: (u) => u.gstIn },
-  { header: 'Manager', accessor: (u) => u.manager },
-  { header: 'Status', accessor: (u) => u.status },
-]
-
-
+  { header: "Unit ID", accessor: (u) => u.id },
+  {
+    header: "Name",
+    accessor: (u) => `${u.organizationUnit} (${u.organizationGroup.shortName})`,
+  },
+  { header: "Type", accessor: (u) => u.unitType },
+  { header: "GSTIN", accessor: (u) => u.gstIn },
+  { header: "Manager", accessor: (u) => u.manager },
+  { header: "Status", accessor: (u) => u.status },
+];
 
 function OrganizationUnit() {
-
   const { hasPermission } = useAuth();
 
 //This RBAC check ensures that only users with the "ORG_UNIT_VIEW" permission can access the Organization Unit page. If a user lacks this permission, they will see a message indicating that they do not have access to view Organization Units.
@@ -62,147 +62,155 @@ function OrganizationUnit() {
   return <OrganizationUnitContent />;
 }
 
-
- function OrganizationUnitContent() {
-
-  const [units, setUnits] =  useState<OrganizationUnit[]>([]);
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage] = useState(10)
-  const [exportOpen, setExportOpen]=useState(false)
-  const exportRef =useRef<HTMLDivElement>(null)
+function OrganizationUnitContent() {
+  const [units, setUnits] = useState<OrganizationUnit[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage] = useState(10);
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
   // Delete modal state
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [unitToDelete, setUnitToDelete] = useState<OrganizationUnit | null>(null)
-  
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [unitToDelete, setUnitToDelete] = useState<OrganizationUnit | null>(
+    null,
+  );
 
   // Create/Edit modal state
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingUnit, setEditingUnit] = useState<OrganizationUnit | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<OrganizationUnit | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const filteredUnits = useMemo(() => {
-    return units.filter(unit => {
-      const matchesStatus = statusFilter === "all" || unit.status === statusFilter
-      const term = searchTerm.toLowerCase().trim()
-      const matchesSearch =!term || [
-        unit.organizationUnit,
-        unit.gstIn,
-        unit.unitType,
-        unit.manager,
-        unit.organizationGroup.shortName,
-        unit.state,
-        unit.country,
-        unit.address
-      ].some(field => field?.toLowerCase().includes(term))
-      return matchesStatus && matchesSearch
-    })
-  }, [units, searchTerm, statusFilter])
+    return units.filter((unit) => {
+      const matchesStatus =
+        statusFilter === "all" || unit.status === statusFilter;
+      const term = searchTerm.toLowerCase().trim();
+      const matchesSearch =
+        !term ||
+        [
+          unit.organizationUnit,
+          unit.gstIn,
+          unit.unitType,
+          unit.manager,
+          unit.organizationGroup.shortName,
+          unit.state,
+          unit.country,
+          unit.address,
+        ].some((field) => field?.toLowerCase().includes(term));
+      return matchesStatus && matchesSearch;
+    });
+  }, [units, searchTerm, statusFilter]);
 
+  // exportToPDF(filteredUnits, orgUnitColumns, { filename: 'org-units.pdf', title: 'Org Units' })
 
-// exportToPDF(filteredUnits, orgUnitColumns, { filename: 'org-units.pdf', title: 'Org Units' })
+  // Resetting to the first page happens in the input handlers below instead of
+  // an effect, to avoid cascading renders.
+  const updateSearchTerm = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+  const clearSearchTerm = () => {
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+  const updateStatusFilter = (value: StatusFilter) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+  // Loads the raw unit list without touching state, so it can be awaited from
+  // both the mount effect (after an await) and the save handler.
+  const fetchUnitsData = useCallback(async () => {
+    const res = await apiClient.get("/api/organizationUnit/org-unit");
+    return res.data.data as OrganizationUnit[];
+  }, []);
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm, statusFilter])
-const fetchUnits = async () => {
-    try {
-    setLoading(true);
+    void (async () => {
+      try {
+        setUnits(await fetchUnitsData());
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to fetch organization units");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [fetchUnitsData]);
 
-    const res = await apiClient.get("/api/organizationUnit/org-unit");
+  const totalPages = Math.ceil(filteredUnits.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const currentUnits = filteredUnits.slice(
+    startIndex,
+    startIndex + rowsPerPage,
+  );
 
-    setUnits(res.data.data);
-  } catch (error) {
-    console.error(error);
-    toast.error("Failed to fetch organization units");
-  } finally {
-    setLoading(false);
-  }
+  const handleAddClick = () => {
+    setEditingUnit(null);
+    setIsModalOpen(true);
+  };
+  const handleEditClick = (row: OrganizationUnit) => {
+    setEditingUnit(row);
+    setIsModalOpen(true);
+  };
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingUnit(null);
   };
 
-  useEffect(() => {
-  
-  fetchUnits();
-}, []);
-
-  const totalPages = Math.ceil(filteredUnits.length / rowsPerPage)
-  const startIndex = (currentPage - 1) * rowsPerPage
-  const currentUnits = filteredUnits.slice(startIndex, startIndex + rowsPerPage)
-
-const handleAddClick = () => {
-  setEditingUnit(null);
-  setIsModalOpen(true);
-};
- const handleEditClick = (row: OrganizationUnit) => {
-    setEditingUnit(row)
-    setIsModalOpen(true)
-  }
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setEditingUnit(null)
-  }
-
   const handleSaveUnit = async (data: OrgUnitFormData) => {
-    setLoading(true)
+    setLoading(true);
     const isEdit = editingUnit !== null;
     try {
       if (isEdit) {
         await apiClient.put(
-    `/api/organizationUnit/org-unit/${editingUnit.id}`,
-    data
-  );
-     toast.error('Failed to save')
-    }
-      
-       else {
-        await apiClient.post(
-    "/api/organizationUnit/org-unit",
-    data
-  );
-    }
-      fetchUnits();
-      toast.success(`Org unit ${isEdit? 'updated' : 'created'} successfully!`)
-      setIsModalOpen(false)
-      setEditingUnit(null)
-    } catch (error) {
-      toast.error(`Failed to ${isEdit? 'update' : 'create'} org unit`)
+          `/api/organizationUnit/org-unit/${editingUnit.id}`,
+          data,
+        );
+        // toast.error("Failed to save");
+      } else {
+        await apiClient.post("/api/organizationUnit/org-unit", data);
+      }
+      setUnits(await fetchUnitsData());
+      toast.success(`Org unit ${isEdit ? "updated" : "created"} successfully!`);
+      setIsModalOpen(false);
+      setEditingUnit(null);
+    } catch {
+      toast.error(`Failed to ${isEdit ? "update" : "create"} org unit`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleDeleteClick = (row: OrganizationUnit) => {
-    setUnitToDelete(row)
-    setDeleteModalOpen(true)
-  }
+    setUnitToDelete(row);
+    setDeleteModalOpen(true);
+  };
 
   const handleConfirmDelete = async () => {
-     if (!unitToDelete) return;
+    if (!unitToDelete) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    await apiClient.delete(
-      `/api/organizationUnit/org-unit/${unitToDelete.id}`
-    );
+    try {
+      await apiClient.delete(
+        `/api/organizationUnit/org-unit/${unitToDelete.id}`,
+      );
 
-    // Refresh table
-    await fetchUnits();
+      // Refresh table
+      setUnits(await fetchUnitsData());
 
-    toast.success(
-      `${unitToDelete.organizationUnit} deleted successfully`
-    );
+      toast.success(`${unitToDelete.organizationUnit} deleted successfully`);
 
-    setDeleteModalOpen(false);
-    setUnitToDelete(null);
-  } catch (error) {
-    console.error(error);
-    toast.error("Failed to delete org unit");
-  } finally {
-    setLoading(false);
-  }
-  }
+      setDeleteModalOpen(false);
+      setUnitToDelete(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete org unit");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="page-shell">
@@ -210,69 +218,75 @@ const handleAddClick = () => {
         <div>
           <h2 className="page-title">Org Unit</h2>
           <p className="page-subtitle">
-            {filteredUnits.length} {filteredUnits.length === 1? 'unit' : 'units'} across all groups
+            {filteredUnits.length}{" "}
+            {filteredUnits.length === 1 ? "unit" : "units"} across all groups
           </p>
         </div>
-        
+
         <div className="page-actions">
           <div className="relative" ref={exportRef}>
-          <button 
-        onClick={()=>setExportOpen(!exportOpen)}
-          className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4" >
-            <Download size={16} />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-          {exportOpen && filteredUnits.length>0 && (
-            <div className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg z-10">
-              <button 
-              onClick={()=>{
-                 exportToCSV(filteredUnits, orgUnitColumns,'org-units.csv')
-                setExportOpen(false)}
-              }
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-              >
+            <button
+              onClick={() => setExportOpen(!exportOpen)}
+              className="flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-[linear-gradient(#F3F4F6,#E5E7EB)] px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:px-4"
+            >
+              <Download size={16} />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+            {exportOpen && filteredUnits.length > 0 && (
+              <div className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg z-10">
+                <button
+                  onClick={() => {
+                    exportToCSV(filteredUnits, orgUnitColumns, "org-units.csv");
+                    setExportOpen(false);
+                  }}
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                >
                   Export to CSV
-              </button>
-              <button
-                onClick={() =>
-                {  exportToPDF(filteredUnits, orgUnitColumns, {
-                    filename: 'org-units.pdf',
-                    title: 'Org Units',
-                  })
-                setExportOpen(false)
-                }
-                }
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Export to PDF
-              </button>
-            </div>
-          )}
+                </button>
+                <button
+                  onClick={() => {
+                    exportToPDF(filteredUnits, orgUnitColumns, {
+                      filename: "org-units.pdf",
+                      title: "Org Units",
+                    });
+                    setExportOpen(false);
+                  }}
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Export to PDF
+                </button>
+              </div>
+            )}
           </div>
-          <button
-           onClick={handleAddClick}
-            disabled={loading}
-            className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 sm:px-4"
-          >
-            <Plus size={18} />
-            {loading? 'Adding...' : 'Add Org Unit'}
-          </button>
+          <Can permission="ORG_UNIT_CREATE">
+            <button
+              onClick={handleAddClick}
+              disabled={loading}
+              className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 sm:px-4"
+            >
+              <Plus size={18} />
+              {loading ? "Adding..." : "Add Org Unit"}
+            </button>
+          </Can>
         </div>
       </div>
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative w-full max-w-md flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+          />
           <input
             type="text"
             placeholder="Search units, GSTIN,Manager..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => updateSearchTerm(e.target.value)}
             className="w-full h-10 pl-10 pr-4 rounded-lg border border-gray-200 text-sm focus:outline-none"
           />
           {searchTerm && (
             <button
-              onClick={() => setSearchTerm("")}
+              onClick={clearSearchTerm}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
               <X size={16} />
@@ -283,21 +297,23 @@ const handleAddClick = () => {
           {(["all", "Active", "Inactive"] as const).map((status) => (
             <button
               key={status}
-              onClick={() => setStatusFilter(status)}
+              onClick={() => updateStatusFilter(status)}
               className={`px-4 py-2 rounded-lg text-sm font-medium border transition ${
                 statusFilter === status
-                ? "bg-[#043793] text-white border-[#043793]"
+                  ? "bg-[#043793] text-white border-[#043793]"
                   : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              {status === "all"? "All" : status}
+              {status === "all" ? "All" : status}
             </button>
           ))}
         </div>
       </div>
 
-      {currentUnits.length === 0? (
-        <div className="text-center py-12 text-gray-500">No org units match your filters</div>
+      {currentUnits.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          No org units match your filters
+        </div>
       ) : (
         <>
           <div className="overflow-x-auto">
@@ -321,24 +337,30 @@ const handleAddClick = () => {
 
       {/* CREATE/EDIT MODAL */}
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} maxWidth="2xl">
-        <OrgUnitForm
-          editData={editingUnit}
-          loading={loading}
-          onClose={handleCloseModal}
-          onSave={handleSaveUnit}
-        />
+        <Can permission={editingUnit ? "ORG_UNIT_EDIT" : "ORG_UNIT_CREATE"}>
+          <OrgUnitForm
+            editData={editingUnit}
+            loading={loading}
+            onClose={handleCloseModal}
+            onSave={handleSaveUnit}
+          />
+        </Can>
       </Modal>
 
       {/* DELETE MODAL */}
-      <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} maxWidth="md">
-  <DeleteConfirmForm
-    unitName={unitToDelete?.organizationUnit || ''}
-    loading={loading}
-    onClose={() => setDeleteModalOpen(false)}
-    onConfirm={handleConfirmDelete}
-  />
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        maxWidth="md"
+      >
+        <DeleteConfirmForm
+          unitName={unitToDelete?.organizationUnit || ""}
+          loading={loading}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+        />
       </Modal>
     </div>
-  )
- }
-export default OrganizationUnit
+  );
+}
+export default OrganizationUnit;
