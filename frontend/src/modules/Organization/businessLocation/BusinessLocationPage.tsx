@@ -12,6 +12,7 @@ import {
 import { exportToPDF, ExportColumn } from "@/utils/exportData";
 import { useQueryClient } from "@tanstack/react-query";
 import { deleteBusinessLocation } from "@/services/admin/organization/businessLocation.service";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import Can from "@/context/Can";
 
 const ROWS_PER_PAGE = 10;
@@ -36,18 +37,20 @@ const businessLocationColumns: ExportColumn<BusinessLocationRow>[] = [
 
 function BusinessLocationPage() {
   const queryClient = useQueryClient();
-  // const deleteMutation = useDeleteBusinessLocation()
   const [view, setView] = useState<ViewMode>("list");
   const [selectedLocation, setSelectedLocation] =
     useState<BusinessLocationRow | null>(null);
+  const [locationToDelete, setLocationToDelete] =
+    useState<BusinessLocationRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-const {
-  data: locations = [],
-  isLoading,
-  error,
-} = useBusinessLocations()
+  const {
+    data: locations = [],
+    isLoading,
+    error,
+  } = useBusinessLocations();
 
   const filteredLocations = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
@@ -76,18 +79,28 @@ const {
     setView("edit");
   };
 
-  const handleDelete = async (row: BusinessLocationRow) => {
+  const handleDelete = (row: BusinessLocationRow) => {
+    setLocationToDelete(row);
+  };
+
+  const confirmDelete = async () => {
+    if (!locationToDelete) return;
     try {
-      await deleteBusinessLocation(row.id);
+      setIsDeleting(true);
+      await deleteBusinessLocation(locationToDelete.id);
       await queryClient.invalidateQueries({
         queryKey: BUSINESS_LOCATION_QUERY_KEY,
       });
       toast.success("Business location deleted successfully");
+      setLocationToDelete(null);
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Failed to delete business location");
+    } finally {
+      setIsDeleting(false);
     }
   };
+
   if (view === "create") {
     return (
       <BusinessLocationForm
@@ -106,9 +119,6 @@ const {
       />
     );
   }
-  // if (view === 'form') {
-  //   return <BusinessLocationForm onBack={() => setView('list')} onSaved={() => setView('list')} />
-  // }
 
   return (
     <div className="page-shell">
@@ -200,6 +210,17 @@ const {
         endIndex={startIndex + ROWS_PER_PAGE}
         totalItems={filteredLocations.length}
         onPageChange={setCurrentPage}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={locationToDelete !== null}
+        title="Delete Business Location"
+        message={`Are you sure you want to delete "${locationToDelete?.locationName}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setLocationToDelete(null)}
+        disabled={isDeleting}
       />
     </div>
   );
