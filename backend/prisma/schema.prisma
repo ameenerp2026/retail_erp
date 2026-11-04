@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["finance", "organization", "public", "user"]
+  schemas  = ["finance", "organization", "public", "user", "inventory"]
 }
 
 model User {
@@ -18,25 +18,30 @@ model User {
   role Roles @default(EMPLOYEE)
 
   // Reporting manager
-  reportingManagerId Int?
+  reportingManagerId  Int?
+  reportingManager    User?             @relation("UserReportingManager", fields: [reportingManagerId], references: [id])
+  directReports       User[]            @relation("UserReportingManager")
+  organizationGroupId Int
+  organizationGroup   OrganizationGroup @relation(fields: [organizationGroupId], references: [id])
 
-  reportingManager User? @relation("UserReportingManager", fields: [reportingManagerId], references: [id])
+  organizationUnitId Int?
+  organizationUnit   OrganizationUnit? @relation(fields: [organizationUnitId], references: [id])
 
-  directReports User[] @relation("UserReportingManager")
-
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   userRoles UserRole[]
 
-  createdAccountingYears AccountingYear[] @relation("CreatedAccountingYears")
-  updatedAccountingYears AccountingYear[] @relation("UpdatedAccountingYears")
-  createdGSTINs          GSTIN[]          @relation("UserCreatedGSTINs")
-  createdGstStates       GstState[]       @relation("GstStateCreatedBy")
-  updatedGstStates       GstState[]       @relation("GstStateUpdatedBy")
+  createdAccountingYears      AccountingYear[]    @relation("CreatedAccountingYears")
+  updatedAccountingYears      AccountingYear[]    @relation("UpdatedAccountingYears")
+  createdGSTINs               GSTIN[]             @relation("UserCreatedGSTINs")
+  createdGstStates            GstState[]          @relation("GstStateCreatedBy")
+  updatedGstStates            GstState[]          @relation("GstStateUpdatedBy")
   performedFinanceMonthAudits FinanceMonthAudit[] @relation("PerformedFinanceMonthAudits")
 
-
+  @@index([organizationGroupId])
+  @@index([organizationUnitId])
   @@schema("user")
 }
 
@@ -173,6 +178,7 @@ model OrganizationGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  users             User[]
   organizationUnits OrganizationUnit[]
   roles             Role[]
   userRoles         UserRole[]
@@ -195,8 +201,8 @@ model OrganizationUnit {
   state   String
   address String
 
-  status String @default("Active")
-
+  status            String             @default("Active")
+  users             User[]
   gstins            GSTIN[]
   businessLocations BusinessLocation[]
   ledgers           Ledger[]
@@ -253,8 +259,8 @@ model FinanceMonth {
   financeStatus FinanceStatus @default(Open)
 
   accountingYearId Int
-  accountingYear   AccountingYear @relation(fields: [accountingYearId], references: [id], onDelete: Cascade)
-  auditLogs FinanceMonthAudit[]
+  accountingYear   AccountingYear      @relation(fields: [accountingYearId], references: [id], onDelete: Cascade)
+  auditLogs        FinanceMonthAudit[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -269,6 +275,7 @@ enum FinanceStatus {
 
   @@schema("organization")
 }
+
 model FinanceMonthAudit {
   id             Int          @id @default(autoincrement())
   financeMonthId Int
@@ -794,7 +801,6 @@ model EWayBill {
   @@schema("finance")
 }
 
-
 enum AuditLogLevel {
   INFO
   SUCCESS
@@ -820,4 +826,28 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([level, createdAt])
   @@schema("public")
+}
+
+/**
+ * inventory module schemas
+ */
+enum MasterStatus {
+  ACTIVE
+  INACTIVE
+
+  @@schema("inventory")
+}
+
+model Uom {
+  id Int @id @default(autoincrement())
+
+  code        String       @unique
+  name        String       @unique
+  status      MasterStatus @default(ACTIVE)
+  createdById Int
+  updatedById Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@schema("inventory")
 }

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-hot-toast'
 import { X } from 'lucide-react'
@@ -21,8 +21,8 @@ export default function AccountClassForm({ onClose, onSuccess, editingRecord }: 
 
   const {
     register,
+    control,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<AccountClassFormData>({
@@ -47,7 +47,7 @@ useEffect(() => {
   }
 }, [editingRecord, accountGroups, reset])
 
-  const currentStatus = watch('status')
+  const currentStatus = useWatch({ name: 'status', control })
 
   async function onSubmit(data: AccountClassFormData) {
     try {
@@ -68,11 +68,14 @@ useEffect(() => {
 
       onSuccess?.()
       onClose()
-    } catch (err: any) {
+    } catch (err) {
+      const apiError = err as {
+        response?: { data?: { errors?: Record<string, string[]>; error?: string } }
+      }
       const message =
-        err?.response?.data?.errors?.className?.[0] ||
-        err?.response?.data?.errors?.accountGroupId?.[0] ||
-        err?.response?.data?.error ||
+        apiError?.response?.data?.errors?.className?.[0] ||
+        apiError?.response?.data?.errors?.accountGroupId?.[0] ||
+        apiError?.response?.data?.error ||
         'Something went wrong. Please try again.'
       toast.error(message)
     }
@@ -124,7 +127,7 @@ useEffect(() => {
       }`}
     >
       <option value="">Select account group</option>
-      {accountGroups?.map((g: any) => (
+      {accountGroups?.map((g: { id: number; rootGroupName: string }) => (
         <option key={g.id} value={g.id}>{g.rootGroupName}</option>
       ))}
     </select>

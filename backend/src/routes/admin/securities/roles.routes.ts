@@ -5,6 +5,7 @@ import { authorize } from '../../../middleware/authorize.js'
 
 import {
   getRolesHandler,
+  getPermissionsHandler,
   getRoleByIdHandler,
   createRoleHandler,
   updateRoleHandler,
@@ -17,6 +18,7 @@ const router = Router()
 router.use(authMiddleware)
 
 router.get('/', authorize('ROLE_VIEW'), getRolesHandler)
+router.get('/permissions', authorize('ROLE_VIEW'), getPermissionsHandler)
 router.get('/:id', authorize('ROLE_VIEW'), getRoleByIdHandler)
 
 router.post('/', authorize('ROLE_CREATE'), createRoleHandler)

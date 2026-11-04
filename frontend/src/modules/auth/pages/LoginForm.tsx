@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { SyntheticEvent } from 'react'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/useAuth'
 import apiClient from '../../../services/apiClient'
 import toast from 'react-hot-toast'
 
@@ -24,8 +24,10 @@ function LoginForm() {
         login(response.data.token, response.data.user)
         
       }
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Invalid email or password'
+    } catch (err) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || 'Invalid email or password'
       toast.error(msg)
     } finally {
       setLoading(false)

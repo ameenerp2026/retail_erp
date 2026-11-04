@@ -9,10 +9,10 @@ export const useGetFinanceMonths = () => {
   })
 }
 
-export const useGetFinanceActivity = (periodId?: number | string) => {
+export const useGetFinanceActivity = () => {
   return useQuery({
-    queryKey: ['finance-activity', periodId],
-    queryFn: () => getActivity(periodId),
+    queryKey: ['finance-activity'],
+    queryFn: getActivity,
     staleTime: 1000 * 60 * 10,
   })
 }

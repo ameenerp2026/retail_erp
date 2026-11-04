@@ -9,7 +9,8 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import CurrencyCard from "@/modules/Finance/components/Currency/CurrencyCard";
 import CurrencyForm from "@/modules/Finance/components/Currency/CurrencyForm";
 import type { CurrencyFormData } from "@/components/forms/validate.schema";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/useAuth";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function CurrencyPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);

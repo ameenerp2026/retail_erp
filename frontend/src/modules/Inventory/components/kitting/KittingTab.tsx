@@ -24,6 +24,11 @@ import SectionLabel from '../shared/SectionLabel'
 import toast from 'react-hot-toast'
 import { exportToCSV } from '@/utils/exportData'
 
+// Deterministic code generator (module-scope counter) — replaces the impure
+// `Math.random()` fallback that is not allowed during render.
+let bundleCodeCounter = 0
+const nextBundleCode = () => `BND-NEW-${100 + (bundleCodeCounter++ % 900)}`
+
 // Currency formatter matching Figma: e.g. ₹51.2K, ₹8.9K, ₹780, ₹63.0K
 const formatKPrice = (amount?: number) => {
   if (amount === undefined || amount === null) return '—'
@@ -100,7 +105,7 @@ function BundleDrawer({
 
     onSave({
       bundleName: bundleName.trim(),
-      bundleCode: bundleCode || `BND-NEW-${Math.floor(100 + Math.random() * 900)}`,
+      bundleCode: bundleCode || nextBundleCode(),
       type: (bundleType as 'Bundle' | 'Kit') || 'Bundle',
       components,
       totalCost,
@@ -432,7 +437,7 @@ export default function KittingTab() {
       title: '',
       key: 'actions',
       width: 50,
-      render: (_: any, record: Bundle) => (
+      render: (_: unknown, record: Bundle) => (
         <Dropdown
           menu={{
             items: [

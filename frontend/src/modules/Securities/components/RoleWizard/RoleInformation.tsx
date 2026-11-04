@@ -1,6 +1,7 @@
 import React from 'react'
 import type {AccessLevel, RoleWizardData} from '../../pages/RoleWizard'
 import { UserRound, Users,Shield, Crown,Info, ArrowLeft, ArrowRight } from 'lucide-react';
+import type { OrganizationGroupOption, RoleScope } from '@/services/admin/securities/role.service'
 
 
 const accessLevels = [
@@ -33,17 +34,31 @@ const accessLevels = [
 interface Props{
     roledata: RoleWizardData;
     setRoleData:React.Dispatch<React.SetStateAction<RoleWizardData>>;
-    onNext: ()=> void
-    
+    onNext: ()=> void;
+    onCancel: () => void;
+    organizationGroups: OrganizationGroupOption[];
+    groupsLoading: boolean;
+    groupsError?: string;
 }
 function RoleInformation({
    roledata,
    setRoleData,
-   onNext
+   onNext,
+   onCancel,
+   organizationGroups,
+   groupsLoading,
+   groupsError,
 
 }:Props) {
 
   const isValid = roledata.roleName.trim().length  > 0;
+  const canContinue =
+    isValid &&
+    roledata.organizationGroupId > 0 &&
+    organizationGroups.some((group) => group.id === roledata.organizationGroupId) &&
+    organizationGroups.length > 0 &&
+    !groupsLoading &&
+    !groupsError
 
   const updateField =<K extends keyof RoleWizardData>(
     field:K,
@@ -77,6 +92,62 @@ function RoleInformation({
         </p>
         </div>
 
+        <div className='mt-5 grid gap-4 sm:grid-cols-2'>
+          <div>
+            <label className='mb-2 block text-sm font-medium text-slate-500'>
+              Organization Group <span className='text-red-500'>*</span>
+            </label>
+            <select
+              value={roledata.organizationGroupId || ''}
+              onChange={(event) =>
+                setRoleData((prev) => ({
+                  ...prev,
+                  organizationGroupId: Number(event.target.value),
+                }))
+              }
+              disabled={groupsLoading || !!groupsError}
+              className='w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#043793] disabled:bg-slate-100'
+            >
+              <option value=''>
+                {groupsLoading ? 'Loading groups...' : 'Select a group'}
+              </option>
+              {organizationGroups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.shortName} — {group.companyName}
+                </option>
+              ))}
+            </select>
+            {!groupsLoading && !groupsError && organizationGroups.length === 0 && (
+              <p className='mt-2 text-xs text-red-600'>
+                Create an organization group before adding a role.
+              </p>
+            )}
+            {groupsError && (
+              <p role='alert' className='mt-2 text-xs text-red-600'>
+                Failed to load organization groups: {groupsError}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className='mb-2 block text-sm font-medium text-slate-500'>
+              Scope <span className='text-red-500'>*</span>
+            </label>
+            <select
+              value={roledata.scope}
+              onChange={(event) =>
+                setRoleData((prev) => ({
+                  ...prev,
+                  scope: event.target.value as RoleScope,
+                }))
+              }
+              className='w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#043793]'
+            >
+              <option value='GROUP'>Organization Group</option>
+              <option value='UNIT'>Organization Unit</option>
+            </select>
+          </div>
+        </div>
+
 
 
 
@@ -103,7 +174,7 @@ function RoleInformation({
 
         <div className='mt-5'>
             <label className='mb-3 block text-sm font-medium text-slate-600'>
-               Access Leve<span>*</span>
+               Access Level<span>*</span>
             </label>
 
             <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
@@ -112,9 +183,8 @@ function RoleInformation({
                         const Icon = level.icon
                         const selected = roledata.accessLevel ===level.id
                         return(
-                            <div>
+                            <div key={level.id}>
                                  <button
-                key={level.id}
                 type="button"
                 onClick={() =>
                   updateField(
@@ -165,6 +235,7 @@ function RoleInformation({
 
     <button
     type='button'
+    onClick={onCancel}
     className='flex items-center gap-2 rounded-xl px-4 py-2 text-sm text-slate-500'
     >
 
@@ -177,8 +248,9 @@ function RoleInformation({
      <button
     type='button'
     onClick={onNext}
+    disabled={!canContinue}
     className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium text-white
-    ${isValid?
+    ${canContinue?
       "bg-[#043793] hover:bg-[#03296e]"
       : "cursor-not-allowed bg-slate-300"
     }

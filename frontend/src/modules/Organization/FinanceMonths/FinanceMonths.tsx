@@ -1,94 +1,117 @@
-import { useMemo, useState } from 'react'
-import { Download, Plus, RefreshCw } from 'lucide-react'
-import PeriodTable from './components/FinanceTable'
-import FinanceSetupStatCards from './components/FinanceSetupStatCards'
-import FinanceActivityTimeline from './components/FinanceActivityTimeline'
-import PeriodDetailPanel from './components/FinanceDetailPanel'
-import FinanceFilters, {
+import { useMemo, useState } from "react";
+import { Download, Plus, RefreshCw } from "lucide-react";
+import PeriodTable from "./components/FinanceTable";
+import FinanceSetupStatCards from "./components/FinanceSetupStatCards";
+import FinanceActivityTimeline from "./components/FinanceActivityTimeline";
+import PeriodDetailPanel from "./components/FinanceDetailPanel";
+import { useAuth } from "@/context/useAuth";
+import FinanceFilters from "./components/FinanceFilters";
+import {
   DEFAULT_FINANCE_FILTERS,
   type FinanceFilterState,
-} from './components/FinanceFilters'
+} from "./financeFilterState";
 import {
   useGetFinanceMonths,
   useGetFinanceActivity,
-} from '@/hooks/admin/organization/useFinanceService'
-import type { FinancePeriod, FinanceStat } from '@/types/finance'
-import { formatDate, formatDateTime } from '@/utils/dateFormat'
-import { exportToPDF, type ExportColumn } from '@/utils/exportData'
+} from "@/hooks/admin/organization/useFinanceService";
+import type { FinancePeriod, FinanceStat } from "@/types/finance";
+import { formatDate, formatDateTime } from "@/utils/dateFormat";
+import { exportToPDF, type ExportColumn } from "@/utils/exportData";
 
 const financeColumns: ExportColumn<FinancePeriod>[] = [
-  { header: 'Period', accessor: (p) => p.period },
-  { header: 'Start Date', accessor: (p) => (p.startDate ? formatDate(p.startDate) : '—') },
-  { header: 'End Date', accessor: (p) => (p.endDate ? formatDate(p.endDate) : '—') },
-  { header: 'Finance Status', accessor: (p) => p.financeStatus },
+  { header: "Period", accessor: (p) => p.period },
   {
-    header: 'Last Modified',
+    header: "Start Date",
+    accessor: (p) => (p.startDate ? formatDate(p.startDate) : "—"),
+  },
+  {
+    header: "End Date",
+    accessor: (p) => (p.endDate ? formatDate(p.endDate) : "—"),
+  },
+  { header: "Finance Status", accessor: (p) => p.financeStatus },
+  {
+    header: "Last Modified",
     accessor: (p) =>
       p.updatedAt
         ? formatDateTime(p.updatedAt)
         : p.lastModified
-        ? formatDateTime(p.lastModified)
-        : '—',
+          ? formatDateTime(p.lastModified)
+          : "—",
   },
-]
+];
 
 export default function FinanceMonths() {
-  const [draftFilters, setDraftFilters] = useState<FinanceFilterState>(DEFAULT_FINANCE_FILTERS)
-  const [appliedFilters, setAppliedFilters] = useState<FinanceFilterState>(DEFAULT_FINANCE_FILTERS)
-  const [selectedPeriod, setSelectedPeriod] = useState<FinancePeriod | null>(null)
+  const { hasPermission } = useAuth();
+  const [draftFilters, setDraftFilters] = useState<FinanceFilterState>(
+    DEFAULT_FINANCE_FILTERS,
+  );
+  const [appliedFilters, setAppliedFilters] = useState<FinanceFilterState>(
+    DEFAULT_FINANCE_FILTERS,
+  );
+  const [selectedPeriod, setSelectedPeriod] = useState<FinancePeriod | null>(
+    null,
+  );
 
-  const { data: financeMonths = [], isLoading: periodsLoading } = useGetFinanceMonths()
-  const { data: activity = [] } = useGetFinanceActivity()
+  const { data: financeMonths = [], isLoading: periodsLoading } =
+    useGetFinanceMonths();
+  const { data: activity = [] } = useGetFinanceActivity();
 
   const filteredPeriods = useMemo(() => {
-    const { search, status } = appliedFilters
-    const needle = search.trim().toLowerCase()
+    const { search, status } = appliedFilters;
+    const needle = search.trim().toLowerCase();
 
-    return financeMonths.filter((period: any) => {
-      if (status !== 'All' && period.financeStatus?.toUpperCase() !== status.toUpperCase()) {
-        return false
+    return financeMonths.filter((period: FinancePeriod) => {
+      if (
+        status !== "All" &&
+        period.financeStatus?.toUpperCase() !== status.toUpperCase()
+      ) {
+        return false;
       }
       if (needle && !period.period?.toLowerCase().includes(needle)) {
-        return false
+        return false;
       }
-      return true
-    })
-  }, [financeMonths, appliedFilters])
+      return true;
+    });
+  }, [financeMonths, appliedFilters]);
 
   const stats = useMemo<FinanceStat[]>(() => {
     const openCount = financeMonths.filter(
-      (x: any) => x.financeStatus?.toUpperCase() === 'OPEN'
-    ).length
+      (x: FinancePeriod) => x.financeStatus?.toUpperCase() === "OPEN",
+    ).length;
     const closedCount = financeMonths.filter(
-      (x: any) => x.financeStatus?.toUpperCase() === 'CLOSED'
-    ).length
+      (x: FinancePeriod) => x.financeStatus?.toUpperCase() === "CLOSED",
+    ).length;
     const provisionalCount = financeMonths.filter(
-      (x: any) => x.financeStatus?.toUpperCase() === 'PROVISIONAL'
-    ).length
+      (x: FinancePeriod) => x.financeStatus?.toUpperCase() === "PROVISIONAL",
+    ).length;
 
     return [
       {
-        id: 'open',
-        type: 'open',
-        label: 'Open Periods',
+        id: "open",
+        type: "open",
+        label: "Open Periods",
         value: String(openCount || 5),
       },
       {
-        id: 'closed',
-        type: 'closed',
-        label: 'Closed Periods',
+        id: "closed",
+        type: "closed",
+        label: "Closed Periods",
         value: String(closedCount || 3),
       },
       {
-        id: 'provisional',
-        type: 'provisional',
-        label: 'Provisional',
+        id: "provisional",
+        type: "provisional",
+        label: "Provisional",
         value: String(provisionalCount || 2),
       },
-    ]
-  }, [financeMonths])
+    ];
+  }, [financeMonths]);
 
-  const applyFilters = () => setAppliedFilters(draftFilters)
+  const applyFilters = () => setAppliedFilters(draftFilters);
+
+  if (!hasPermission("ACCOUNT_GROUP_VIEW")) {
+    return <p>You do not have permission to view finance months.</p>;
+  }
 
   return (
     <div className="page-shell">
@@ -96,7 +119,8 @@ export default function FinanceMonths() {
         <div>
           <h1 className="page-title">Finance Months</h1>
           <p className="page-subtitle">
-            Manage and monitor finance period status across all organization units
+            Manage and monitor finance period status across all organization
+            units
           </p>
         </div>
         <div className="page-actions">
@@ -104,8 +128,8 @@ export default function FinanceMonths() {
             type="button"
             onClick={() =>
               exportToPDF(filteredPeriods, financeColumns, {
-                filename: 'finance-months.pdf',
-                title: 'Finance Months',
+                filename: "finance-months.pdf",
+                title: "Finance Months",
               })
             }
             className="flex h-9 items-center gap-2 rounded-[14px] border border-slate-200 bg-[#F5F7FB] px-3 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 sm:px-4 cursor-pointer"
@@ -125,7 +149,9 @@ export default function FinanceMonths() {
             className="flex h-9 items-center gap-2 rounded-[14px] bg-[linear-gradient(#093055,#043793)] px-3 text-xs font-semibold text-white transition hover:opacity-95 sm:px-4 cursor-pointer"
           >
             <Plus size={13} />
-            <span className="hidden xs:inline sm:inline">Create Adjustment</span>
+            <span className="hidden xs:inline sm:inline">
+              Create Adjustment
+            </span>
           </button>
         </div>
       </div>
@@ -134,7 +160,11 @@ export default function FinanceMonths() {
       <FinanceSetupStatCards stats={stats} />
 
       {/* Filters — FY · Organization · Search · Status · Apply */}
-      <FinanceFilters value={draftFilters} onChange={setDraftFilters} onApply={applyFilters} />
+      <FinanceFilters
+        value={draftFilters}
+        onChange={setDraftFilters}
+        onApply={applyFilters}
+      />
 
       {/* Table + Activity Timeline / Detail Panel */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -153,5 +183,5 @@ export default function FinanceMonths() {
         )}
       </div>
     </div>
-  )
+  );
 }

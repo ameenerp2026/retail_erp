@@ -466,7 +466,7 @@ export default function TaxTab() {
       title: '',
       key: 'actions',
       width: 50,
-      render: (_: any, record: TaxConfig) => (
+      render: (_: unknown, record: TaxConfig) => (
         <Dropdown
           menu={{
             items: [

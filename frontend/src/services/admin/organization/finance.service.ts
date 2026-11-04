@@ -24,7 +24,7 @@ export const getFinanceStats = async (): Promise<FinanceStat[]> => {
   })
 }
 
-export const getActivity = async (_periodId?: number | string): Promise<ActivityItem[]> => {
+export const getActivity = async (): Promise<ActivityItem[]> => {
   return fromMockOrApi(MOCK_FINANCE_ACTIVITY, async () => {
     return MOCK_FINANCE_ACTIVITY
   })

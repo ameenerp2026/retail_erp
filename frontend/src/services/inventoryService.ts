@@ -13,7 +13,6 @@ import apiClient from '@/services/apiClient'
 import { fromMockOrApi } from '@/services/dataSource'
 
 const API_BASE = '/api/organization/inventory-months'
-
 export const inventoryService = {
   getStats: () =>
     fromMockOrApi(MOCK_STATS, () =>

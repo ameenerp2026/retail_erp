@@ -80,7 +80,7 @@ export default function ProductsTab() {
       title: 'Product Name',
       dataIndex: 'productName',
       width: 230,
-      render: (_: any, r: Product) => (
+      render: (_: unknown, r: Product) => (
         <div className="flex flex-col">
           <span className="font-semibold text-slate-900 text-xs">{r.productName}</span>
           <span className="text-[11px] text-slate-400 font-mono">{r.prdCode || `PRD-00${r.id}`}</span>
@@ -91,7 +91,7 @@ export default function ProductsTab() {
       title: 'Category',
       dataIndex: 'category',
       width: 110,
-      render: (_: any, r: Product) => (
+      render: (_: unknown, r: Product) => (
         <span className="text-xs text-slate-600">{r.department || r.category || r.group}</span>
       ),
     },
@@ -148,7 +148,7 @@ export default function ProductsTab() {
       title: 'Modified',
       dataIndex: 'lastModified',
       width: 110,
-      render: (_: any, r: Product) => (
+      render: (_: unknown, r: Product) => (
         <span className="text-xs text-slate-500 font-mono">{r.modified || r.lastModified || '2025-01-15'}</span>
       ),
     },
@@ -198,6 +198,7 @@ export default function ProductsTab() {
       />
 
       <CreateProductDrawer
+        key={`${selected?.id ?? 'new'}-open`}
         isOpen={createOpen || !!selected}
         onClose={() => {
           setCreateOpen(false)
