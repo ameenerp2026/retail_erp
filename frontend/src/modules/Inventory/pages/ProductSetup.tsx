@@ -10,12 +10,13 @@ import TaxTab from '../components/tax/TaxTab'
 import VendorMappingTab from '../components/vendors/VendorMappingTab'
 import BarcodeTab from '../components/barcode/BarcodeTab'
 import InventoryConfigTab from '../components/config/InventoryConfigTab'
+import ActivityTab from '../components/activity/ActivityTab'
 import KittingTab from '../components/kitting/KittingTab'
 
 export default function ProductSetup() {
   return (
     <div className="page-shell">
-      {/* In-page 9-tab toolbar */}
+      {/* In-page tabs toolbar */}
       <div className="flex items-center gap-5 sm:gap-6 overflow-x-auto border-b border-slate-200 bg-white px-4 sm:px-6 scrollbar-none">
         {PRODUCT_SETUP_TABS.map((tab) => {
           const Icon = tab.icon;
@@ -52,6 +53,7 @@ export default function ProductSetup() {
           <Route path="vendors" element={<VendorMappingTab />} />
           <Route path="barcode" element={<BarcodeTab />} />
           <Route path="inv-config" element={<InventoryConfigTab />} />
+          <Route path="activity" element={<ActivityTab />} />
           <Route path="kitting" element={<KittingTab />} />
         </Routes>
       </div>
