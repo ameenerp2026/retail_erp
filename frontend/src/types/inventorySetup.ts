@@ -138,6 +138,13 @@ export type VendorMapping = {
 
 /* ---------------- Tax ---------------- */
 
+export type HsnRateOption = {
+  id: number
+  code: string
+  description: string | null
+  gstRate: number | null
+}
+
 export type TaxConfig = {
   id: string
   taxId: string
@@ -145,6 +152,7 @@ export type TaxConfig = {
   productName: string
   hsnSac: string
   taxGroup: string
+  gstRate: number
   cgst: number
   sgst: number
   igst: number
@@ -154,11 +162,11 @@ export type TaxConfig = {
 }
 
 export type TaxDraft = {
+  productCode?: string
+  productName?: string
   taxGroup: string
   hsnSac: string
-  cgst: number
-  sgst: number
-  igst: number
+  gstRate: number
   cess: number
   effectiveDate: string
   isDefault: boolean

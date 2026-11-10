@@ -851,3 +851,23 @@ model Uom {
 
   @@schema("inventory")
 }
+
+model TaxConfig {
+  id            Int      @id @default(autoincrement())
+  taxId         String   @unique @map("tax_id") @db.VarChar(20)
+  productCode   String   @map("product_code") @db.VarChar(60)
+  productName   String   @map("product_name") @db.VarChar(200)
+  hsnSac        String?  @map("hsn_sac") @db.VarChar(20)
+  taxGroup      String   @map("tax_group") @db.VarChar(80)
+  gstRate       Decimal  @db.Decimal(5, 2)
+  cess          Decimal  @default(0) @db.Decimal(5, 2)
+  effectiveDate DateTime @map("effective_date")
+  isDefault     Boolean  @default(false) @map("is_default")
+  createdById   Int?     @map("created_by_id")
+  updatedById   Int?     @map("updated_by_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("tax_configs")
+  @@schema("inventory")
+}

@@ -21,7 +21,6 @@ import {
   MOCK_UOMS,
   MOCK_PRICE_RULES,
   MOCK_VENDOR_MAPPINGS,
-  MOCK_TAX_CONFIGS,
   MOCK_BARCODES,
   BARCODE_STATS,
   MOCK_INVENTORY_CONFIG,
@@ -29,6 +28,7 @@ import {
 } from '@/mocks/inventorySetup.mock'
 import apiClient from '@/services/apiClient'
 import { fromMockOrApi } from '@/services/dataSource'
+import { taxService } from '@/services/inventory/productSetup/tax.service'
 
 /**
  * API contract for the Inventory Product Setup module (implemented backend-side later).
@@ -85,10 +85,8 @@ export const inventorySetupService = {
     ),
 
   /* Tax */
-  getTaxConfigs: () =>
-    fromMockOrApi(MOCK_TAX_CONFIGS, () =>
-      apiClient.get<TaxConfig[]>(`${API_BASE}/tax-configs`).then((res) => res.data)
-    ),
+  getTaxConfigs: (): Promise<TaxConfig[]> =>
+    taxService.getTaxConfigs().then((res) => res.items),
 
   /* Barcode */
   getBarcodes: () =>

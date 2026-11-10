@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef } from 'react'
+import axios from 'axios'
 import {
   MoreHorizontal,
   Plus,
@@ -14,15 +15,25 @@ import {
 } from 'lucide-react'
 import { Dropdown } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
 import ReusableTable from '@/components/shared/ReusableTable'
-import { useQuery } from '@tanstack/react-query'
-import { inventorySetupService } from '@/services/inventorySetupService'
-import type { TaxConfig } from '@/types/inventorySetup'
 import { Modal } from '@/components/shared/Modal'
+import { exportToCSV } from '@/utils/exportData'
+import type { HsnRateOption, TaxConfig } from '@/types/inventorySetup'
+import {
+  taxService,
+  type SaveTaxConfigPayload,
+} from '@/services/inventory/productSetup/tax.service'
+import {
+  deriveGstComponents,
+  findMatchingHsnOption,
+  formatCalculatedGstFields,
+  toIsoDateInput,
+  validatePercentageRate,
+} from '@/utils/gstCalculations'
 import { FieldWrap, SelectInput, TextInput, Toggle, DrawerFooter } from '../shared/formControls'
 import SectionLabel from '../shared/SectionLabel'
-import toast from 'react-hot-toast'
-import { exportToCSV } from '@/utils/exportData'
 
 const TAX_GROUP_OPTIONS = [
   'Standard',
@@ -34,55 +45,157 @@ const TAX_GROUP_OPTIONS = [
   'Grocery 5%',
 ]
 
+const TAX_QUERY_KEY = ['inventory-setup-tax'] as const
+const HSN_RATES_QUERY_KEY = ['inventory-setup-hsn-rates'] as const
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError<{ message?: unknown }>(error)) {
+    const msg = error.response?.data?.message
+    if (typeof msg === 'string' && msg.trim()) return msg
+  }
+  if (error instanceof Error && error.message.trim()) return error.message
+  return fallback
+}
+
 function TaxDrawer({
   isOpen,
   onClose,
   initialData,
+  hsnOptions,
+  isSaving,
   onSave,
 }: {
   isOpen: boolean
   onClose: () => void
   initialData?: TaxConfig | null
-  onSave: (data: Partial<TaxConfig>) => void
+  hsnOptions: HsnRateOption[]
+  isSaving?: boolean
+  onSave: (data: SaveTaxConfigPayload) => Promise<void> | void
 }) {
-  const [productCode, setProductCode] = useState(initialData?.productCode || '')
-  const [productName, setProductName] = useState(initialData?.productName || '')
-  const [taxGroup, setTaxGroup] = useState(initialData?.taxGroup || 'Standard')
-  const [hsnSac, setHsnSac] = useState(initialData?.hsnSac || '8517 12 90')
-  const [cgst, setCgst] = useState(initialData?.cgst ?? 18)
-  const [sgst, setSgst] = useState(initialData?.sgst ?? 18)
-  const [igst, setIgst] = useState(initialData?.igst ?? 18)
-  const [cess, setCess] = useState(initialData?.cess ?? 0)
-  const [effectiveDate, setEffectiveDate] = useState(initialData?.effectiveDate || '2026-04-01')
+  const [productCode, setProductCode] = useState(initialData?.productCode ?? '')
+  const [productName, setProductName] = useState(initialData?.productName ?? '')
+  const [taxGroup, setTaxGroup] = useState(initialData?.taxGroup ?? 'Standard')
+  const [hsnSac, setHsnSac] = useState(initialData?.hsnSac ?? '')
+  const [gstRateInput, setGstRateInput] = useState<string>(
+    initialData !== null && initialData !== undefined ? String(initialData.gstRate) : '',
+  )
+  const [cessInput, setCessInput] = useState<string>(
+    initialData !== null && initialData !== undefined ? String(initialData.cess ?? 0) : '0',
+  )
+  const [effectiveDate, setEffectiveDate] = useState(
+    toIsoDateInput(initialData?.effectiveDate),
+  )
   const [isDefault, setIsDefault] = useState(initialData?.isDefault ?? false)
+  const [hsnMatchNote, setHsnMatchNote] = useState<string>('')
+  const [submitAttempted, setSubmitAttempted] = useState(false)
 
-  // Sync state if initialData changes
-  const prevIdRef = useRef(initialData?.id)
-  if (initialData?.id !== prevIdRef.current) {
-    prevIdRef.current = initialData?.id
-    setProductCode(initialData?.productCode || '')
-    setProductName(initialData?.productName || '')
-    setTaxGroup(initialData?.taxGroup || 'Standard')
-    setHsnSac(initialData?.hsnSac || '8517 12 90')
-    setCgst(initialData?.cgst ?? 18)
-    setSgst(initialData?.sgst ?? 18)
-    setIgst(initialData?.igst ?? 18)
-    setCess(initialData?.cess ?? 0)
-    setEffectiveDate(initialData?.effectiveDate || '2026-04-01')
-    setIsDefault(initialData?.isDefault ?? false)
+  // Always derive CGST, SGST, and IGST directly from `gstRateInput` (never NaN)
+  const calculated = useMemo(
+    () => formatCalculatedGstFields(gstRateInput),
+    [gstRateInput],
+  )
+
+  const gstValidation = useMemo(
+    () => validatePercentageRate(gstRateInput, 'GST %', { required: true }),
+    [gstRateInput],
+  )
+
+  const cessValidation = useMemo(
+    () => validatePercentageRate(cessInput, 'CESS %', { required: false, defaultValue: 0 }),
+    [cessInput],
+  )
+
+  const productCodeError =
+    submitAttempted && !productCode.trim() ? 'Product Code is required' : undefined
+  const productNameError =
+    submitAttempted && !productName.trim() ? 'Product Name is required' : undefined
+
+  const gstError = useMemo(() => {
+    const trimmed = gstRateInput.trim()
+    if (trimmed === '') {
+      return submitAttempted ? 'GST % is required' : undefined
+    }
+    if (!submitAttempted && /^\d+\.$/.test(trimmed)) {
+      return undefined
+    }
+    return gstValidation.valid ? undefined : gstValidation.error
+  }, [gstRateInput, gstValidation, submitAttempted])
+
+  const cessError = useMemo(() => {
+    const trimmed = cessInput.trim()
+    if (trimmed === '') return undefined
+    if (!submitAttempted && /^\d+\.$/.test(trimmed)) {
+      return undefined
+    }
+    return cessValidation.valid ? undefined : cessValidation.error
+  }, [cessInput, cessValidation, submitAttempted])
+
+  const applyMatchedHsnRate = (match: HsnRateOption | null) => {
+    if (match && match.gstRate !== null && match.gstRate !== undefined) {
+      setGstRateInput(String(match.gstRate))
+      setHsnMatchNote(
+        `Auto-filled from HSN ${match.code}${match.description ? ` (${match.description})` : ''}`,
+      )
+    }
   }
 
-  const handleSubmit = () => {
-    onSave({
-      productCode: productCode || 'PRD-001',
-      productName: productName || 'Product Item',
-      taxGroup,
-      hsnSac,
-      cgst: Number(cgst),
-      sgst: Number(sgst),
-      igst: Number(igst),
-      cess: Number(cess),
-      effectiveDate,
+  const handleHsnChange = (value: string) => {
+    setHsnSac(value)
+    setHsnMatchNote('')
+    const localMatch = findMatchingHsnOption(value, hsnOptions)
+    if (localMatch) {
+      applyMatchedHsnRate(localMatch)
+    }
+  }
+
+  const handleHsnBlur = async () => {
+    if (!hsnSac.trim()) return
+    const localMatch = findMatchingHsnOption(hsnSac, hsnOptions)
+    if (localMatch) {
+      applyMatchedHsnRate(localMatch)
+      return
+    }
+    const remoteMatch = await taxService.lookupHsnRate(hsnSac)
+    if (remoteMatch) {
+      applyMatchedHsnRate(remoteMatch)
+    }
+  }
+
+  const handleGstChange = (value: string) => {
+    setGstRateInput(value)
+    setHsnMatchNote('')
+  }
+
+  const handleCessChange = (value: string) => {
+    setCessInput(value)
+  }
+
+  const handleSubmit = async () => {
+    setSubmitAttempted(true)
+
+    if (!productCode.trim() || !productName.trim() || !taxGroup.trim()) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    if (!gstValidation.valid) {
+      toast.error(gstValidation.error)
+      return
+    }
+
+    if (!cessValidation.valid) {
+      toast.error(cessValidation.error)
+      return
+    }
+
+    await onSave({
+      productCode: productCode.trim(),
+      productName: productName.trim(),
+      taxGroup: taxGroup.trim(),
+      hsnSac: hsnSac.trim(),
+      gstRate: gstValidation.value,
+      cess: cessValidation.value,
+      effectiveDate: effectiveDate || '2026-04-01',
       isDefault,
     })
   }
@@ -91,12 +204,14 @@ function TaxDrawer({
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="2xl">
       <div className="flex items-start justify-between border-b border-slate-100 px-6 py-4">
         <h3 className="text-base font-bold text-[#043793]">
-          {initialData ? `Edit Tax Configuration (${initialData.taxId})` : 'Create Tax Configuration'}
+          {initialData
+            ? `Edit Tax Configuration (${initialData.taxId})`
+            : 'Create Tax Configuration'}
         </h3>
         <button
           type="button"
           onClick={onClose}
-          className="text-slate-400 hover:text-slate-600 transition"
+          className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
         >
           <span aria-hidden className="text-xl leading-none">
             ×
@@ -104,7 +219,7 @@ function TaxDrawer({
         </button>
       </div>
 
-      <div className="max-h-[60vh] overflow-y-auto px-6 py-5">
+      <div className="max-h-[65vh] overflow-y-auto px-6 py-5">
         <div className="mb-4">
           <SectionLabel>Tax Identity</SectionLabel>
         </div>
@@ -123,26 +238,44 @@ function TaxDrawer({
               placeholder="Select dropdown"
             />
           </FieldWrap>
-          <FieldWrap label="Product Code" required>
+          <FieldWrap label="Product Code" required error={productCodeError}>
             <TextInput
               value={productCode}
               onChange={(v) => setProductCode(v)}
               placeholder="e.g. ELE-SAM-A54"
+              hasError={Boolean(productCodeError)}
             />
           </FieldWrap>
-          <FieldWrap label="Product Name" required>
+          <FieldWrap label="Product Name" required error={productNameError}>
             <TextInput
               value={productName}
               onChange={(v) => setProductName(v)}
               placeholder="e.g. Samsung Galaxy A54 5G"
+              hasError={Boolean(productNameError)}
             />
           </FieldWrap>
-          <FieldWrap label="HSN/SAC Code">
+          <FieldWrap
+            label="HSN/SAC Code"
+            hint={hsnOptions.length > 0 ? 'Select or enter HSN/SAC to auto-fetch GST %' : undefined}
+          >
             <TextInput
               value={hsnSac}
-              onChange={(v) => setHsnSac(v)}
+              onChange={handleHsnChange}
+              onBlur={() => void handleHsnBlur()}
+              list="tax-hsn-sac-list"
               placeholder="e.g. 8517 12 90"
             />
+            {hsnOptions.length > 0 && (
+              <datalist id="tax-hsn-sac-list">
+                {hsnOptions.map((hsn) => (
+                  <option key={hsn.id} value={hsn.code}>
+                    {hsn.description
+                      ? `${hsn.description}${hsn.gstRate !== null ? ` (${hsn.gstRate}% GST)` : ''}`
+                      : undefined}
+                  </option>
+                ))}
+              </datalist>
+            )}
           </FieldWrap>
         </div>
 
@@ -150,36 +283,71 @@ function TaxDrawer({
           <SectionLabel>Tax Rates</SectionLabel>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FieldWrap label="CGST %">
+          {/* 1. GST % — Primary editable input */}
+          <FieldWrap
+            label="GST %"
+            required
+            error={gstError}
+            hint={!gstError && hsnMatchNote ? hsnMatchNote : undefined}
+          >
             <TextInput
-              type="number"
-              value={cgst}
-              onChange={(v) => setCgst(Number(v))}
+              type="text"
+              inputMode="decimal"
+              ariaLabel="GST %"
+              value={gstRateInput}
+              onChange={handleGstChange}
+              placeholder="e.g. 18"
+              hasError={Boolean(gstError)}
+            />
+          </FieldWrap>
+
+          {/* 2. CGST % — Automatically calculated (GST / 2), Read Only */}
+          <FieldWrap label="CGST %" hint="Auto-calculated (GST ÷ 2)">
+            <TextInput
+              type="text"
+              ariaLabel="CGST %"
+              value={calculated.cgst}
+              readOnly
               placeholder="0"
             />
           </FieldWrap>
-          <FieldWrap label="SGST %">
+
+          {/* 3. SGST % — Automatically calculated (GST / 2), Read Only */}
+          <FieldWrap label="SGST %" hint="Auto-calculated (GST ÷ 2)">
             <TextInput
-              type="number"
-              value={sgst}
-              onChange={(v) => setSgst(Number(v))}
+              type="text"
+              ariaLabel="SGST %"
+              value={calculated.sgst}
+              readOnly
               placeholder="0"
             />
           </FieldWrap>
-          <FieldWrap label="IGST %">
+
+          {/* 4. IGST % — Automatically calculated (GST), Read Only */}
+          <FieldWrap label="IGST %" hint="Auto-calculated (Equal to GST)">
             <TextInput
-              type="number"
-              value={igst}
-              onChange={(v) => setIgst(Number(v))}
+              type="text"
+              ariaLabel="IGST %"
+              value={calculated.igst}
+              readOnly
               placeholder="0"
             />
           </FieldWrap>
-          <FieldWrap label="CESS %">
+
+          {/* 5. CESS % — Independently editable (default 0) */}
+          <FieldWrap
+            label="CESS %"
+            error={cessError}
+            hint={!cessError ? 'Applied separately from CGST/SGST/IGST' : undefined}
+          >
             <TextInput
-              type="number"
-              value={cess}
-              onChange={(v) => setCess(Number(v))}
+              type="text"
+              inputMode="decimal"
+              ariaLabel="CESS %"
+              value={cessInput}
+              onChange={handleCessChange}
               placeholder="0"
+              hasError={Boolean(cessError)}
             />
           </FieldWrap>
         </div>
@@ -204,25 +372,37 @@ function TaxDrawer({
 
       <DrawerFooter
         onCancel={onClose}
-        onPrimary={handleSubmit}
+        onPrimary={() => void handleSubmit()}
         primaryLabel={initialData ? 'Update' : 'Save'}
+        primaryDisabled={isSaving}
       />
     </Modal>
   )
 }
 
 export default function TaxTab() {
-  const { data: initialTaxes = [], isLoading } = useQuery({
-    queryKey: ['inventory-setup-tax'],
-    queryFn: inventorySetupService.getTaxConfigs,
+  const queryClient = useQueryClient()
+
+  const { data: taxResponse, isLoading } = useQuery({
+    queryKey: TAX_QUERY_KEY,
+    queryFn: () => taxService.getTaxConfigs(),
   })
 
-  const [taxList, setTaxList] = useState<TaxConfig[]>([])
-  const [initialized, setInitialized] = useState(false)
+  const { data: hsnOptions = [] } = useQuery({
+    queryKey: HSN_RATES_QUERY_KEY,
+    queryFn: () => taxService.getHsnRates(),
+  })
+
+  const [localTaxes, setLocalTaxes] = useState<TaxConfig[] | null>(null)
+  const taxList = useMemo(
+    () => localTaxes ?? taxResponse?.items ?? [],
+    [localTaxes, taxResponse],
+  )
 
   // Drawer / modal states
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<TaxConfig | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Search & Filter
   const [search, setSearch] = useState('')
@@ -234,91 +414,152 @@ export default function TaxTab() {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Sync initial query data
-  if (!initialized && initialTaxes.length > 0) {
-    setTaxList(initialTaxes)
-    setInitialized(true)
-  }
-
-  // Duplicate handler
-  const handleDuplicate = (record: TaxConfig) => {
-    // Determine next sequential TAX ID (e.g. TAX-008, TAX-009)
-    const currentTaxNumbers = taxList
+  const getNextTaxId = (list: TaxConfig[]): string => {
+    const nums = list
       .map((t) => {
         const match = t.taxId.match(/\d+/)
         return match ? parseInt(match[0], 10) : 0
       })
-      .filter((n) => !isNaN(n))
-    const nextNum = (Math.max(0, ...currentTaxNumbers) + 1).toString().padStart(3, '0')
-    const newTaxId = `TAX-${nextNum}`
-
-    const duplicatedItem: TaxConfig = {
-      ...record,
-      id: String(Date.now()),
-      taxId: newTaxId,
-      productName: record.productName,
-    }
-
-    const targetIndex = taxList.findIndex((t) => t.id === record.id)
-    if (targetIndex >= 0) {
-      const updated = [...taxList]
-      updated.splice(targetIndex + 1, 0, duplicatedItem)
-      setTaxList(updated)
-    } else {
-      setTaxList((prev) => [...prev, duplicatedItem])
-    }
-
-    toast.success(`Tax configuration "${record.taxId}" duplicated as "${newTaxId}"`)
+      .filter((n) => !Number.isNaN(n))
+    return `TAX-${String(Math.max(0, ...nums) + 1).padStart(3, '0')}`
   }
 
-  // Edit handler
-  const handleEdit = (record: TaxConfig) => {
-    setEditingItem(record)
+  // Duplicate handler
+  const handleDuplicate = async (record: TaxConfig) => {
+    try {
+      const { item, persistedToBackend } = await taxService.createTaxConfig({
+        productCode: record.productCode,
+        productName: record.productName,
+        taxGroup: record.taxGroup,
+        hsnSac: record.hsnSac,
+        gstRate: record.gstRate,
+        cess: record.cess,
+        effectiveDate: toIsoDateInput(record.effectiveDate),
+        isDefault: record.isDefault,
+      })
+
+      if (persistedToBackend) {
+        await queryClient.invalidateQueries({ queryKey: TAX_QUERY_KEY })
+        setLocalTaxes(null)
+        toast.success(`Tax configuration "${record.taxId}" duplicated as "${item.taxId}"`)
+      } else {
+        const newTaxId = getNextTaxId(taxList)
+        const duplicatedItem: TaxConfig = {
+          ...item,
+          id: String(Date.now()),
+          taxId: newTaxId,
+        }
+        const targetIndex = taxList.findIndex((t) => t.id === record.id)
+        const updated = [...taxList]
+        if (targetIndex >= 0) {
+          updated.splice(targetIndex + 1, 0, duplicatedItem)
+        } else {
+          updated.push(duplicatedItem)
+        }
+        setLocalTaxes(updated)
+        toast.success(`Tax configuration "${record.taxId}" duplicated as "${newTaxId}"`)
+      }
+    } catch (error) {
+      toast.error(extractErrorMessage(error, 'Failed to duplicate tax configuration'))
+    }
+  }
+
+  // Edit handler — fetches latest saved `gstRate` from backend when available
+  const handleEdit = async (record: TaxConfig) => {
+    let targetRecord = record
+
+    if (taxResponse?.fromFallback === false) {
+      try {
+        const fresh = await taxService.getTaxConfigById(record.id)
+        if (fresh) {
+          targetRecord = fresh
+        }
+      } catch {
+        // Keep record data already shown in table if fetch errors
+      }
+    }
+
+    setEditingItem(targetRecord)
     setDrawerOpen(true)
   }
 
   // Delete handler
-  const handleDelete = (record: TaxConfig) => {
-    setTaxList((prev) => prev.filter((t) => t.id !== record.id))
-    toast.success(`Tax configuration "${record.taxId}" deleted`)
+  const handleDelete = async (record: TaxConfig) => {
+    try {
+      const { deletedInBackend } = await taxService.deleteTaxConfig(record.id)
+      if (deletedInBackend) {
+        await queryClient.invalidateQueries({ queryKey: TAX_QUERY_KEY })
+        setLocalTaxes(null)
+      } else {
+        setLocalTaxes(taxList.filter((t) => t.id !== record.id))
+      }
+      toast.success(`Tax configuration "${record.taxId}" deleted`)
+    } catch (error) {
+      toast.error(extractErrorMessage(error, 'Failed to delete tax configuration'))
+    }
   }
 
-  // Save (Create or Update) handler
-  const handleSaveTax = (formData: Partial<TaxConfig>) => {
-    if (editingItem) {
-      setTaxList((prev) =>
-        prev.map((t) => (t.id === editingItem.id ? { ...t, ...formData } : t))
-      )
-      toast.success(`Tax configuration "${editingItem.taxId}" updated successfully`)
-    } else {
-      const currentTaxNumbers = taxList
-        .map((t) => {
-          const match = t.taxId.match(/\d+/)
-          return match ? parseInt(match[0], 10) : 0
-        })
-        .filter((n) => !isNaN(n))
-      const nextNum = (Math.max(0, ...currentTaxNumbers) + 1).toString().padStart(3, '0')
-      const newTaxId = `TAX-${nextNum}`
-
-      const newTax: TaxConfig = {
-        id: String(Date.now()),
-        taxId: newTaxId,
-        productCode: formData.productCode || 'PRD-NEW',
-        productName: formData.productName || 'New Product Item',
-        hsnSac: formData.hsnSac || '8517 12 90',
-        taxGroup: formData.taxGroup || 'Standard',
-        cgst: formData.cgst ?? 18,
-        sgst: formData.sgst ?? 18,
-        igst: formData.igst ?? 18,
-        cess: formData.cess ?? 0,
-        effectiveDate: formData.effectiveDate || '01 Apr 2026',
-        isDefault: formData.isDefault ?? false,
+  // Save (Create or Update) handler — persists `gstRate` as single source of truth
+  const handleSaveTax = async (formData: SaveTaxConfigPayload) => {
+    setIsSaving(true)
+    try {
+      if (editingItem) {
+        const { item, persistedToBackend } = await taxService.updateTaxConfig(
+          editingItem.id,
+          formData,
+        )
+        if (persistedToBackend) {
+          await queryClient.invalidateQueries({ queryKey: TAX_QUERY_KEY })
+          setLocalTaxes(null)
+        } else {
+          const { gstRate, cgst, sgst, igst } = deriveGstComponents(formData.gstRate)
+          setLocalTaxes(
+            taxList.map((t) =>
+              t.id === editingItem.id
+                ? {
+                    ...t,
+                    ...formData,
+                    gstRate,
+                    cgst,
+                    sgst,
+                    igst,
+                  }
+                : t,
+            ),
+          )
+        }
+        toast.success(
+          `Tax configuration "${item.taxId || editingItem.taxId}" updated successfully`,
+        )
+      } else {
+        const { item, persistedToBackend } = await taxService.createTaxConfig(formData)
+        if (persistedToBackend) {
+          await queryClient.invalidateQueries({ queryKey: TAX_QUERY_KEY })
+          setLocalTaxes(null)
+          toast.success(`Tax configuration "${item.taxId}" created successfully`)
+        } else {
+          const newTaxId = getNextTaxId(taxList)
+          const { gstRate, cgst, sgst, igst } = deriveGstComponents(formData.gstRate)
+          const newTax: TaxConfig = {
+            ...item,
+            id: item.id || String(Date.now()),
+            taxId: newTaxId,
+            gstRate,
+            cgst,
+            sgst,
+            igst,
+          }
+          setLocalTaxes([...taxList, newTax])
+          toast.success(`Tax configuration "${newTax.taxId}" created successfully`)
+        }
       }
-      setTaxList((prev) => [...prev, newTax])
-      toast.success(`Tax configuration "${newTax.taxId}" created successfully`)
+      setDrawerOpen(false)
+      setEditingItem(null)
+    } catch (error) {
+      toast.error(extractErrorMessage(error, 'Failed to save tax configuration'))
+    } finally {
+      setIsSaving(false)
     }
-    setDrawerOpen(false)
-    setEditingItem(null)
   }
 
   // Export handler
@@ -330,12 +571,14 @@ export default function TaxTab() {
         { header: 'Product Code', accessor: (t) => t.productCode },
         { header: 'Product Name', accessor: (t) => t.productName },
         { header: 'HSN Code', accessor: (t) => t.hsnSac },
+        { header: 'GST Rate', accessor: (t) => `${t.gstRate}%` },
         { header: 'CGST Rate', accessor: (t) => `${t.cgst}%` },
         { header: 'SGST Rate', accessor: (t) => `${t.sgst}%` },
         { header: 'IGST Rate', accessor: (t) => `${t.igst}%` },
+        { header: 'CESS Rate', accessor: (t) => `${t.cess}%` },
         { header: 'Tax Group', accessor: (t) => t.taxGroup },
       ],
-      'tax-configuration.csv'
+      'tax-configuration.csv',
     )
     toast.success('Tax configuration exported to CSV')
   }
@@ -373,7 +616,7 @@ export default function TaxTab() {
     return ['All', ...groups]
   }, [taxList])
 
-  // Table Columns matching Figma reference design
+  // Table Columns showing GST % and derived CGST, SGST, IGST
   const columns: ColumnsType<TaxConfig> = [
     {
       title: 'Tax ID',
@@ -381,7 +624,7 @@ export default function TaxTab() {
       width: 105,
       render: (v: string, record: TaxConfig) => (
         <span
-          onClick={() => handleEdit(record)}
+          onClick={() => void handleEdit(record)}
           className="font-medium text-xs text-[#155DFC] hover:underline cursor-pointer"
         >
           {v}
@@ -399,7 +642,7 @@ export default function TaxTab() {
     {
       title: 'Product Name',
       dataIndex: 'productName',
-      width: 220,
+      width: 210,
       render: (v: string) => (
         <span className="text-xs font-medium text-slate-800">{v}</span>
       ),
@@ -407,39 +650,47 @@ export default function TaxTab() {
     {
       title: 'HSN Code',
       dataIndex: 'hsnSac',
-      width: 120,
+      width: 115,
       render: (v: string) => (
         <span className="text-xs text-slate-600 font-mono tracking-wider">{v}</span>
       ),
     },
     {
+      title: 'GST Rate',
+      dataIndex: 'gstRate',
+      width: 90,
+      render: (v: number) => (
+        <span className="font-semibold text-xs text-slate-800">{v ?? 0}%</span>
+      ),
+    },
+    {
       title: 'CGST Rate',
       dataIndex: 'cgst',
-      width: 95,
+      width: 90,
       render: (v: number) => (
-        <span className="font-semibold text-xs text-[#155DFC]">{v}%</span>
+        <span className="font-semibold text-xs text-[#155DFC]">{v ?? 0}%</span>
       ),
     },
     {
       title: 'SGST Rate',
       dataIndex: 'sgst',
-      width: 95,
+      width: 90,
       render: (v: number) => (
-        <span className="font-semibold text-xs text-[#155DFC]">{v}%</span>
+        <span className="font-semibold text-xs text-[#155DFC]">{v ?? 0}%</span>
       ),
     },
     {
       title: 'IGST Rate',
       dataIndex: 'igst',
-      width: 95,
+      width: 90,
       render: (v: number) => (
-        <span className="font-semibold text-xs text-[#155DFC]">{v}%</span>
+        <span className="font-semibold text-xs text-[#155DFC]">{v ?? 0}%</span>
       ),
     },
     {
       title: 'Tax Group',
       dataIndex: 'taxGroup',
-      width: 130,
+      width: 125,
       render: (v: string) => {
         let dotColor = 'bg-slate-400'
         let badgeClasses = 'bg-slate-100 text-slate-700 border-slate-200'
@@ -476,7 +727,7 @@ export default function TaxTab() {
                 label: (
                   <span className="text-xs font-medium text-slate-700">Edit</span>
                 ),
-                onClick: () => handleEdit(record),
+                onClick: () => void handleEdit(record),
               },
               {
                 key: 'duplicate',
@@ -486,7 +737,7 @@ export default function TaxTab() {
                     Duplicate
                   </span>
                 ),
-                onClick: () => handleDuplicate(record),
+                onClick: () => void handleDuplicate(record),
               },
               {
                 key: 'delete',
@@ -495,7 +746,7 @@ export default function TaxTab() {
                   <span className="text-xs font-medium text-red-600">Delete</span>
                 ),
                 danger: true,
-                onClick: () => handleDelete(record),
+                onClick: () => void handleDelete(record),
               },
             ],
           }}
@@ -524,7 +775,7 @@ export default function TaxTab() {
         onChange={handleFileChange}
       />
 
-      {/* Header Toolbar matching Figma screenshot */}
+      {/* Header Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         {/* Left: Title + Counter + Search + Filters */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
@@ -655,12 +906,15 @@ export default function TaxTab() {
 
       {/* Create / Edit Drawer */}
       <TaxDrawer
+        key={`${editingItem?.id ?? 'new'}-${drawerOpen}`}
         isOpen={drawerOpen}
         onClose={() => {
           setDrawerOpen(false)
           setEditingItem(null)
         }}
         initialData={editingItem}
+        hsnOptions={hsnOptions}
+        isSaving={isSaving}
         onSave={handleSaveTax}
       />
     </div>

@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 import { FieldLabel } from './SectionLabel'
 
 type FieldWrapProps = {
@@ -7,41 +7,94 @@ type FieldWrapProps = {
   required?: boolean
   children: ReactNode
   className?: string
+  error?: string
+  hint?: string
 }
 
-export function FieldWrap({ label, required, children, className = '' }: FieldWrapProps) {
+export function FieldWrap({
+  label,
+  required,
+  children,
+  className = '',
+  error,
+  hint,
+}: FieldWrapProps) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       <FieldLabel required={required}>{label}</FieldLabel>
       {children}
+      {error ? (
+        <span className="text-[11px] font-medium text-red-600">{error}</span>
+      ) : hint ? (
+        <span className="text-[11px] text-slate-400">{hint}</span>
+      ) : null}
     </div>
   )
 }
 
-const baseInput =
-  'h-[38px] w-full rounded-lg border border-slate-200 bg-white px-3.5 text-xs sm:text-[13px] text-slate-800 placeholder:text-slate-400 focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/15 disabled:bg-[#F8FAFC] disabled:text-slate-400 disabled:cursor-not-allowed transition'
+const baseInputShared =
+  'h-[38px] w-full rounded-lg border px-3.5 text-xs sm:text-[13px] placeholder:text-slate-400 focus:outline-none disabled:bg-[#F8FAFC] disabled:text-slate-400 disabled:cursor-not-allowed transition'
+
+const baseInput = `${baseInputShared} border-slate-200 bg-white text-slate-800 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15`
+
+const readOnlyInput =
+  'border-slate-200 bg-[#F8FAFC] text-slate-500 cursor-not-allowed focus:ring-0'
+
+const editableInput =
+  'bg-white text-slate-800'
+
+const errorInput =
+  'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/15'
+
+const normalFocusBorder =
+  'border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
 
 export function TextInput({
   placeholder,
   disabled,
+  readOnly,
   type = 'text',
+  inputMode,
+  list,
   value,
   onChange,
+  onBlur,
+  hasError,
+  ariaLabel,
 }: {
   placeholder?: string
   disabled?: boolean
+  readOnly?: boolean
   type?: string
+  inputMode?: HTMLAttributes<HTMLInputElement>['inputMode']
+  list?: string
   value?: string | number
   onChange?: (v: string) => void
+  onBlur?: () => void
+  hasError?: boolean
+  ariaLabel?: string
 }) {
+  const visualClasses = readOnly
+    ? readOnlyInput
+    : `${editableInput} ${hasError ? errorInput : normalFocusBorder}`
+
   return (
     <input
       type={type}
       placeholder={placeholder}
       disabled={disabled}
+      readOnly={readOnly}
+      tabIndex={readOnly ? -1 : undefined}
+      aria-readonly={readOnly || undefined}
+      aria-label={ariaLabel}
+      inputMode={inputMode}
+      list={list}
       value={value}
-      onChange={(e) => onChange?.(e.target.value)}
-      className={baseInput}
+      onChange={(e) => {
+        if (!readOnly) onChange?.(e.target.value)
+      }}
+      onBlur={onBlur}
+      className={`${baseInputShared} ${visualClasses}`}
     />
   )
 }
