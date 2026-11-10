@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import {ledgerService} from "../../../services/admin/finance/Ledger.service.js";
+import { ledgerService } from "../../../services/admin/finance/Ledger.service.js";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 //Function to create a new ledger
 export const createLedgerHandler = async (req: Request, res: Response) => {
@@ -22,12 +24,25 @@ export const createLedgerHandler = async (req: Request, res: Response) => {
     const userId = (req as any).user?.id;
     const data = await ledgerService.createLedger(req.body, userId);
 
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "LEDGER_CREATED",
+      `Created Ledger: ${data.ledgerName}`,
+    );
     return res.status(201).json({
       success: true,
       message: "Ledger created successfully",
       data,
     });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "LEDGER_CREATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === "P2002") {
       return res.status(409).json({
         errors: { ledgerName: ["This ledger name already exists in the selected account class"] },
@@ -127,13 +142,25 @@ export const updateLedgerHandler = async (req: Request, res: Response) => {
       req.body,
       userId
     );
-
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "LEDGER_UPDATED",
+      `Updated Ledger: ${data.ledgerName}`,
+    );
     return res.status(200).json({
       success: true,
       message: "Ledger updated successfully",
       data,
     });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "LEDGER_UPDATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === "P2025") {
       // record to update not found
       return res.status(404).json({ error: "Ledger not found" });
@@ -159,12 +186,26 @@ export const deleteLedgerHandler = async (req: Request, res: Response) => {
   if (!id || Number.isNaN(id)) {
     return res.status(400).json({ error: "Invalid ledger id" });
   }
- 
+
   try {
-     const userId = (req as any).user?.id;
+    const userId = (req as any).user?.id;
     await ledgerService.deleteLedger(id, userId);
+
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "LEDGER_DELETED",
+      `Deleted Ledger ID ${id}`
+    );
     return res.status(200).json({ success: true, message: "Ledger deleted successfully" });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "LEDGER_DELETE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === "NOT_FOUND") {
       return res.status(404).json({ error: "Ledger not found" });
     }

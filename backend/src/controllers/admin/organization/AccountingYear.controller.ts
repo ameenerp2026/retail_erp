@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 
-import {createAccountingYear,getAccountingYear,getAccountingYearById} from '../../../services/admin/organization/AccountingYear.service.js'
+import { createAccountingYear, getAccountingYear, getAccountingYearById } from '../../../services/admin/organization/AccountingYear.service.js'
 import { AuthRequest } from "../../../middleware/auth.middleware.js";
-
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export const createAccountingYearController = async (
   req: AuthRequest,
@@ -20,28 +20,41 @@ export const createAccountingYearController = async (
       req.body,
       req.user.id
     );
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ACCOUNTING_YEAR_CREATED",
+      `Accounting Year created: ${result.yearName} (ID: ${result.id})`,
+    );
 
     res.status(201).json({
       message: "Accounting Year created successfully",
       data: result,
     });
   } catch (error) {
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ACCOUNTING_YEAR_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
+      "ERROR"
+    );
     console.error(error);
-
     res.status(500).json({
       message: "Failed to create Accounting Year",
       error: error instanceof Error ? error.message : error,
     });
   }
 };
+
 export const getAccountingYearController = async (
   req: Request,
   res: Response
 ) => {
-   try {
-     const years = await getAccountingYear();
+  try {
+    const years = await getAccountingYear();
 
-  if (!years) {
+    if (!years) {
       return res.status(404).json({
         message: "Accounting year not found",
       });
@@ -52,13 +65,13 @@ export const getAccountingYearController = async (
       data: years,
     });
   }
-   catch (error: any) {
+  catch (error: any) {
     return res.status(500).json({
       message: "Failed to fetch Accounting year ",
       error: error.message,
     });
   }
-   
+
 }
 
 export const getAccountingYearByIdController = async (
@@ -66,7 +79,7 @@ export const getAccountingYearByIdController = async (
   res: Response
 ) => {
   try {
-    
+
     const id = Number(req.params.id);
 
     const result = await getAccountingYearById(id);

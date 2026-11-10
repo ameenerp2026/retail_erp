@@ -1,15 +1,16 @@
-import { Request,Response } from "express";
+import { Request, Response } from "express";
 import { AuthRequest } from "../../../middleware/auth.middleware.js";
 import {
- createGST,
+  createGST,
   getGSTDetails,
 } from "../../../services/admin/organization/GSTINManagement.service.js";
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export const creategstDetailsController = async (
   req: AuthRequest,
   res: Response
 ) => {
-  console.log('createGST',req.body)
+  console.log('createGST', req.body)
   try {
 
     if (!req.user) {
@@ -17,20 +18,32 @@ export const creategstDetailsController = async (
         message: "Unauthorized",
       });
     }
-    
+
     const result = await createGST({
       ...req.body,
       createdById: req.user.id,
     });
-   
+
+    await audit(req as AuthRequest,
+      "ORGANIZATION",
+      "GST_DETAILS_CREATED",
+      `GST details created: ID ${result.id}`
+    )
+
     return res.status(201).json({
       message: "GST details saved successfully",
       data: result,
-      
+
     });
   } catch (error) {
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "GST_DETAILS_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
+      "ERROR"
+    );
     console.error(error);
-
     return res.status(500).json({
       message: "Failed to save GST details",
       error: error instanceof Error ? error.message : error,

@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import * as accountClassService from "../../../services/admin/finance/AccountClass.service.js";
-import {activeAccountGroups} from "../../../services/admin/finance/AccountGroup.service.js"
+import { activeAccountGroups } from "../../../services/admin/finance/AccountGroup.service.js"
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 /**
  * POST /api/account-classes
@@ -21,8 +23,14 @@ export const createAccountClassHandler = async (req: Request, res: Response) => 
   }
 
   try {
-        const userId = (req as any).user?.id;
-        const data = await accountClassService.createAccountClass(req.body, userId);
+    const userId = (req as any).user?.id;
+    const data = await accountClassService.createAccountClass(req.body, userId);
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_CLASS_CREATED",
+      `Account Class created: ${data.className}`
+    );
 
     return res.status(201).json({
       success: true,
@@ -30,6 +38,13 @@ export const createAccountClassHandler = async (req: Request, res: Response) => 
       data,
     });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_CLASS_CREATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === "P2002") {
       // unique constraint violation (className + accountGroupId)
       return res.status(409).json({
@@ -141,6 +156,12 @@ export const updateAccountClassHandler = async (req: Request, res: Response) => 
       req.body,
       userId
     );
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_CLASS_UPDATED",
+      `Account Class updated: ${data.className}`
+    );
 
     return res.status(200).json({
       success: true,
@@ -148,6 +169,13 @@ export const updateAccountClassHandler = async (req: Request, res: Response) => 
       data,
     });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_CLASS_UPDATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === "P2025") {
       // record to update not found
       return res.status(404).json({ error: "Account Class not found" });
@@ -174,14 +202,25 @@ export const deleteAccountClassHandler = async (req: Request, res: Response) => 
   const { id } = req.params;
 
   try {
-    const userId = (req as any).user?.id;
     await accountClassService.deleteAccountClass(Number(id));
-
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_CLASS_DELETED",
+      `Account Class deleted: ID ${id}`
+    );
     return res.status(200).json({
       success: true,
       message: "Account Class deleted successfully",
     });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_CLASS_DELETE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === "P2025") {
       return res.status(404).json({ error: "Account Class not found" });
     }

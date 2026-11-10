@@ -7,7 +7,8 @@ import {
   getLinkedStoresByState as fetchLinkedStores,
   updateGstState,
 } from "../../../services/admin/organization/gstState.service.js";
-
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export async function getGstStateTableHandler(req: Request, res: Response) {
   try {
@@ -99,9 +100,22 @@ export async function updateGstStateHandler(req: Request, res: Response) {
       cgstSgstEnabled,
       updatedById,
     });
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "GST_STATE_UPDATED",
+      `GST State updated: ID ${id}`,
+    );
 
     res.status(200).json({ data: updated });
   } catch (err) {
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "GST_STATE_UPDATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     console.error("[gstState.controller] updateGstStateHandler failed:", err);
     res.status(500).json({ error: "Failed to update GST state." });
   }
