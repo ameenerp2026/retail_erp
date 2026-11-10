@@ -4,31 +4,7 @@ import {
   createGST,
   getGSTDetails,
 } from "../../../services/admin/organization/GSTINManagement.service.js";
-import { createAuditLog } from "../../../services/admin/userLogs.service.js";
-
-const logGSTINMngtAction = async (
-  req: AuthRequest,
-  action: string,
-  description: string,
-  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
-): Promise<void> => {
-  const user = (req as AuthRequest).user;
-  try {
-    await createAuditLog({
-      level,
-      action,
-      module: "GSTIN Management",
-      userId: req.user?.id ?? null,
-      userName: req.user?.email ?? null,
-      description,
-      ipAddress: req.ip,
-    })
-  } catch (error) {
-    console.log("Failed to create GST audit log", error);
-
-  }
-
-}
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export const creategstDetailsController = async (
   req: AuthRequest,
@@ -48,10 +24,10 @@ export const creategstDetailsController = async (
       createdById: req.user.id,
     });
 
-    await logGSTINMngtAction(req,
-      "CREATED GST_DETAILS",
-      `GST details created: ID ${result.id}`,
-      "SUCCESS"
+    await audit(req as AuthRequest,
+      "ORGANIZATION",
+      "GST_DETAILS_CREATED",
+      `GST details created: ID ${result.id}`
     )
 
     return res.status(201).json({
@@ -60,14 +36,14 @@ export const creategstDetailsController = async (
 
     });
   } catch (error) {
-    console.error(error);
-    await logGSTINMngtAction(
-      req,
-      "GSTIN Management",
-      `Failed to create GST details: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "GST_DETAILS_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
     );
+    console.error(error);
     return res.status(500).json({
       message: "Failed to save GST details",
       error: error instanceof Error ? error.message : error,

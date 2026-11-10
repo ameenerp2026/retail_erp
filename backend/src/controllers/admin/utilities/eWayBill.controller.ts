@@ -1,35 +1,15 @@
 import { Request, Response } from "express";
-import { ewaybillService, TRANSPORT_MODES } from "../../../services/admin/utilities/EwayBill.service.js";
+import {
+  ewaybillService,
+  TRANSPORT_MODES,
+} from "../../../services/admin/utilities/EwayBill.service.js";
 import { AuthRequest } from "../../../middleware/auth.middleware.js";
-import { createAuditLog } from "../../../services/admin/userLogs.service.js";
-
-const logEWayBillAction = async (
-  req: Request,
-  action: string,
-  description: string,
-  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
-): Promise<void> => {
-  try {
-    const user = (req as AuthRequest).user;
-
-    await createAuditLog({
-      level,
-      action,
-      module: "E-Way Bill",
-      userId: user?.id ?? null,
-      userName: user?.email ?? null,
-      description,
-      ipAddress: req.ip,
-    });
-  } catch (error) {
-    console.error("Failed to create E-Way Bill audit log", error);
-  }
-};
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 // Function to fetch dropdown/lookup + reference data for the e-way bill form
 export const getFormOptionsHandler = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const data = await ewaybillService.getFormOptions();
@@ -72,7 +52,9 @@ export const createEWayBillHandler = async (req: Request, res: Response) => {
     errors.supplyType = ["Supply Type must be one of the listed options"];
   }
   if (!documentDate || Number.isNaN(Date.parse(documentDate))) {
-    errors.documentDate = ["Document Date is required and must be a valid date"];
+    errors.documentDate = [
+      "Document Date is required and must be a valid date",
+    ];
   }
   if (!sellerGstProfileId) {
     errors.sellerGstProfileId = ["From GSTIN is required"];
@@ -89,8 +71,13 @@ export const createEWayBillHandler = async (req: Request, res: Response) => {
   if (!vehicleNumber?.trim()) {
     errors.vehicleNumber = ["Vehicle Number is required"];
   }
-  if (!transportMode || !TRANSPORT_MODES.some((m) => m.value === transportMode)) {
-    errors.transportMode = ["Mode of Transport must be one of the listed options"];
+  if (
+    !transportMode ||
+    !TRANSPORT_MODES.some((m) => m.value === transportMode)
+  ) {
+    errors.transportMode = [
+      "Mode of Transport must be one of the listed options",
+    ];
   }
   if (!Number.isInteger(distanceKm) || distanceKm <= 0) {
     errors.distanceKm = ["Distance (km) must be a positive whole number"];
@@ -103,11 +90,11 @@ export const createEWayBillHandler = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     const data = await ewaybillService.createEWayBill(req.body, userId);
-    await logEWayBillAction(
-      req,
-      "CREATED E_WAY_BILL",
+    await audit(
+      req as AuthRequest,
+      "UTILITIES",
+      "E_WAY_BILL_CREATED",
       "E-Way Bill created successfully",
-      "SUCCESS"
     );
     return res.status(201).json({
       success: true,
@@ -115,18 +102,31 @@ export const createEWayBillHandler = async (req: Request, res: Response) => {
       data,
     });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "UTILITIES",
+      "E_WAY_BILL_CREATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR",
+    );
     if (err.code === "FUTURE_DATE") {
       return res.status(422).json({ errors: { documentDate: [err.message] } });
     }
     if (err.code === "INVALID_SELLER") {
-      return res.status(422).json({ errors: { sellerGstProfileId: [err.message] } });
+      return res
+        .status(422)
+        .json({ errors: { sellerGstProfileId: [err.message] } });
     }
     if (err.code === "INVALID_HSN") {
       return res.status(422).json({ errors: { hsnCode: [err.message] } });
     }
     if (err.code === "P2002") {
       return res.status(409).json({
-        errors: { documentNumber: ["A document with this number already exists for this seller"] },
+        errors: {
+          documentNumber: [
+            "A document with this number already exists for this seller",
+          ],
+        },
       });
     }
     if (err.code === "P2003") {
@@ -135,13 +135,8 @@ export const createEWayBillHandler = async (req: Request, res: Response) => {
       });
     }
     console.error(err);
-    await logEWayBillAction(
-      req,
-      "E-Way Bill",
-      `Failed to create E-Way Bill: ${err instanceof Error ? err.message : "Unknown error"
-      }`,
-      "ERROR"
-    );
-    return res.status(500).json({ error: "Something went wrong. Please try again." });
+    return res
+      .status(500)
+      .json({ error: "Something went wrong. Please try again." });
   }
 };

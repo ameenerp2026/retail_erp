@@ -1,30 +1,8 @@
 
 import type { Request, Response } from 'express'
 import * as roleService from '../../../services/admin/securities/roles.service.js'
-import { createAuditLog } from '../../../services/admin/userLogs.service.js'
+import { audit } from '../../../utils/admin/securities/audit.utils.js';
 import { AuthRequest } from '../../../middleware/auth.middleware.js'
-
-const logRoleAction = async (req: Request,
-  action: string,
-  description: string,
-  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
-): Promise<void> => {
-  try {
-    const user = (req as AuthRequest).user
-    await createAuditLog({
-      level,
-      action,
-      module: "Roles",
-      userId: user?.id ?? null,
-      userName: user?.email ?? null,
-      description,
-      ipAddress: req.ip,
-    })
-  } catch (error) {
-    console.error("Failed to create Roles audit log", error)
-
-  }
-}
 
 const parseId = (value: string | string[] | undefined): number | null => {
   if (typeof value !== 'string') return null
@@ -173,24 +151,24 @@ export const createRoleHandler = async (
     })
 
 
-    await logRoleAction(
-      req,
-      "CREATED ROLE",
-      `Role created: ${name}`,
-      "SUCCESS"
+    await audit(
+      req as AuthRequest,
+      "SECURITIES",
+      "ROLE_CREATED",
+      `Created Role ${name}`
     )
     return res.status(201).json({
       message: 'Role created successfully',
       data: role,
     })
   } catch (error) {
-    await logRoleAction(
-      req,
-      "Role",
-      `Failed to create role: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "SECURITIES",
+      "ROLE_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
-    )
+    );
     return handleError(res, error)
   }
 }
@@ -205,11 +183,11 @@ export const updateRoleHandler = async (
   try {
     const role = await roleService.updateRole(id, req.body)
 
-    await logRoleAction(
-      req,
-      "UPDATED ROLE",
-      `Role updated: ID ${id}`,
-      "SUCCESS"
+    await audit(
+      req as AuthRequest,
+      "SECURITIES",
+      "ROLE_UPDATED",
+      `Updated Role ID ${id}`
     )
 
     return res.status(200).json({
@@ -217,13 +195,13 @@ export const updateRoleHandler = async (
       data: role,
     })
   } catch (error) {
-    await logRoleAction(
-      req,
-      "Role",
-      `Failed to update role ID ${id}: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "SECURITIES",
+      "ROLE_UPDATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
-    )
+    );
     return handleError(res, error)
   }
 }
@@ -237,24 +215,23 @@ export const deleteRoleHandler = async (
 
   try {
     await roleService.deleteRole(id)
-    await logRoleAction(
-      req,
-      "DELETED ROLE",
-      `Role deleted: ID ${id}`,
-      "SUCCESS"
+    await audit(
+      req as AuthRequest,
+      "SECURITIES",
+      "ROLE_DELETED",
+      `Deleted Role ID ${id}`
     )
     return res.status(200).json({
       message: 'Role deleted successfully',
     })
   } catch (error) {
-
-    await logRoleAction(
-      req,
-      "Role",
-      `Failed to delete role ID ${id}: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "SECURITIES",
+      "ROLE_DELETE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
-    )
+    );
     return handleError(res, error)
   }
 }
@@ -272,24 +249,24 @@ export const cloneRoleHandler = async (
 
   try {
     const role = await roleService.cloneRole(id, req.body.name)
-    await logRoleAction(
-      req,
-      "CLONED ROLE",
-      `Role cloned from ID ${id}`,
-      "SUCCESS"
+    await audit(
+      req as AuthRequest,
+      "SECURITIES",
+      "ROLE_CLONED",
+      `Cloned Role from ID ${id}`
     )
     return res.status(201).json({
       message: 'Role cloned successfully',
       data: role,
     })
   } catch (error) {
-    await logRoleAction(
-      req,
-      "Role",
-      `Failed to clone role from ID ${id}: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "SECURITIES",
+      "ROLE_CLONE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
-    )
+    );
     return handleError(res, error)
   }
 }

@@ -8,31 +8,7 @@ import {
   updateGstState,
 } from "../../../services/admin/organization/gstState.service.js";
 import { AuthRequest } from "../../../middleware/auth.middleware.js";
-import { createAuditLog } from "../../../services/admin/userLogs.service.js";
-
-
-const logGstStateAction = async (
-  req: Request,
-  action: string,
-  description: string,
-  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
-): Promise<void> => {
-  try {
-    const user = (req as AuthRequest).user;
-
-    await createAuditLog({
-      level,
-      action,
-      module: "GST State",
-      userId: user?.id ?? null,
-      userName: user?.email ?? null,
-      description,
-      ipAddress: req.ip,
-    });
-  } catch (error) {
-    console.error("Failed to create GST state audit log", error);
-  }
-};
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export async function getGstStateTableHandler(req: Request, res: Response) {
   try {
@@ -124,23 +100,23 @@ export async function updateGstStateHandler(req: Request, res: Response) {
       cgstSgstEnabled,
       updatedById,
     });
-    await logGstStateAction(
-      req,
-      "UPDATED GST_STATE",
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "GST_STATE_UPDATED",
       `GST State updated: ID ${id}`,
-      "SUCCESS"
     );
 
     res.status(200).json({ data: updated });
   } catch (err) {
-    console.error("[gstState.controller] updateGstStateHandler failed:", err);
-    await logGstStateAction(
-      req,
-      "GST State",
-      `Failed to update GST State ID ${req.params.id}: ${err instanceof Error ? err.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "GST_STATE_UPDATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
       "ERROR"
     );
+    console.error("[gstState.controller] updateGstStateHandler failed:", err);
     res.status(500).json({ error: "Failed to update GST state." });
   }
 }

@@ -1,35 +1,12 @@
 import { Request, Response } from "express";
 import { einvoiceService } from "../../../services/admin/utilities/Einvoice.service.js";
 import { AuthRequest } from "../../../middleware/auth.middleware.js";
-import { createAuditLog } from "../../../services/admin/userLogs.service.js";
-
-const logEInvoiceAction = async (
-  req: Request,
-  action: string,
-  description: string,
-  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
-): Promise<void> => {
-  try {
-    const user = (req as AuthRequest).user;
-
-    await createAuditLog({
-      level,
-      action,
-      module: "E-Invoice",
-      userId: user?.id ?? null,
-      userName: user?.email ?? null,
-      description,
-      ipAddress: req.ip,
-    });
-  } catch (error) {
-    console.error("Failed to create E-Invoice audit log", error);
-  }
-};
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 // Function to fetch dropdown/lookup data for the e-invoice form
 export const getFormOptionsHandler = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const data = await einvoiceService.getFormOptions();
@@ -50,7 +27,14 @@ export const getFormOptionsHandler = async (
 
 // Function to create a new e-invoice
 export const createEInvoiceHandler = async (req: Request, res: Response) => {
-  const { transactionType, supplyType, documentDate, sellerGstProfileId, toGstin, items } = req.body;
+  const {
+    transactionType,
+    supplyType,
+    documentDate,
+    sellerGstProfileId,
+    toGstin,
+    items,
+  } = req.body;
 
   const errors: Record<string, string[]> = {};
 
@@ -61,7 +45,9 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
     errors.supplyType = ["Supply Type must be one of the listed options"];
   }
   if (!documentDate || Number.isNaN(Date.parse(documentDate))) {
-    errors.documentDate = ["Document Date is required and must be a valid date"];
+    errors.documentDate = [
+      "Document Date is required and must be a valid date",
+    ];
   }
   if (!sellerGstProfileId) {
     errors.sellerGstProfileId = ["From GSTIN is required"];
@@ -74,9 +60,12 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
   } else {
     const itemErrors: string[] = [];
     items.forEach((item: any, idx: number) => {
-      if (!item?.hsnCode) itemErrors.push(`Item ${idx + 1}: Item HSN Code is required`);
+      if (!item?.hsnCode)
+        itemErrors.push(`Item ${idx + 1}: Item HSN Code is required`);
       if (typeof item?.taxableValue !== "number" || item.taxableValue <= 0) {
-        itemErrors.push(`Item ${idx + 1}: Taxable Value must be a positive number`);
+        itemErrors.push(
+          `Item ${idx + 1}: Taxable Value must be a positive number`,
+        );
       }
     });
     if (itemErrors.length > 0) errors.items = itemErrors;
@@ -90,11 +79,11 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
     const userId = (req as any).user?.id;
     const data = await einvoiceService.createEInvoice(req.body, userId);
 
-    await logEInvoiceAction(
-      req,
-      "CREATED E_INVOICE",
+    await audit(
+      req as AuthRequest,
+      "UTILITIES",
+      "E_INVOICE_CREATED",
       "E-Invoice created successfully",
-      "SUCCESS"
     );
 
     return res.status(201).json({
@@ -103,18 +92,31 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
       data,
     });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "UTILITIES",
+      "E_INVOICE_CREATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR",
+    );
     if (err.code === "FUTURE_DATE") {
       return res.status(422).json({ errors: { documentDate: [err.message] } });
     }
     if (err.code === "INVALID_SELLER") {
-      return res.status(422).json({ errors: { sellerGstProfileId: [err.message] } });
+      return res
+        .status(422)
+        .json({ errors: { sellerGstProfileId: [err.message] } });
     }
     if (err.code === "INVALID_HSN") {
       return res.status(422).json({ errors: { items: [err.message] } });
     }
     if (err.code === "P2002") {
       return res.status(409).json({
-        errors: { documentNumber: ["A document with this number already exists for this seller"] },
+        errors: {
+          documentNumber: [
+            "A document with this number already exists for this seller",
+          ],
+        },
       });
     }
     if (err.code === "P2003") {
@@ -123,13 +125,8 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
       });
     }
     console.error(err);
-    await logEInvoiceAction(
-      req,
-      "E-Invoice",
-      `Failed to create E-Invoice: ${err instanceof Error ? err.message : "Unknown error"
-      }`,
-      "ERROR"
-    );
-    return res.status(500).json({ error: "Something went wrong. Please try again." });
+    return res
+      .status(500)
+      .json({ error: "Something went wrong. Please try again." });
   }
 };

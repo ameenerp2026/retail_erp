@@ -6,32 +6,7 @@ import {
   updateOrganizationGroup
 } from "../../../services/admin/organization/organizationGroup.service.js";
 import { AuthRequest } from "../../../middleware/auth.middleware.js";
-import { createAuditLog } from "../../../services/admin/userLogs.service.js";
-
-
-const logOrgGroupAction = async (req: Request,
-  action: string,
-  description: string,
-  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
-): Promise<void> => {
-
-  try {
-    const user = (req as AuthRequest).user;
-    await createAuditLog({
-      level,
-      action,
-      module: "Organization Group",
-      userId: user?.id ?? null,
-      userName: user?.email ?? null,
-      description,
-      ipAddress: req.ip,
-    });
-
-  } catch (error) {
-    console.error("Failed to create Organization Group audit log", error);
-  }
-}
-
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export const createOrgGroupController = async (
   req: Request,
@@ -41,25 +16,26 @@ export const createOrgGroupController = async (
   try {
 
     const result = await createOrganizationGroup(req.body);
-    await logOrgGroupAction(
-      req,
-      "CREATED ORGANIZATION_GROUP",
-      "Organization group created successfully",
-      "SUCCESS"
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_GROUP_CREATED",
+      `Organization group created: ID ${result.id}`,
     );
     return res.status(201).json({
       message: "Organization group saved successfully",
       data: result,
     });
   } catch (error) {
-    console.error(error);
-    await logOrgGroupAction(
-      req,
-      "Organization Group",
-      `Failed to create Organization Group: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_GROUP_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
     );
+    console.error(error);
     return res.status(500).json({
       message: "Failed to save organization group",
       error: error instanceof Error ? error.message : error,
@@ -134,25 +110,25 @@ export const updateOrgGroupController = async (
       id,
       req.body
     );
-    await logOrgGroupAction(
-      req,
-      "UPDATED ORGANIZATION_GROUP",
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_GROUP_UPDATED",
       `Organization group updated: ID ${id}`,
-      "SUCCESS"
     );
     return res.status(200).json({
       message: "Organization group updated successfully",
       data: result,
     });
   } catch (error: any) {
-    console.error(error)
-    await logOrgGroupAction(
-      req,
-      "Organization Group",
-      `Failed to update Organization Group ID ${req.params.id}: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_GROUP_UPDATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
     );
+    console.error(error)
     return res.status(500).json({
       message: "Failed to update organization group",
       error: error.message,

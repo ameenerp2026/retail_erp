@@ -2,28 +2,7 @@ import { Request, Response } from "express";
 
 import { createAccountingYear, getAccountingYear, getAccountingYearById } from '../../../services/admin/organization/AccountingYear.service.js'
 import { AuthRequest } from "../../../middleware/auth.middleware.js";
-import { createAuditLog } from "../../../services/admin/userLogs.service.js";
-
-const logAccountingYearAction = async (
-  req: AuthRequest,
-  action: string,
-  description: string,
-  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
-): Promise<void> => {
-  try {
-    await createAuditLog({
-      level,
-      action,
-      module: "Accounting Year",
-      userId: req.user?.id ?? null,
-      userName: req.user?.email ?? null,
-      description,
-      ipAddress: req.ip,
-    });
-  } catch (error) {
-    console.error("Failed to create accounting year audit log", error);
-  }
-};
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export const createAccountingYearController = async (
   req: AuthRequest,
@@ -41,11 +20,11 @@ export const createAccountingYearController = async (
       req.body,
       req.user.id
     );
-    await logAccountingYearAction(
-      req,
-      "CREATED ACCOUNTING_YEAR",
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ACCOUNTING_YEAR_CREATED",
       `Accounting Year created: ${result.yearName} (ID: ${result.id})`,
-      "SUCCESS"
     );
 
     res.status(201).json({
@@ -53,14 +32,14 @@ export const createAccountingYearController = async (
       data: result,
     });
   } catch (error) {
-    console.error(error);
-    await logAccountingYearAction(
-      req,
-      "Accounting Year",
-      `Failed to create Accounting Year: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ACCOUNTING_YEAR_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
     );
+    console.error(error);
     res.status(500).json({
       message: "Failed to create Accounting Year",
       error: error instanceof Error ? error.message : error,
