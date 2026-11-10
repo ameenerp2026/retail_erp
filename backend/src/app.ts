@@ -23,6 +23,7 @@ import userLogsRoutes from "./routes/userLogs.routes.js";
 import rolesRoutes from "./routes/admin/securities/roles.routes.js";
 import usersRoutes from "./routes/admin/securities/users.routes.js";
 import uomRoutes from "./routes/Inventory/productSetup/uom.routes.js"
+import taxRoutes from "./routes/Inventory/productSetup/tax.routes.js"
 //import securityRoutes from "./routes/admin/securities/security.routes.js";
 const app = express();
 
@@ -57,6 +58,7 @@ app.use('/api/utilities/subledgers', subLedgerImportRoutes);
 app.use('/api/utilities/e-invoice', eInvoiceRoutes);
 app.use('/api/utilities/e-way-bill', eWayBillRoutes);
 app.use('/api/productSetup/uom',uomRoutes)
+app.use('/api/productSetup/tax', taxRoutes)
 //app.use('/api/securities', securityRoutes);
 
 
