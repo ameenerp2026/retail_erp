@@ -31,9 +31,17 @@ export const register = async (req: Request, res: Response) => {
       data: { name, email, password: hashed }
     })
 
+
+const secret = process.env.JWT_SECRET;
+if (!secret) {
+  throw new Error('JWT_SECRET is not set');
+}
+ const JWT_SECRET = secret;
+    
     const token = jwt.sign(
       { userId: user.id, role: user.role },
-      process.env.JWT_SECRET || 'erp-secret'
+      JWT_SECRET,
+       { expiresIn: '1d' }
     )
 
     return res.status(201).json({

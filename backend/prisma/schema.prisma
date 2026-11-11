@@ -838,16 +838,47 @@ enum MasterStatus {
   @@schema("inventory")
 }
 
-model Uom {
-  id Int @id @default(autoincrement())
+model GstUqc {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  uoms        Uom[]
 
-  code        String       @unique
-  name        String       @unique
-  status      MasterStatus @default(ACTIVE)
-  createdById Int
-  updatedById Int?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  @@schema("inventory")
+}
+
+model Uom {
+  id            Int          @id @default(autoincrement())
+  name          String       @unique
+  shortName     String       @unique
+  gstUqcId      Int
+  gstUqc        GstUqc       @relation(fields: [gstUqcId], references: [id])
+  decimalPlaces Int          @default(0)
+  status        MasterStatus @default(ACTIVE)
+  createdById   Int
+  updatedById   Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([gstUqcId])
+  @@schema("inventory")
+}
+
+model TaxConfig {
+  id            Int          @id @default(autoincrement())
+  hsnCode       String       @unique
+  taxGroup      String
+  gstRate       Decimal      @db.Decimal(5, 2)
+  cessRate      Decimal      @default(0) @db.Decimal(5, 2)
+  effectiveFrom DateTime     @db.Date
+  status        MasterStatus @default(ACTIVE)
+  isDefault     Boolean      @default(false)
+  createdById   Int
+  updatedById   Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@schema("inventory")
 }

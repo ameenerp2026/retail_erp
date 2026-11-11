@@ -28,10 +28,11 @@ const TAX_GROUP_OPTIONS = [
   'Standard',
   'Essential',
   'Pharma',
-  'Electronics 18%',
-  'Apparel 12%',
-  'FMCG 18%',
-  'Grocery 5%',
+  'Electronics',
+  'Apparel',
+  'FMCG',
+  'Grocery',
+  'Exempt'
 ]
 
 function TaxDrawer({

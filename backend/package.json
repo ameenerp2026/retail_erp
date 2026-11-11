@@ -9,7 +9,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": [],
   "author": "",

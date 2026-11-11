@@ -14,72 +14,7 @@ import {useUserLogs } from '@/hooks/securities/userLogshooks'
 import {  type Severity } from '@/types/securities/securities.types'  
 import { useAuth } from '@/context/useAuth'
 
-// const LOGS: AuditLog[] = [
-//   {
-//     id: 'log-1',
-//     severity: 'Warning',
-//     action: 'ROLE_PERMISSION_UPDATE',
-//     module: 'Securities',
-//     actor: 'Admin User',
-//     detail: 'Role: Branch Manager',
-//     timestamp: new Date(2026, 4, 21, 14, 32, 18),
-//     ip: '10.0.1.14',
-//     diff: {
-//       before: { permissions: ['View Ledger'] },
-//       after: { permissions: ['View Ledger', 'Edit Ledger', 'Delete Ledger'] },
-//     },
-//   },
-//   {
-//     id: 'log-2',
-//     severity: 'Info',
-//     action: 'LEDGER_CREATE',
-//     module: 'Finance',
-//     actor: 'Priya Sharma',
-//     detail: 'Ledger: Sales - Export',
-//     timestamp: new Date(2026, 4, 21, 13, 48, 5),
-//     ip: '10.0.1.22',
-//   },
-//   {
-//     id: 'log-3',
-//     severity: 'Error',
-//     action: 'LOGIN_FAILED',
-//     module: 'Auth',
-//     actor: 'System',
-//     detail: 'User: unknown@hack.com',
-//     timestamp: new Date(2026, 4, 21, 12, 15, 44),
-//     ip: '192.168.99.12',
-//   },
-//   {
-//     id: 'log-4',
-//     severity: 'Info',
-//     action: 'ORG_UNIT_UPDATE',
-//     module: 'Organization',
-//     actor: 'Raj Kumar',
-//     detail: 'Org Unit: Delhi North',
-//     timestamp: new Date(2026, 4, 21, 11, 2, 31),
-//     ip: '10.0.2.08',
-//   },
-//   {
-//     id: 'log-5',
-//     severity: 'Success',
-//     action: 'EINVOICE_GENERATE',
-//     module: 'Utilities',
-//     actor: 'Meena Joshi',
-//     detail: 'Invoice: INV-2024-0890',
-//     timestamp: new Date(2026, 4, 21, 10, 22, 18),
-//     ip: '10.0.1.31',
-//   },
-//   {
-//     id: 'log-6',
-//     severity: 'Success',
-//     action: 'DATA_IMPORT_COMPLETE',
-//     module: 'Utilities',
-//     actor: 'System',
-//     detail: 'Import: ledger_master.csv',
-//     timestamp: new Date(2026, 4, 21, 9, 12, 0),
-//     ip: '10.0.0.1',
-//   },
-// ]
+
 const FILTERS: Array<'All' | Severity> = [
   'All',
   'INFO',

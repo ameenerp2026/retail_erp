@@ -14,9 +14,11 @@ import toast from 'react-hot-toast'
 import ReusableTable from '@/components/shared/ReusableTable'
 import UserFormModal from '../components/Users/UserFormModal'
 import type { AddUserFormData } from '@/components/forms/validate.schema'
+import { useAuth } from '@/context/useAuth'
 import {
   getRoles,
 } from '@/services/admin/securities/role.service'
+
 import {
   createUser,
   getUserById,
@@ -60,6 +62,8 @@ function initials(name: string) {
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
+
+
 function avatarColor(seed: string) {
   const index =
     seed.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) %
@@ -79,6 +83,11 @@ export default function Users() {
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<SecurityUserListItem | null>(null)
   const [submitting, setSubmitting] = useState(false)
+ const { hasPermission } = useAuth();
+
+
+  const canView = hasPermission("USER_VIEW");
+  //const canExport = hasPermission("AUDIT_LOG_EXPORT");
 
   const usersQuery = useQuery({
     queryKey: ['security-users'],

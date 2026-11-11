@@ -64,6 +64,7 @@ export async function getRolePermissions(): Promise<RolePermission[]> {
   const response = await apiClient.get<ApiResponse<RolePermission[]>>(
     '/api/securities/permissions',
   )
+   console.log('testpermissions', response.data.data)
   return response.data.data
 }
 
@@ -71,6 +72,7 @@ export async function getOrganizationGroups(): Promise<OrganizationGroupOption[]
   const response = await apiClient.get<ApiResponse<OrganizationGroupOption[]>>(
     '/api/organization/org-group',
   )
+
   return response.data.data
 }
 
