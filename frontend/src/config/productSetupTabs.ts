@@ -8,6 +8,7 @@ import {
   Receipt,
   ScanBarcode,
   SlidersHorizontal,
+  Activity,
   Boxes,
 } from 'lucide-react'
 
@@ -27,6 +28,7 @@ export const PRODUCT_SETUP_TABS = [
   { key: 'tax', label: 'Tax', icon: Receipt },
   { key: 'barcode', label: 'Barcode', icon: ScanBarcode },
   { key: 'inv-config', label: 'Inv. Config', icon: SlidersHorizontal },
+  { key: 'activity', label: 'Activity', icon: Activity },
   { key: 'kitting', label: 'Kitting & Bundles', icon: Boxes },
 ] as const
 
