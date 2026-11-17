@@ -27,12 +27,18 @@ export function TextInput({
   type = 'text',
   value,
   onChange,
+  min,
+  max,
+  step,
 }: {
   placeholder?: string
   disabled?: boolean
   type?: string
   value?: string | number
   onChange?: (v: string) => void
+  min?: number
+  max?: number
+  step?: number
 }) {
   return (
     <input
@@ -40,6 +46,9 @@ export function TextInput({
       placeholder={placeholder}
       disabled={disabled}
       value={value}
+      min={min}
+      max={max}
+      step={step}
       onChange={(e) => onChange?.(e.target.value)}
       className={baseInput}
     />
@@ -53,7 +62,7 @@ export function SelectInput({
   value,
   onChange,
 }: {
-  options: readonly string[]
+  options: readonly (string | { value: string; label: string })[]
   placeholder: string
   disabled?: boolean
   value?: string
@@ -71,8 +80,12 @@ export function SelectInput({
           {placeholder}
         </option>
         {options.map((opt) => (
-          <option key={opt} value={opt} className="text-[#314158]">
-            {opt}
+          <option
+            key={typeof opt === 'string' ? opt : opt.value}
+            value={typeof opt === 'string' ? opt : opt.value}
+            className="text-[#314158]"
+          >
+            {typeof opt === 'string' ? opt : opt.label}
           </option>
         ))}
       </select>
