@@ -4,6 +4,7 @@ import { seedAdminUser } from "./seeds/adminUser.seed.js";
 import { seedPermissions } from "./seeds/permissions.seed.js";
 import { seedRoles } from "./seeds/roles.seed.js";
 import { seedSubLedgerTypes } from "./seeds/subLedgerTypes.seed.js";
+import { seedTaxConfigs  } from "./seeds/inventory/productSetup/configTax.seed.js";
 
 const prisma = new PrismaClient();
 
@@ -13,6 +14,7 @@ const seeds = [
   { name: "permissions", run: seedPermissions },
   { name: "roles", run: seedRoles },
   { name: "adminUser", run: seedAdminUser },
+  { name: "taxConfigs", run: seedTaxConfigs  },
 ];
 
 async function main(): Promise<void> {

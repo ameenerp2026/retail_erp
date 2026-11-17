@@ -5,5 +5,5 @@
        "noEmit": true,
        "types": ["node"]
      },
-     "include": ["./**/*.ts"]
+     "include": ["./**/*.ts", "seeds/inventory/productSetup/taxConfigs.seed.js"]
    }

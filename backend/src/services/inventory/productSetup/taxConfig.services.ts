@@ -39,6 +39,7 @@ export const toTaxConfigResponse = (row: TaxConfig) => {
     effectiveFrom: toDateOnly(row.effectiveFrom),
     isDefault: row.isDefault,
     status: row.status,
+    products: [] as { id: number; code: string; name: string }[],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
