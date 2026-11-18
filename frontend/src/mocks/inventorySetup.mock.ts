@@ -7,7 +7,6 @@ import type {
   Uom,
   PriceRule,
   VendorMapping,
-  TaxConfig,
   Barcode,
   InventoryConfigCard,
   Bundle,
@@ -271,15 +270,15 @@ export const MOCK_VENDOR_MAPPINGS: VendorMapping[] = [
 
 /* ---------------- Tax ---------------- */
 
-export const MOCK_TAX_CONFIGS: TaxConfig[] = [
-  { id: '1', taxId: 'TAX-001', productCode: 'ELE-SAM-A54', productName: 'Samsung Galaxy A54 5G', hsnSac: '8517 12 90', taxGroup: 'Standard', cgst: 18, sgst: 18, igst: 18, cess: 0, effectiveDate: '01 Apr 2026', isDefault: false },
-  { id: '2', taxId: 'TAX-002', productCode: 'APP-NIK-AM270', productName: 'Nike Air Max 270', hsnSac: '6402 99 00', taxGroup: 'Standard', cgst: 18, sgst: 18, igst: 18, cess: 0, effectiveDate: '01 Apr 2026', isDefault: false },
-  { id: '3', taxId: 'TAX-003', productCode: 'FMCG-DOV-BW500', productName: 'Dove Body Wash 500ml', hsnSac: '3305 90 00', taxGroup: 'Standard', cgst: 18, sgst: 18, igst: 18, cess: 0, effectiveDate: '01 Apr 2026', isDefault: false },
-  { id: '4', taxId: 'TAX-004', productCode: 'HRD-BSH-DR600', productName: 'Bosch Drill Machine 600W', hsnSac: '8467 11 00', taxGroup: 'Standard', cgst: 18, sgst: 18, igst: 18, cess: 0, effectiveDate: '01 Apr 2026', isDefault: false },
-  { id: '5', taxId: 'TAX-005', productCode: 'FMCG-ITC-AASH500', productName: 'Aashirvaad Atta 5Kg', hsnSac: '1101 00 20', taxGroup: 'Essential', cgst: 5, sgst: 5, igst: 5, cess: 0, effectiveDate: '01 Apr 2026', isDefault: true },
-  { id: '6', taxId: 'TAX-006', productCode: 'PHR-CIP-AZTH500', productName: 'Azithromycin 500mg Strip', hsnSac: '3004 90 99', taxGroup: 'Pharma', cgst: 12, sgst: 12, igst: 12, cess: 0, effectiveDate: '01 Apr 2026', isDefault: false },
-  { id: '7', taxId: 'TAX-007', productCode: 'ELE-APL-IPH15', productName: 'Apple iPhone 15 128GB', hsnSac: '8517 12 10', taxGroup: 'Standard', cgst: 18, sgst: 18, igst: 18, cess: 0, effectiveDate: '01 Apr 2026', isDefault: false },
-]
+// export const MOCK_TAX_CONFIGS: TaxConfig[] = [
+//   { id: '1', taxId: "TAX-001", hsnCode: "85171290", taxGroup: "STANDARD", gstRate: 18, cessRate: 0, effectiveFrom: "2026-04-01", isDefault: false, },
+//   { id: '2', taxId: "TAX-002", hsnCode: "64029900", taxGroup: "STANDARD", gstRate: 18, cessRate: 0, effectiveFrom: "2026-04-01", isDefault: false, },
+//   { id: '3', taxId: "TAX-003", hsnCode: "33059000", taxGroup: "STANDARD", gstRate: 18, cessRate: 0, effectiveFrom: "2026-04-01", isDefault: false, },
+//   { id: '4', taxId: "TAX-004", hsnCode: "84671100", taxGroup: "STANDARD", gstRate: 18, cessRate: 0, effectiveFrom: "2026-04-01", isDefault: false, },
+//   { id: '5', taxId: "TAX-005", hsnCode: "11010020", taxGroup: "ESSENTIAL", gstRate: 5, cessRate: 0, effectiveFrom: "2026-04-01", isDefault: true, },
+//   { id: '6', taxId: "TAX-006", hsnCode: "30049099", taxGroup: "PHARMA", gstRate: 12, cessRate: 0, effectiveFrom: "2026-04-01", isDefault: false, },
+//   { id: '7', taxId: "TAX-007", hsnCode: "85171210", taxGroup: "STANDARD", gstRate: 18, cessRate: 0, effectiveFrom: "2026-04-01", isDefault: false, },
+// ];
 
 /* ---------------- Barcode ---------------- */
 

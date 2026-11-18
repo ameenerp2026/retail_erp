@@ -4,6 +4,7 @@ import { seedAdminUser } from "./seeds/adminUser.seed.js";
 import { seedPermissions } from "./seeds/permissions.seed.js";
 import { seedRoles } from "./seeds/roles.seed.js";
 import { seedSubLedgerTypes } from "./seeds/subLedgerTypes.seed.js";
+import { seedTaxConfig } from "./seeds/taxConfig.seed.js";
 
 const prisma = new PrismaClient();
 
@@ -13,6 +14,7 @@ const seeds = [
   { name: "permissions", run: seedPermissions },
   { name: "roles", run: seedRoles },
   { name: "adminUser", run: seedAdminUser },
+  { name: "taxConfig", run: seedTaxConfig },
 ];
 
 async function main(): Promise<void> {
@@ -27,7 +29,6 @@ async function main(): Promise<void> {
         `Unknown seed "${requestedSeed}". Valid seed names: ${validNames}`,
       );
     }
-    await seed.run(prisma);
     await seed.run(prisma);
   } else {
     for (const seed of seeds) {

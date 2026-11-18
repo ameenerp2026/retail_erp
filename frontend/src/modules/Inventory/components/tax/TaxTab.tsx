@@ -1,39 +1,43 @@
-import { useMemo, useState, useRef } from 'react'
+import { useMemo, useState, useRef, useEffect } from "react";
 import {
   MoreHorizontal,
   Plus,
   Pencil,
-  Copy,
-  Trash2,
   Search,
   ListFilter,
   Upload,
   Download,
   Check,
   X,
-} from 'lucide-react'
-import { Dropdown } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
-import ReusableTable from '@/components/shared/ReusableTable'
-import { useQuery } from '@tanstack/react-query'
-import { inventorySetupService } from '@/services/inventorySetupService'
-import type { TaxConfig } from '@/types/inventorySetup'
-import { Modal } from '@/components/shared/Modal'
-import { FieldWrap, SelectInput, TextInput, Toggle, DrawerFooter } from '../shared/formControls'
-import SectionLabel from '../shared/SectionLabel'
-import toast from 'react-hot-toast'
-import { exportToCSV } from '@/utils/exportData'
+} from "lucide-react";
+import { Dropdown } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import ReusableTable from "@/components/shared/ReusableTable";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { inventorySetupService } from "@/services/inventorySetupService";
+import type { TaxConfig, TaxConfigInput } from "@/types/inventorySetup";
+import { Modal } from "@/components/shared/Modal";
+import {
+  FieldWrap,
+  SelectInput,
+  TextInput,
+  Toggle,
+  DrawerFooter,
+} from "../shared/formControls";
+import SectionLabel from "../shared/SectionLabel";
+import toast from "react-hot-toast";
+import { exportToCSV } from "@/utils/exportData";
 
 const TAX_GROUP_OPTIONS = [
-  'Standard',
-  'Essential',
-  'Pharma',
-  'Electronics',
-  'Apparel',
-  'FMCG',
-  'Grocery',
-  'Exempt'
-]
+  "STANDARD",
+  "ESSENTIAL",
+  "PHARMA",
+  "EXEMPT",
+  "ELECTRONICS",
+  "APPEARL",
+  "FMCG",
+  "GROCERY",
+];
 
 function TaxDrawer({
   isOpen,
@@ -41,58 +45,49 @@ function TaxDrawer({
   initialData,
   onSave,
 }: {
-  isOpen: boolean
-  onClose: () => void
-  initialData?: TaxConfig | null
-  onSave: (data: Partial<TaxConfig>) => void
+  isOpen: boolean;
+  onClose: () => void;
+  initialData?: TaxConfig | null;
+  onSave: (data: TaxConfigInput) => void;
 }) {
-  const [productCode, setProductCode] = useState(initialData?.productCode || '')
-  const [productName, setProductName] = useState(initialData?.productName || '')
-  const [taxGroup, setTaxGroup] = useState(initialData?.taxGroup || 'Standard')
-  const [hsnSac, setHsnSac] = useState(initialData?.hsnSac || '8517 12 90')
-  const [cgst, setCgst] = useState(initialData?.cgst ?? 18)
-  const [sgst, setSgst] = useState(initialData?.sgst ?? 18)
-  const [igst, setIgst] = useState(initialData?.igst ?? 18)
-  const [cess, setCess] = useState(initialData?.cess ?? 0)
-  const [effectiveDate, setEffectiveDate] = useState(initialData?.effectiveDate || '2026-04-01')
-  const [isDefault, setIsDefault] = useState(initialData?.isDefault ?? false)
+  const [taxGroup, setTaxGroup] = useState(initialData?.taxGroup || "STANDARD");
+  const [hsnCode, setHsnCode] = useState(initialData?.hsnCode || "");
+  const [gstRate, setGstRate] = useState(initialData?.gstRate ?? 18);
+  const [cessRate, setCessRate] = useState(initialData?.cessRate ?? 0);
+  const [effectiveFrom, setEffectiveFrom] = useState(
+    initialData?.effectiveFrom?.slice(0, 10) || "2026-04-01",
+  );
+  const [isDefault, setIsDefault] = useState(initialData?.isDefault ?? false);
 
   // Sync state if initialData changes
-  const prevIdRef = useRef(initialData?.id)
-  if (initialData?.id !== prevIdRef.current) {
-    prevIdRef.current = initialData?.id
-    setProductCode(initialData?.productCode || '')
-    setProductName(initialData?.productName || '')
-    setTaxGroup(initialData?.taxGroup || 'Standard')
-    setHsnSac(initialData?.hsnSac || '8517 12 90')
-    setCgst(initialData?.cgst ?? 18)
-    setSgst(initialData?.sgst ?? 18)
-    setIgst(initialData?.igst ?? 18)
-    setCess(initialData?.cess ?? 0)
-    setEffectiveDate(initialData?.effectiveDate || '2026-04-01')
-    setIsDefault(initialData?.isDefault ?? false)
-  }
+  useEffect(() => {
+    setTaxGroup(initialData?.taxGroup || "STANDARD");
+    setHsnCode(initialData?.hsnCode || "");
+    setGstRate(initialData?.gstRate ?? 18);
+    setCessRate(initialData?.cessRate ?? 0);
+    setEffectiveFrom(initialData?.effectiveFrom?.slice(0, 10) || "2026-04-01");
+    setIsDefault(initialData?.isDefault ?? false);
+  }, [initialData]);
 
   const handleSubmit = () => {
     onSave({
-      productCode: productCode || 'PRD-001',
-      productName: productName || 'Product Item',
       taxGroup,
-      hsnSac,
-      cgst: Number(cgst),
-      sgst: Number(sgst),
-      igst: Number(igst),
-      cess: Number(cess),
-      effectiveDate,
+      hsnCode: hsnCode.replace(/\s/g, ""),
+      gstRate: Number(gstRate),
+      cessRate: Number(cessRate),
+      effectiveFrom,
       isDefault,
-    })
-  }
+      status: initialData?.status ?? "ACTIVE",
+    });
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="2xl">
       <div className="flex items-start justify-between border-b border-slate-100 px-6 py-4">
         <h3 className="text-base font-bold text-[#043793]">
-          {initialData ? `Edit Tax Configuration (${initialData.taxId})` : 'Create Tax Configuration'}
+          {initialData
+            ? `Edit Tax Configuration (${initialData.taxId})`
+            : "Create Tax Configuration"}
         </h3>
         <button
           type="button"
@@ -112,7 +107,7 @@ function TaxDrawer({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FieldWrap label="Tax ID">
             <TextInput
-              value={initialData?.taxId || 'Tax ID is Auto-generated'}
+              value={initialData?.taxId || "Tax ID is Auto-generated"}
               disabled
             />
           </FieldWrap>
@@ -124,25 +119,11 @@ function TaxDrawer({
               placeholder="Select dropdown"
             />
           </FieldWrap>
-          <FieldWrap label="Product Code" required>
+          <FieldWrap label="HSN Code" required>
             <TextInput
-              value={productCode}
-              onChange={(v) => setProductCode(v)}
-              placeholder="e.g. ELE-SAM-A54"
-            />
-          </FieldWrap>
-          <FieldWrap label="Product Name" required>
-            <TextInput
-              value={productName}
-              onChange={(v) => setProductName(v)}
-              placeholder="e.g. Samsung Galaxy A54 5G"
-            />
-          </FieldWrap>
-          <FieldWrap label="HSN/SAC Code">
-            <TextInput
-              value={hsnSac}
-              onChange={(v) => setHsnSac(v)}
-              placeholder="e.g. 8517 12 90"
+              value={hsnCode}
+              onChange={(v) => setHsnCode(v)}
+              placeholder="Enter 4, 6 or 8 digit HSN code"
             />
           </FieldWrap>
         </div>
@@ -151,35 +132,20 @@ function TaxDrawer({
           <SectionLabel>Tax Rates</SectionLabel>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FieldWrap label="CGST %">
+          <FieldWrap label="GST Rate %" required>
             <TextInput
               type="number"
-              value={cgst}
-              onChange={(v) => setCgst(Number(v))}
+              value={gstRate}
+              onChange={(v) => setGstRate(Number(v))}
               placeholder="0"
             />
           </FieldWrap>
-          <FieldWrap label="SGST %">
+
+          <FieldWrap label="CESS Rate %">
             <TextInput
               type="number"
-              value={sgst}
-              onChange={(v) => setSgst(Number(v))}
-              placeholder="0"
-            />
-          </FieldWrap>
-          <FieldWrap label="IGST %">
-            <TextInput
-              type="number"
-              value={igst}
-              onChange={(v) => setIgst(Number(v))}
-              placeholder="0"
-            />
-          </FieldWrap>
-          <FieldWrap label="CESS %">
-            <TextInput
-              type="number"
-              value={cess}
-              onChange={(v) => setCess(Number(v))}
+              value={cessRate}
+              onChange={(v) => setCessRate(Number(v))}
               placeholder="0"
             />
           </FieldWrap>
@@ -192,12 +158,14 @@ function TaxDrawer({
           <FieldWrap label="Effective Date">
             <TextInput
               type="date"
-              value={effectiveDate}
-              onChange={(v) => setEffectiveDate(v)}
+              value={effectiveFrom}
+              onChange={(v) => setEffectiveFrom(v)}
             />
           </FieldWrap>
           <div className="flex items-end justify-between gap-3 pb-1">
-            <span className="text-xs font-medium text-[#314158]">Default Tax</span>
+            <span className="text-xs font-medium text-[#314158]">
+              Default Tax
+            </span>
             <Toggle checked={isDefault} onChange={(v) => setIsDefault(v)} />
           </div>
         </div>
@@ -206,179 +174,133 @@ function TaxDrawer({
       <DrawerFooter
         onCancel={onClose}
         onPrimary={handleSubmit}
-        primaryLabel={initialData ? 'Update' : 'Save'}
+        primaryLabel={initialData ? "Update" : "Save"}
       />
     </Modal>
-  )
+  );
 }
 
 export default function TaxTab() {
-  const { data: initialTaxes = [], isLoading } = useQuery({
-    queryKey: ['inventory-setup-tax'],
-    queryFn: inventorySetupService.getTaxConfigs,
-  })
+  const queryClient = useQueryClient();
 
-  const [taxList, setTaxList] = useState<TaxConfig[]>([])
-  const [initialized, setInitialized] = useState(false)
+  const { data: taxList = [], isLoading } = useQuery({
+    queryKey: ["inventory-setup-tax"],
+    queryFn: inventorySetupService.getTaxConfigs,
+  });
 
   // Drawer / modal states
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<TaxConfig | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<TaxConfig | null>(null);
 
   // Search & Filter
-  const [search, setSearch] = useState('')
-  const [groupFilter, setGroupFilter] = useState<string>('All')
-  const [showFilterMenu, setShowFilterMenu] = useState(false)
+  const [search, setSearch] = useState("");
+  const [groupFilter, setGroupFilter] = useState<string>("All");
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   // Selection
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Sync initial query data
-  if (!initialized && initialTaxes.length > 0) {
-    setTaxList(initialTaxes)
-    setInitialized(true)
-  }
-
-  // Duplicate handler
-  const handleDuplicate = (record: TaxConfig) => {
-    // Determine next sequential TAX ID (e.g. TAX-008, TAX-009)
-    const currentTaxNumbers = taxList
-      .map((t) => {
-        const match = t.taxId.match(/\d+/)
-        return match ? parseInt(match[0], 10) : 0
-      })
-      .filter((n) => !isNaN(n))
-    const nextNum = (Math.max(0, ...currentTaxNumbers) + 1).toString().padStart(3, '0')
-    const newTaxId = `TAX-${nextNum}`
-
-    const duplicatedItem: TaxConfig = {
-      ...record,
-      id: String(Date.now()),
-      taxId: newTaxId,
-      productName: record.productName,
-    }
-
-    const targetIndex = taxList.findIndex((t) => t.id === record.id)
-    if (targetIndex >= 0) {
-      const updated = [...taxList]
-      updated.splice(targetIndex + 1, 0, duplicatedItem)
-      setTaxList(updated)
-    } else {
-      setTaxList((prev) => [...prev, duplicatedItem])
-    }
-
-    toast.success(`Tax configuration "${record.taxId}" duplicated as "${newTaxId}"`)
-  }
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit handler
   const handleEdit = (record: TaxConfig) => {
-    setEditingItem(record)
-    setDrawerOpen(true)
-  }
-
-  // Delete handler
-  const handleDelete = (record: TaxConfig) => {
-    setTaxList((prev) => prev.filter((t) => t.id !== record.id))
-    toast.success(`Tax configuration "${record.taxId}" deleted`)
-  }
+    setEditingItem(record);
+    setDrawerOpen(true);
+  };
 
   // Save (Create or Update) handler
-  const handleSaveTax = (formData: Partial<TaxConfig>) => {
-    if (editingItem) {
-      setTaxList((prev) =>
-        prev.map((t) => (t.id === editingItem.id ? { ...t, ...formData } : t))
-      )
-      toast.success(`Tax configuration "${editingItem.taxId}" updated successfully`)
-    } else {
-      const currentTaxNumbers = taxList
-        .map((t) => {
-          const match = t.taxId.match(/\d+/)
-          return match ? parseInt(match[0], 10) : 0
-        })
-        .filter((n) => !isNaN(n))
-      const nextNum = (Math.max(0, ...currentTaxNumbers) + 1).toString().padStart(3, '0')
-      const newTaxId = `TAX-${nextNum}`
+  const handleSaveTax = async (formData: TaxConfigInput) => {
+    try {
+      if (editingItem) {
+        await inventorySetupService.updateTaxConfig(editingItem.id, formData);
 
-      const newTax: TaxConfig = {
-        id: String(Date.now()),
-        taxId: newTaxId,
-        productCode: formData.productCode || 'PRD-NEW',
-        productName: formData.productName || 'New Product Item',
-        hsnSac: formData.hsnSac || '8517 12 90',
-        taxGroup: formData.taxGroup || 'Standard',
-        cgst: formData.cgst ?? 18,
-        sgst: formData.sgst ?? 18,
-        igst: formData.igst ?? 18,
-        cess: formData.cess ?? 0,
-        effectiveDate: formData.effectiveDate || '01 Apr 2026',
-        isDefault: formData.isDefault ?? false,
+        toast.success(
+          `Tax configuration "${editingItem.taxId}" updated successfully`,
+        );
+      } else {
+        const createdTax =
+          await inventorySetupService.createTaxConfig(formData);
+
+        toast.success(
+          `Tax configuration "${createdTax.taxId}" created successfully`,
+        );
       }
-      setTaxList((prev) => [...prev, newTax])
-      toast.success(`Tax configuration "${newTax.taxId}" created successfully`)
+
+      await queryClient.invalidateQueries({
+        queryKey: ["inventory-setup-tax"],
+      });
+
+      setDrawerOpen(false);
+      setEditingItem(null);
+    } catch (error: any) {
+      console.error("Tax configuration save failed:", error);
+
+      const message =
+        error?.response?.data?.message ||
+        "Failed to save tax configuration. Please try again.";
+
+      toast.error(message);
     }
-    setDrawerOpen(false)
-    setEditingItem(null)
-  }
+  };
 
   // Export handler
   const handleExport = () => {
     exportToCSV(
       taxList,
       [
-        { header: 'Tax ID', accessor: (t) => t.taxId },
-        { header: 'Product Code', accessor: (t) => t.productCode },
-        { header: 'Product Name', accessor: (t) => t.productName },
-        { header: 'HSN Code', accessor: (t) => t.hsnSac },
-        { header: 'CGST Rate', accessor: (t) => `${t.cgst}%` },
-        { header: 'SGST Rate', accessor: (t) => `${t.sgst}%` },
-        { header: 'IGST Rate', accessor: (t) => `${t.igst}%` },
-        { header: 'Tax Group', accessor: (t) => t.taxGroup },
+        { header: "Tax ID", accessor: (t) => t.taxId },
+        { header: "Tax Group", accessor: (t) => t.taxGroup },
+        { header: "HSN Code", accessor: (t) => t.hsnCode },
+        { header: "GST Rate", accessor: (t) => `${t.gstRate}%` },
+        { header: "CESS Rate", accessor: (t) => `${t.cessRate}%` },
+        { header: "Effective Form", accessor: (t) => `${t.effectiveFrom}%` },
+        {
+          header: "Default Tax",
+          accessor: (t) => (t.isDefault ? "Yes" : "No"),
+        },
       ],
-      'tax-configuration.csv'
-    )
-    toast.success('Tax configuration exported to CSV')
-  }
+      "tax-configuration.csv",
+    );
+    toast.success("Tax configuration exported to CSV");
+  };
 
   // Import handler
   const handleImport = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      toast.success(`File "${file.name}" imported successfully`)
+      toast.success(`File "${file.name}" imported successfully`);
     }
-    e.target.value = ''
-  }
+    e.target.value = "";
+  };
 
   // Filtered list
   const filtered = useMemo(() => {
     return taxList.filter((t) => {
-      const q = search.toLowerCase()
+      const q = search.toLowerCase();
       const matchesSearch =
-        t.productName.toLowerCase().includes(q) ||
-        t.productCode.toLowerCase().includes(q) ||
         t.taxId.toLowerCase().includes(q) ||
-        t.hsnSac.toLowerCase().includes(q)
-      const matchesGroup = groupFilter === 'All' || t.taxGroup === groupFilter
-      return matchesSearch && matchesGroup
-    })
-  }, [taxList, search, groupFilter])
+        t.taxGroup.toLowerCase().includes(q) ||
+        t.hsnCode.toLowerCase().includes(q);
+      const matchesGroup = groupFilter === "All" || t.taxGroup === groupFilter;
+      return matchesSearch && matchesGroup;
+    });
+  }, [taxList, search, groupFilter]);
 
   // Distinct groups for filter dropdown
   const availableGroups = useMemo(() => {
-    const groups = Array.from(new Set(taxList.map((t) => t.taxGroup)))
-    return ['All', ...groups]
-  }, [taxList])
+    const groups = Array.from(new Set(taxList.map((t) => t.taxGroup)));
+    return ["All", ...groups];
+  }, [taxList]);
 
   // Table Columns matching Figma reference design
   const columns: ColumnsType<TaxConfig> = [
     {
-      title: 'Tax ID',
-      dataIndex: 'taxId',
+      title: "Tax ID",
+      dataIndex: "taxId",
       width: 105,
       render: (v: string, record: TaxConfig) => (
         <span
@@ -390,67 +312,19 @@ export default function TaxTab() {
       ),
     },
     {
-      title: 'Product Code',
-      dataIndex: 'productCode',
-      width: 140,
-      render: (v: string) => (
-        <span className="font-medium text-xs text-[#155DFC]">{v}</span>
-      ),
-    },
-    {
-      title: 'Product Name',
-      dataIndex: 'productName',
-      width: 220,
-      render: (v: string) => (
-        <span className="text-xs font-medium text-slate-800">{v}</span>
-      ),
-    },
-    {
-      title: 'HSN Code',
-      dataIndex: 'hsnSac',
-      width: 120,
-      render: (v: string) => (
-        <span className="text-xs text-slate-600 font-mono tracking-wider">{v}</span>
-      ),
-    },
-    {
-      title: 'CGST Rate',
-      dataIndex: 'cgst',
-      width: 95,
-      render: (v: number) => (
-        <span className="font-semibold text-xs text-[#155DFC]">{v}%</span>
-      ),
-    },
-    {
-      title: 'SGST Rate',
-      dataIndex: 'sgst',
-      width: 95,
-      render: (v: number) => (
-        <span className="font-semibold text-xs text-[#155DFC]">{v}%</span>
-      ),
-    },
-    {
-      title: 'IGST Rate',
-      dataIndex: 'igst',
-      width: 95,
-      render: (v: number) => (
-        <span className="font-semibold text-xs text-[#155DFC]">{v}%</span>
-      ),
-    },
-    {
-      title: 'Tax Group',
-      dataIndex: 'taxGroup',
-      width: 130,
+      title: "Tax Group",
+      dataIndex: "taxGroup",
+      width: 150,
       render: (v: string) => {
-        let dotColor = 'bg-slate-400'
-        let badgeClasses = 'bg-slate-100 text-slate-700 border-slate-200'
+        let dotColor = "bg-slate-400";
+        let badgeClasses = "bg-slate-100 text-slate-700 border-slate-200";
 
-        if (v === 'Essential' || v.toLowerCase().includes('grocery')) {
-          dotColor = 'bg-emerald-500'
-          badgeClasses = 'bg-emerald-50 text-emerald-700 border-emerald-200'
-        } else if (v === 'Pharma') {
-          dotColor = 'bg-cyan-500'
-          badgeClasses = 'bg-cyan-50 text-cyan-700 border-cyan-200'
+        if (v === "Essential" || v.toLowerCase().includes("grocery")) {
+          dotColor = "bg-emerald-500";
+          badgeClasses = "bg-emerald-50 text-emerald-700 border-emerald-200";
+        } else if (v === "Pharma") {
+          dotColor = "bg-cyan-500";
+          badgeClasses = "bg-cyan-50 text-cyan-700 border-cyan-200";
         }
 
         return (
@@ -460,47 +334,67 @@ export default function TaxTab() {
             <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
             {v}
           </span>
-        )
+        );
       },
     },
     {
-      title: '',
-      key: 'actions',
+      title: "HSN Code",
+      dataIndex: "hsnCode",
+      width: 130,
+      render: (v: string) => (
+        <span className="text-xs text-slate-600 font-mono tracking-wider">
+          {v}
+        </span>
+      ),
+    },
+    {
+      title: "GST Rate",
+      dataIndex: "gstRate",
+      width: 110,
+      render: (v: number) => (
+        <span className="font-semibold text-xs text-[#155DFC]">{v}%</span>
+      ),
+    },
+    {
+      title: "CESS Rate",
+      dataIndex: "cessRate",
+      width: 110,
+      render: (v: number) => (
+        <span className="font-semibold text-xs text-[#155DFC]">{v}%</span>
+      ),
+    },
+    {
+      title: "Effective From",
+      dataIndex: "effectiveFrom",
+      width: 130,
+    },
+    {
+      title: "Default",
+      dataIndex: "isDefault",
+      width: 90,
+      render: (v: boolean) => (v ? "Yes" : "No"),
+    },
+    {
+      title: "",
+      key: "actions",
       width: 50,
       render: (_: unknown, record: TaxConfig) => (
         <Dropdown
           menu={{
             items: [
               {
-                key: 'edit',
+                key: "edit",
                 icon: <Pencil size={14} className="text-blue-600" />,
                 label: (
-                  <span className="text-xs font-medium text-slate-700">Edit</span>
+                  <span className="text-xs font-medium text-slate-700">
+                    Edit
+                  </span>
                 ),
                 onClick: () => handleEdit(record),
               },
-              {
-                key: 'duplicate',
-                icon: <Copy size={14} className="text-slate-600" />,
-                label: (
-                  <span className="text-xs font-medium text-slate-700">
-                    Duplicate
-                  </span>
-                ),
-                onClick: () => handleDuplicate(record),
-              },
-              {
-                key: 'delete',
-                icon: <Trash2 size={14} className="text-red-500" />,
-                label: (
-                  <span className="text-xs font-medium text-red-600">Delete</span>
-                ),
-                danger: true,
-                onClick: () => handleDelete(record),
-              },
             ],
           }}
-          trigger={['click']}
+          trigger={["click"]}
           placement="bottomRight"
         >
           <button
@@ -513,7 +407,7 @@ export default function TaxTab() {
         </Dropdown>
       ),
     },
-  ]
+  ];
 
   return (
     <div className="w-full">
@@ -554,7 +448,7 @@ export default function TaxTab() {
             {search && (
               <button
                 type="button"
-                onClick={() => setSearch('')}
+                onClick={() => setSearch("")}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 <X size={12} />
@@ -568,14 +462,14 @@ export default function TaxTab() {
               type="button"
               onClick={() => setShowFilterMenu((prev) => !prev)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition shadow-2xs cursor-pointer ${
-                groupFilter !== 'All'
-                  ? 'bg-blue-50 border-blue-200 text-blue-700'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                groupFilter !== "All"
+                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
               <ListFilter size={13} className="text-slate-500" />
               <span>Filters</span>
-              {groupFilter !== 'All' && (
+              {groupFilter !== "All" && (
                 <span className="ml-1 px-1.5 py-0.2 rounded-full bg-blue-600 text-[10px] text-white">
                   {groupFilter}
                 </span>
@@ -590,13 +484,13 @@ export default function TaxTab() {
                     key={group}
                     type="button"
                     onClick={() => {
-                      setGroupFilter(group)
-                      setShowFilterMenu(false)
+                      setGroupFilter(group);
+                      setShowFilterMenu(false);
                     }}
                     className={`w-full text-left px-3.5 py-1.5 text-xs flex items-center justify-between hover:bg-slate-50 cursor-pointer ${
                       groupFilter === group
-                        ? 'font-semibold text-blue-600 bg-blue-50/50'
-                        : 'text-slate-700'
+                        ? "font-semibold text-blue-600 bg-blue-50/50"
+                        : "text-slate-700"
                     }`}
                   >
                     <span>{group}</span>
@@ -631,8 +525,8 @@ export default function TaxTab() {
           <button
             type="button"
             onClick={() => {
-              setEditingItem(null)
-              setDrawerOpen(true)
+              setEditingItem(null);
+              setDrawerOpen(true);
             }}
             className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-white bg-[#155DFC] hover:bg-blue-600 rounded-lg transition shadow-2xs cursor-pointer active:scale-[0.98]"
           >
@@ -658,12 +552,12 @@ export default function TaxTab() {
       <TaxDrawer
         isOpen={drawerOpen}
         onClose={() => {
-          setDrawerOpen(false)
-          setEditingItem(null)
+          setDrawerOpen(false);
+          setEditingItem(null);
         }}
         initialData={editingItem}
         onSave={handleSaveTax}
       />
     </div>
-  )
+  );
 }

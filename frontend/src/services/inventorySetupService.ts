@@ -8,6 +8,7 @@ import type {
   PriceRule,
   VendorMapping,
   TaxConfig,
+  TaxConfigInput,
   Barcode,
   InventoryConfigCard,
   Bundle,
@@ -21,7 +22,6 @@ import {
   MOCK_UOMS,
   MOCK_PRICE_RULES,
   MOCK_VENDOR_MAPPINGS,
-  MOCK_TAX_CONFIGS,
   MOCK_BARCODES,
   BARCODE_STATS,
   MOCK_INVENTORY_CONFIG,
@@ -35,7 +35,7 @@ import { fromMockOrApi } from '@/services/dataSource'
  * Every endpoint lives under /api/inventory/setup.
  */
 const API_BASE = '/api/inventory/setup'
-
+const TAX_API = '/api/productSetup/tax-config'
 export const inventorySetupService = {
   /* Products */
   getProducts: () =>
@@ -85,10 +85,46 @@ export const inventorySetupService = {
     ),
 
   /* Tax */
-  getTaxConfigs: () =>
-    fromMockOrApi(MOCK_TAX_CONFIGS, () =>
-      apiClient.get<TaxConfig[]>(`${API_BASE}/tax-configs`).then((res) => res.data)
-    ),
+
+  /* Tax */
+  getTaxConfigs: async () => {
+    const res = await apiClient.get<{
+      message: string;
+      data: TaxConfig[];
+    }>(TAX_API);
+
+    return res.data.data;
+  },
+
+  createTaxConfig: async (input: TaxConfigInput) => {
+    const res = await apiClient.post<{
+      message: string;
+      data: TaxConfig;
+    }>(TAX_API, input);
+
+    return res.data.data;
+  },
+
+  updateTaxConfig: async (id: number, input: TaxConfigInput) => {
+    const res = await apiClient.put<{
+      message: string;
+      data: TaxConfig;
+    }>(`${TAX_API}/${id}`, input);
+
+    return res.data.data;
+  },
+
+  updateTaxConfigStatus: async (
+    id: number,
+    status: "ACTIVE" | "INACTIVE"
+  ) => {
+    const res = await apiClient.patch<{
+      message: string;
+      data: TaxConfig;
+    }>(`${TAX_API}/${id}/status`, { status });
+
+    return res.data.data;
+  },
 
   /* Barcode */
   getBarcodes: () =>

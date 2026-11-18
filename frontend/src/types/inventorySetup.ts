@@ -139,19 +139,32 @@ export type VendorMapping = {
 /* ---------------- Tax ---------------- */
 
 export type TaxConfig = {
-  id: string
+  id: number
   taxId: string
-  productCode: string
-  productName: string
-  hsnSac: string
+  hsnCode: string
   taxGroup: string
-  cgst: number
-  sgst: number
-  igst: number
-  cess: number
-  effectiveDate: string
+  gstRate: number
+  cessRate: number
+  cgstRate: number
+  sgstRate: number
+  igstRate: number
+  effectiveFrom: string
+  status: "ACTIVE" | "INACTIVE"
   isDefault: boolean
+  createdAt?: string
+  updatedAt?: string
 }
+
+export type TaxConfigInput = Omit<
+  TaxConfig,
+  | "id"
+  | "taxId"
+  | "cgstRate"
+  | "sgstRate"
+  | "igstRate"
+  | "createdAt"
+  | "updatedAt"
+>
 
 export type TaxDraft = {
   taxGroup: string
