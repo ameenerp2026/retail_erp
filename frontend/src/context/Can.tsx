@@ -1,4 +1,3 @@
-
 import type { ReactNode } from "react";
 import { useAuth } from "@/context/useAuth";
 
@@ -8,9 +7,14 @@ interface CanProps {
 }
 
 export default function Can({ permission, children }: CanProps) {
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
 
-  if (!hasPermission(permission)) {
+  if (
+    user &&
+    user.role?.toUpperCase() !== "ADMIN" &&
+    user.role?.toUpperCase() !== "SUPERADMIN" &&
+    !hasPermission(permission)
+  ) {
     return null;
   }
 
