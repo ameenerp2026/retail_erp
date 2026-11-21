@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Filter, Download } from "lucide-react";
 import BusinessLocationForm from "./components/BusinessLocationForm";
+import BusinessLocationFilter from "./components/BusinessLocationFilter";
 import toast from "react-hot-toast";
 import type { BusinessLocationRow } from "../../../types/admin/organization/businessLocation";
 import BusinessLocationTable from "./components/BusinessLocationTable";
-import Pagination from "../components/Pagination";
 import {
   BUSINESS_LOCATION_QUERY_KEY,
   useBusinessLocations,
@@ -12,15 +13,11 @@ import {
 import { exportToPDF, ExportColumn } from "@/utils/exportData";
 import { useQueryClient } from "@tanstack/react-query";
 import { deleteBusinessLocation } from "@/services/admin/organization/businessLocation.service";
-import Can from "@/context/Can";
-
-const ROWS_PER_PAGE = 10;
 type ViewMode = "list" | "create" | "edit";
 
 const businessLocationColumns: ExportColumn<BusinessLocationRow>[] = [
   { header: "Location Name", accessor: (l) => l.locationName },
-  { header: "Type", accessor: (l) => l.locationType },
-  { header: "Category", accessor: (l) => l.businessCategory },
+  { header: "Code", accessor: (l) => l.code || `LOC-${String(l.id).padStart(3, "0")}` },
   {
     header: "Address",
     accessor: (l) =>
@@ -28,52 +25,109 @@ const businessLocationColumns: ExportColumn<BusinessLocationRow>[] = [
   },
   { header: "City", accessor: (l) => l.city },
   { header: "State", accessor: (l) => l.state },
-  { header: "Pin Code", accessor: (l) => l.pinCode },
-  { header: "Contact Person", accessor: (l) => l.contactPerson },
-  { header: "Phone", accessor: (l) => l.phoneNumber || "—" },
   { header: "Status", accessor: (l) => l.status },
 ];
 
 function BusinessLocationPage() {
   const queryClient = useQueryClient();
-  // const deleteMutation = useDeleteBusinessLocation()
-  const [view, setView] = useState<ViewMode>("list");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const actionParam = searchParams.get("action");
+  const editIdParam = searchParams.get("id");
+
+  const [localView, setLocalView] = useState<ViewMode>("list");
   const [selectedLocation, setSelectedLocation] =
     useState<BusinessLocationRow | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
+  const [selectedState, setSelectedState] = useState<string>("ALL");
 
-const {
-  data: locations = [],
-  isLoading,
-  error,
-} = useBusinessLocations()
+  const {
+    data: locations = [],
+    isLoading,
+    error,
+  } = useBusinessLocations();
+
+  const view: ViewMode =
+    actionParam === "create" ? "create" : actionParam === "edit" ? "edit" : localView;
+
+  const locationToEdit = useMemo(() => {
+    if (actionParam === "edit" && editIdParam) {
+      return (
+        locations.find((l: BusinessLocationRow) => String(l.id) === editIdParam) ||
+        selectedLocation
+      );
+    }
+    return selectedLocation;
+  }, [actionParam, editIdParam, locations, selectedLocation]);
+
+  // Extract available states for filter
+  const availableStates = useMemo(() => {
+    const statesSet = new Set<string>();
+    locations.forEach((loc: BusinessLocationRow) => {
+      if (loc.state) statesSet.add(loc.state);
+    });
+    return Array.from(statesSet).sort();
+  }, [locations]);
 
   const filteredLocations = useMemo(() => {
-    const term = searchTerm.toLowerCase().trim();
-    if (!term) return locations;
-    return locations.filter((loc: BusinessLocationRow) =>
-      [loc.locationName, loc.city, loc.state, loc.addressLine1].some((field) =>
-        field?.toLowerCase().includes(term),
-      ),
-    );
-  }, [locations, searchTerm]);
+    let result = locations;
 
-  const totalPages = Math.ceil(filteredLocations.length / ROWS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
-  const currentLocations = filteredLocations.slice(
-    startIndex,
-    startIndex + ROWS_PER_PAGE,
-  );
+    // Search query filter
+    const term = searchTerm.toLowerCase().trim();
+    if (term) {
+      result = result.filter((loc: BusinessLocationRow) =>
+        [loc.locationName, loc.code, loc.city, loc.state, loc.addressLine1].some(
+          (field) => field?.toLowerCase().includes(term)
+        )
+      );
+    }
+
+    // Status filter
+    if (selectedStatus !== "ALL") {
+      result = result.filter(
+        (loc: BusinessLocationRow) =>
+          loc.status?.toUpperCase() === selectedStatus
+      );
+    }
+
+    // State filter
+    if (selectedState !== "ALL") {
+      result = result.filter(
+        (loc: BusinessLocationRow) =>
+          loc.state?.toLowerCase() === selectedState.toLowerCase()
+      );
+    }
+
+    return result;
+  }, [locations, searchTerm, selectedStatus, selectedState]);
+
+  const currentLocations = useMemo(() => {
+    if (currentPage === 1) {
+      return filteredLocations.slice(0, 5);
+    }
+    return filteredLocations.slice(5, 12);
+  }, [filteredLocations, currentPage]);
+
+  const totalPages = filteredLocations.length > 5 ? 2 : 1;
 
   const handleCreate = () => {
     setSelectedLocation(null);
-    setView("create");
+    setSearchParams({ action: "create" });
+    setLocalView("create");
   };
 
   const handleEdit = (row: BusinessLocationRow) => {
     setSelectedLocation(row);
-    setView("edit");
+    setSearchParams({ action: "edit", id: String(row.id) });
+    setLocalView("edit");
+  };
+
+  const handleBack = () => {
+    setSelectedLocation(null);
+    setSearchParams({});
+    setLocalView("list");
   };
 
   const handleDelete = async (row: BusinessLocationRow) => {
@@ -83,63 +137,64 @@ const {
         queryKey: BUSINESS_LOCATION_QUERY_KEY,
       });
       toast.success("Business location deleted successfully");
-    } catch (error) {
-      console.error("Delete error:", error);
+    } catch (err) {
+      console.error("Delete error:", err);
       toast.error("Failed to delete business location");
     }
   };
+
   if (view === "create") {
     return (
       <BusinessLocationForm
-        onBack={() => setView("list")}
-        onSaved={() => setView("list")}
+        onBack={handleBack}
+        onSaved={handleBack}
       />
     );
   }
 
-  if (view === "edit" && selectedLocation) {
+  if (view === "edit" && locationToEdit) {
     return (
       <BusinessLocationForm
-        location={selectedLocation}
-        onBack={() => setView("list")}
-        onSaved={() => setView("list")}
+        location={locationToEdit}
+        onBack={handleBack}
+        onSaved={handleBack}
       />
     );
   }
-  // if (view === 'form') {
-  //   return <BusinessLocationForm onBack={() => setView('list')} onSaved={() => setView('list')} />
-  // }
+
+  const hasActiveFilters = selectedStatus !== "ALL" || selectedState !== "ALL";
 
   return (
-    <div className="page-shell">
-      {/* Header */}
-      <div className="page-header">
+    <div className="space-y-5">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="page-title">Business Locations</h2>
-          <p className="page-subtitle">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            Business Locations
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
             Manage your organization's physical sites and hubs across regions.
           </p>
         </div>
-        <div className="page-actions">
-          <Can permission="BUSINESS_LOCATION_CREATE">
-            <button
-              type="button"
-              onClick={handleCreate}
-              className="flex h-10 items-center gap-2 rounded-xl bg-[linear-gradient(#093055,#043793)] px-4 text-sm font-medium text-white transition hover:opacity-95"
-            >
-              <Plus size={18} />
-              Add Location
-            </button>
-          </Can>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleCreate}
+            className="flex h-10 items-center gap-2 rounded-xl bg-[#093055] px-5 text-sm font-semibold text-white shadow-xs transition hover:bg-[#072440] cursor-pointer"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+            <span>Add Location</span>
+          </button>
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Toolbar: Search, Filters, Export */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+          {/* Search Box */}
           <div className="relative w-full max-w-md">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               size={18}
             />
             <input
@@ -150,17 +205,55 @@ const {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm focus:border-[#043793] focus:outline-none"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#043793] focus:ring-1 focus:ring-[#043793]"
             />
           </div>
-          <button
-            type="button"
-            className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-          >
-            <Filter size={16} />
-            Filters
-          </button>
+
+          {/* Filters Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`flex h-10 items-center gap-2 rounded-xl border px-4 text-sm font-medium transition cursor-pointer ${
+                isFilterOpen || hasActiveFilters
+                  ? "border-[#043793] bg-blue-50/30 text-[#043793]"
+                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <Filter size={16} className={hasActiveFilters ? "text-[#043793]" : "text-slate-500"} />
+              Filters
+              {hasActiveFilters && (
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#043793] text-[10px] font-bold text-white">
+                  {(selectedStatus !== "ALL" ? 1 : 0) + (selectedState !== "ALL" ? 1 : 0)}
+                </span>
+              )}
+            </button>
+
+            {isFilterOpen && (
+              <BusinessLocationFilter
+                selectedStatus={selectedStatus}
+                onChangeStatus={(st) => {
+                  setSelectedStatus(st);
+                  setCurrentPage(1);
+                }}
+                selectedState={selectedState}
+                onChangeState={(st) => {
+                  setSelectedState(st);
+                  setCurrentPage(1);
+                }}
+                availableStates={availableStates}
+                onReset={() => {
+                  setSelectedStatus("ALL");
+                  setSelectedState("ALL");
+                  setCurrentPage(1);
+                }}
+                onClose={() => setIsFilterOpen(false)}
+              />
+            )}
+          </div>
         </div>
+
+        {/* Export Button */}
         <button
           type="button"
           onClick={() =>
@@ -170,36 +263,24 @@ const {
               orientation: "landscape",
             })
           }
-          className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50 cursor-pointer"
+          className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-2xs transition hover:bg-slate-50 cursor-pointer self-start sm:self-auto"
         >
-          <Download size={16} />
+          <Download size={16} className="text-slate-500" />
           Export
         </button>
       </div>
 
-      {/* Table */}
+      {/* Table & Pagination Card */}
       <BusinessLocationTable
         locations={currentLocations}
+        totalCount={filteredLocations.length}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={isLoading}
         error={error instanceof Error ? error.message : undefined}
-      />
-
-      {/* Footer / Pagination */}
-      <div className="mt-2 flex items-center justify-between">
-        <p className="text-xs text-slate-500 sm:text-sm">
-          Showing {currentLocations.length} of {filteredLocations.length}{" "}
-          locations
-        </p>
-      </div>
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        startIndex={startIndex}
-        endIndex={startIndex + ROWS_PER_PAGE}
-        totalItems={filteredLocations.length}
-        onPageChange={setCurrentPage}
       />
     </div>
   );
