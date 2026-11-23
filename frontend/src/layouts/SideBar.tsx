@@ -1,16 +1,25 @@
 import { MODULE_ROUTES } from "@/config/navigationConfig";
 import { forwardRef, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, X, ChevronDown, ChevronRight, ChevronsUpDown, Package } from "lucide-react";
+import {
+  LogOut,
+  X,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  Package,
+} from "lucide-react";
 import { useAuth } from "@/context/useAuth";
 
 type SidebarProps = {
   open?: boolean;
   onClose?: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 };
 
 const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
-  { open = false, onClose },
+  { open = false, onClose, collapsed, onToggleCollapse },
   ref,
 ) {
   const location = useLocation();
@@ -38,35 +47,40 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
   }, []);
 
   const isHidden = !open && !isDesktop;
+  const isCollapsed = collapsed && isDesktop;
 
   return (
     <aside
       ref={ref}
       className={`
-        fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col
-        bg-[#043793] text-white
-        transition-transform duration-300 ease-out
-        lg:translate-x-0
-        ${open ? "translate-x-0" : "-translate-x-full"}
-      `}
+  fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col
+  lg:w-72
+  ${collapsed ? "lg:!w-20" : "lg:!w-72"}
+  bg-[#043793] text-white
+  transition-[width,transform] duration-300 ease-out
+  lg:translate-x-0
+  ${open ? "translate-x-0" : "-translate-x-full"}
+`}
       aria-hidden={isHidden}
       inert={isHidden}
     >
-      <div className="flex h-full flex-col px-4 pt-4 pb-4">
+      <div className="flex h-full flex-col px-4 pt-4 pb-4 lg:px-4">
         {/* Brand */}
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#1A3A7A] text-lg font-bold text-white shadow-sm">
               S
             </div>
-            <div className="min-w-0">
-              <h2 className="truncate text-sm font-bold leading-tight tracking-tight text-white">
-                STREAMYS
-              </h2>
-              <p className="text-[10px] font-medium tracking-[0.18em] text-[#5B8BC6]">
-                RETAIL SAAS
-              </p>
-            </div>
+            {!isCollapsed && (
+              <div className="min-w-0">
+                <h2 className="truncate text-sm font-bold leading-tight tracking-tight text-white">
+                  STREAMYS
+                </h2>
+                <p className="text-[10px] font-medium tracking-[0.18em] text-[#5B8BC6]">
+                  RETAIL SAAS
+                </p>
+              </div>
+            )}
           </div>
           <button
             type="button"
@@ -81,19 +95,27 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
         <div className="mb-3 h-px bg-[#5B8BC6]/40" />
 
         {/* Tenant */}
-        <div className="mb-4 flex w-full cursor-pointer items-center justify-between rounded-xl border border-[#2B4B8C] bg-[#1A3A7A] p-3 shadow-sm transition hover:border-[#3b62b3]">
+        <div
+          className={`mb-4 flex w-full items-center rounded-xl border border-[#2B4B8C] bg-[#1A3A7A] shadow-sm transition hover:border-[#3b62b3] ${
+            isCollapsed ? "justify-center p-1" : "justify-between p-3"
+          }`}
+        >
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#4ADE80] text-sm font-bold text-[#0B2A6B]">
               RS
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">
-                RetailShop India
-              </p>
-              <p className="text-xs text-[#8FA8D4]">Admin Tenant</p>
-            </div>
+            {!isCollapsed && (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">
+                  RetailShop India
+                </p>
+                <p className="text-xs text-[#8FA8D4]">Admin Tenant</p>
+              </div>
+            )}
           </div>
-          <ChevronDown size={16} className="text-white/60 shrink-0" />
+          {!isCollapsed && (
+            <ChevronDown size={16} className="text-white/60 shrink-0" />
+          )}
         </div>
 
         {/* Nav */}
@@ -133,9 +155,15 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
                       if (!isInventoryRoute) {
                         navigate("/inventory/product-setup/products");
                       }
-                      setInventoryExpanded((prev) => !prev);
+                      if (!isCollapsed) {
+                        setInventoryExpanded((prev) => !prev);
+                      }
                     }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                    className={`flex w-full items-center ${
+                      isCollapsed
+                        ? "justify-center px-0"
+                        : "justify-between px-3.5"
+                    } rounded-xl py-2.5 text-sm font-medium transition-colors ${
                       isModuleActive
                         ? "bg-[#155DFC] text-white shadow-sm"
                         : "text-white/90 hover:bg-[#1A3A7A]"
@@ -143,20 +171,26 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
                   >
                     <div className="flex items-center gap-3 truncate">
                       <Icon size={18} className="shrink-0 opacity-95" />
-                      <span className="truncate">{module.label}</span>
+                      {!isCollapsed && (
+                        <span className="truncate">{module.label}</span>
+                      )}
                     </div>
-                    {inventoryExpanded ? (
-                      <ChevronDown size={16} className="shrink-0 text-white" />
-                    ) : (
-                      <ChevronRight
-                        size={16}
-                        className="shrink-0 text-white/80"
-                      />
-                    )}
+                    {!isCollapsed &&
+                      (inventoryExpanded ? (
+                        <ChevronDown
+                          size={16}
+                          className="shrink-0 text-white"
+                        />
+                      ) : (
+                        <ChevronRight
+                          size={16}
+                          className="shrink-0 text-white/80"
+                        />
+                      ))}
                   </button>
 
                   {/* Expandable sub-menu */}
-                  {inventoryExpanded && module.tabs && (
+                  {!isCollapsed && inventoryExpanded && module.tabs && (
                     <div className="space-y-0.5 pt-0.5">
                       {module.tabs.map((tab) => {
                         const SubIcon = tab.icon || Package;
@@ -210,48 +244,70 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
                 }
                 onClick={onClose}
                 className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                  isCollapsed ? "justify-center px-0" : ""
+                } ${
                   isModuleActive
                     ? "bg-gradient-to-r from-[#2B6CB0] to-[#1A4A8A] text-white shadow-sm"
                     : "text-white/90 hover:bg-[#1A3A7A]"
                 }`}
               >
                 <Icon size={18} className="shrink-0 opacity-90" />
-                <span className="truncate">{module.label}</span>
+
+                {!isCollapsed && (
+                  <span className="truncate">{module.label}</span>
+                )}
               </NavLink>
             );
           })}
         </nav>
 
         <div className="mb-3 h-px bg-[#5B8BC6]/40" />
-
         {/* User Profile */}
-        <div className="mb-2 flex w-full items-center justify-between rounded-xl border border-[#2B4B8C]/40 bg-[#1A3A7A]/60 p-2.5 shadow-sm">
+        <div
+          className={`mb-2 flex w-full items-center rounded-xl border border-[#2B4B8C]/40 bg-[#1A3A7A]/60 shadow-sm ${
+            isCollapsed ? "justify-center p-1" : "justify-between p-2.5"
+          }`}
+        >
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1848B0] border border-[#2D62DC] text-xs font-bold text-white shadow-sm">
-              AR
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#2B6CB0] to-[#1A4A8A]  text-xs font-bold text-white shadow-sm">
+              AD
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-xs font-semibold text-white">
-                {user?.name || "Arjun Sharma"}
-              </p>
-              <p className="truncate text-[11px] text-[#8FA8D4]">
-                Inventory Manager
-              </p>
-            </div>
+
+            {!isCollapsed && (
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-white">
+                  {user?.name || "Admin User"}
+                </p>
+                <p className="truncate text-[11px] text-[#8FA8D4]">
+                  {user?.email || "admin@streamys.in"}
+                </p>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-1">
-            <ChevronsUpDown size={15} className="text-white/60 shrink-0" />
-            <button
-              type="button"
-              onClick={logout}
-              className="shrink-0 rounded-lg p-1 text-white/70 hover:bg-white/10 hover:text-white transition"
-              aria-label="Log out"
-              title="Log out"
-            >
-              <LogOut size={15} />
-            </button>
-          </div>
+
+          <button
+            type="button"
+            onClick={logout}
+            className={`shrink-0 rounded-lg p-1 text-white/70 transition hover:bg-white/10 hover:text-white ${
+              isCollapsed ? "hidden" : ""
+            }`}
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut size={17} />
+          </button>
         </div>
+
+        {/* Sidebar Collapse Button */}
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="hidden lg:flex h-9 w-full items-center justify-center rounded-lg border border-[#2B4B8C]/40 bg-[#1A3A7A]/60 text-white hover:bg-[#1A3A7A] transition"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
     </aside>
   );

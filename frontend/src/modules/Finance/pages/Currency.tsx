@@ -11,7 +11,6 @@ import CurrencyForm from "@/modules/Finance/components/Currency/CurrencyForm";
 import type { CurrencyFormData } from "@/components/forms/validate.schema";
 import { useAuth } from "@/context/useAuth";
 
-
 export default function CurrencyPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<CurrencyRecord | null>(null);

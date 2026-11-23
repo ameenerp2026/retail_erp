@@ -7,6 +7,7 @@ function DashBoardLayout() {
   const location = useLocation();
   const [sidebarOpenPath, setSidebarOpenPath] = useState<string | null>(null);
   const sidebarOpen = sidebarOpenPath === location.pathname;
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -36,6 +37,8 @@ function DashBoardLayout() {
         ref={sidebarRef}
         open={sidebarOpen}
         onClose={closeSidebar}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
       />
 
       {/* Mobile overlay */}
@@ -48,7 +51,11 @@ function DashBoardLayout() {
         />
       )}
 
-      <div className="flex min-h-screen flex-col lg:pl-72">
+      <div
+        className={`flex min-h-screen flex-col transition-all duration-300 ${
+          sidebarCollapsed ? "lg:pl-20" : "lg:pl-72"
+        }`}
+      >
         <Topbar
           menuButtonRef={menuButtonRef}
           onMenuClick={() => setSidebarOpenPath(location.pathname)}

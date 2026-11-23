@@ -1,4 +1,12 @@
-import { Search, Bell, Menu, ChevronRight, ChevronDown } from "lucide-react";
+import {
+  Search,
+  Bell,
+  Menu,
+  ChevronRight,
+  Plus,
+  Moon,
+  ChevronDown,
+} from "lucide-react";
 import type { Ref } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { MODULE_ROUTES } from "@/config/navigationConfig";
@@ -12,23 +20,26 @@ type TopbarProps = {
 function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
   const location = useLocation();
   const isInventory = location.pathname.startsWith("/inventory");
-  const isProductSetup = location.pathname.startsWith("/inventory/product-setup");
+  const isProductSetup = location.pathname.startsWith(
+    "/inventory/product-setup",
+  );
 
   const activeModule = MODULE_ROUTES.find((module) =>
-    location.pathname.startsWith(module.basePath)
+    location.pathname.startsWith(module.basePath),
   );
 
   // Determine current product setup tab label if applicable
   const currentSubTab = PRODUCT_SETUP_TABS.find((t) =>
-    location.pathname.endsWith(`/${t.key}`)
+    location.pathname.endsWith(`/${t.key}`),
   );
   const currentSubTabLabel = currentSubTab?.label ?? "Products";
 
   // Determine current inventory section title if on another inventory page
   const currentInventoryTab = activeModule?.tabs?.find((t) =>
-    location.pathname.includes(t.path)
+    location.pathname.includes(t.path),
   );
-  const currentInventorySectionTitle = currentInventoryTab?.label ?? "Dashboard";
+  const currentInventorySectionTitle =
+    currentInventoryTab?.label ?? "Dashboard";
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -66,7 +77,10 @@ function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
                     >
                       Product Setup
                     </Link>
-                    <ChevronRight size={13} className="text-slate-400 shrink-0" />
+                    <ChevronRight
+                      size={13}
+                      className="text-slate-400 shrink-0"
+                    />
                     <span className="text-slate-800 font-semibold truncate">
                       {currentSubTabLabel}
                     </span>
@@ -85,49 +99,60 @@ function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
           </nav>
         </div>
 
-        {/* Right: Selectors, Search, Notifications, Avatar */}
+        {/* Right: Search, Quick Create, Theme, Notifications, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Financial Year Selector */}
-          <div className="hidden sm:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 cursor-pointer">
-            <span>FY 2024 - 2025</span>
-            <ChevronDown size={13} className="text-slate-400" />
-          </div>
-
-          {/* Month Selector */}
-          <div className="hidden md:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 cursor-pointer">
-            <span>January 2025</span>
-            <ChevronDown size={13} className="text-slate-400" />
-          </div>
-
-          {/* Global Inventory Search */}
+          {/* Search */}
           <div className="relative flex items-center">
-            <input
-              type="text"
-              placeholder="Search inventory..."
-              className="h-8 w-36 sm:w-48 md:w-56 rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs text-slate-700 placeholder:text-slate-400 outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
-            />
             <Search
               size={14}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+            />
+            <input
+              type="text"
+              placeholder="Search modules, records..."
+              className="h-9 w-36 sm:w-48 md:w-60 rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 outline-none focus:border-[#155DFC] focus:bg-white focus:ring-1 focus:ring-[#155DFC]"
             />
           </div>
+
+          {/* Quick Create */}
+          <button
+            type="button"
+            className="flex h-9 items-center gap-1.5 rounded-lg bg-[#043793] px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#032d76]"
+          >
+            <Plus size={15} />
+            <span className="hidden sm:inline">Quick Create</span>
+          </button>
+
+          {/* Theme Toggle */}
+          <button
+            type="button"
+            aria-label="Toggle theme"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100"
+          >
+            <Moon size={16} />
+          </button>
 
           {/* Notifications */}
           <button
             type="button"
-            className="relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100"
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100"
             aria-label="Notifications"
           >
-            <Bell size={17} />
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-xs">
-              7
-            </span>
+            <Bell size={16} />
+            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-2 ring-white" />
           </button>
 
-          {/* User Avatar */}
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0B2A6B] text-xs font-semibold text-white shadow-2xs">
-            AR
-          </div>
+          {/* Admin Profile */}
+          <button
+            type="button"
+            className="flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0B2A6B] text-[10px] font-bold text-white">
+              AD
+            </span>
+            <span className="hidden sm:inline">Admin</span>
+            <ChevronDown size={13} className="text-slate-400" />
+          </button>
         </div>
       </div>
 
