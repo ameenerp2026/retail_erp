@@ -27,8 +27,8 @@ function OrganizationGroup() {
     resolver: zodResolver(organizationSchema),
     defaultValues: {
       shortName: "",
-      financialYear: "April-March",
-      currency: "",
+      financialYear: "April - March",
+      currency: "INR",
       companyName: "",
       cinNumber: "",
       panNumber: "",
@@ -37,8 +37,8 @@ function OrganizationGroup() {
       website: "",
       address: "",
       state: "",
-      country: "",
-      pinCode: "560068",
+      country: "IN",
+      pinCode: "",
     },
   });
 
@@ -160,7 +160,7 @@ function OrganizationGroup() {
                   <p className="flex text-center text-[#FFFFFF]">RS</p>
                 </div>
               </div>
-              <div className="flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
                 <label className="cursor-pointer">
                   <input
                     type="file"
@@ -170,9 +170,12 @@ function OrganizationGroup() {
                   />
                   <div className="flex justify-center items-center gap-2 bg-[#F1F5F9] w-30 h-10 rounded-2xl hover:bg-[#E2E8F0]">
                     <Upload size={14} />
-                    <span>Upload</span>
+                    <span>Upload Logo</span>
                   </div>
                 </label>
+                <p className="text-[11px] text-[#94A3B8] mt-2 text-center">
+                  PNG, JPG up to 2MB. Recommended 256x256
+                </p>
 
                 {/* {fileName && (
                   <span className="text-sm text-gray-600 truncate max-w-[200px]">
@@ -182,8 +185,7 @@ function OrganizationGroup() {
               </div>
               <FormInput
                 label="Short Name"
-                required
-                placeholder="short name"
+                placeholder="Enter short name"
                 {...register("shortName")}
                 error={errors.shortName?.message}
               />
@@ -196,7 +198,7 @@ function OrganizationGroup() {
               <FormInput
                 label="Base Currency"
                 type="select"
-                required
+                selectPlaceholder="Select base currency"
                 options={[
                   { label: "INR - Indian Rupee", value: "INR" },
                   { label: "USD - US Dollar", value: "USD" },
@@ -217,14 +219,13 @@ function OrganizationGroup() {
                   <FormInput
                     label="Company Name"
                     required
-                    placeholder="company name"
+                    placeholder="Enter company name"
                     {...register("companyName")}
                     error={errors.companyName?.message}
                   />
                   <FormInput
                     label="CIN Number"
-                    required
-                    placeholder="L12345AB2024PTC123456"
+                    placeholder="U52110MH2008PTC185234"
                     {...register("cinNumber")}
                     error={errors.cinNumber?.message}
                   />
@@ -232,29 +233,26 @@ function OrganizationGroup() {
                   <FormInput
                     label="PAN Number"
                     required
-                    placeholder="ABCDE1234F"
+                    placeholder="Enter PAN number"
                     {...register("panNumber")}
                     error={errors.panNumber?.message}
                   />
                   <FormInput
                     label="Email Address"
                     type="email"
-                    required
-                    placeholder="email"
+                    placeholder="Enter email address"
                     {...register("email")}
                     error={errors.email?.message}
                   />
                   <FormInput
                     label="Phone Number"
-                    required
-                    placeholder="Phone Number"
+                    placeholder="Enter phone number"
                     {...register("phoneNumber")}
                     error={errors.phoneNumber?.message}
                   />
                   <FormInput
                     label="Website"
-                    placeholder="https://example.com"
-                    required
+                    placeholder="Enter website"
                     {...register("website")}
                     error={errors.website?.message}
                   />
@@ -264,27 +262,16 @@ function OrganizationGroup() {
                     label="Registered Address"
                     type="textarea"
                     required
-                    placeholder="Enter Address"
+                    placeholder="Enter registered address"
                     {...register("address")}
                     error={errors.address?.message}
                   />
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormInput
-                    label="Country"
-                    type="select"
-                    required
-                    options={countries.map((c) => ({
-                      label: c.name,
-                      value: c.isoCode,
-                    }))}
-                    {...register("country")}
-                    error={errors.country?.message}
-                  />
-                  <FormInput
                     label="State"
                     type="select"
-                    required
+                    selectPlaceholder="Select state"
                     options={states.map((s) => ({
                       label: s.name,
                       value: s.isoCode,
@@ -293,8 +280,19 @@ function OrganizationGroup() {
                     error={errors.state?.message}
                   />
                   <FormInput
+                    label="Country"
+                    type="select"
+                    selectPlaceholder="Select country"
+                    options={countries.map((c) => ({
+                      label: c.name,
+                      value: c.isoCode,
+                    }))}
+                    {...register("country")}
+                    error={errors.country?.message}
+                  />
+                  <FormInput
                     label="Pin Code"
-                    required
+                    placeholder="Enter pin code"
                     {...register("pinCode")}
                     error={errors.pinCode?.message}
                   />

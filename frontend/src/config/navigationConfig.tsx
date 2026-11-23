@@ -1,9 +1,9 @@
 import type { LucideIcon } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
 import {
   LayoutDashboard,
   Building2,
   DollarSign,
-  ShieldCheck,
   Settings,
   Boxes,
   Package,
@@ -21,10 +21,43 @@ export interface Tab {
 
 export interface ModuleRoute {
   label: string;
-  icon: LucideIcon;
+  icon: LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
   basePath: string;
   tabs?: Tab[];
 }
+
+const SecuritiesIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 18 18"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path
+      d="M4.4989 2.24951H13.497L16.4964 6.74859L8.99797 16.4966L1.49951 6.74859L4.4989 2.24951Z"
+      stroke="currentColor"
+      strokeWidth="1.49969"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M8.24807 2.24951L5.99854 6.74859L8.99792 16.4966L11.9973 6.74859L9.74776 2.24951"
+      stroke="currentColor"
+      strokeWidth="1.49969"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M1.49951 6.74854H16.4964"
+      stroke="currentColor"
+      strokeWidth="1.49969"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 export const MODULE_ROUTES: ModuleRoute[] = [
   {
@@ -64,26 +97,26 @@ export const MODULE_ROUTES: ModuleRoute[] = [
 
   {
     label: "Securities",
-    icon: ShieldCheck,
+    icon: SecuritiesIcon,
     basePath: "/securities",
-    tabs:[
-      { label: "Roles", path: "roles"},
-      { label: "Role Wizard", path: "role-wizard"},
-      { label: "Users", path: "users"},
-      { label: "User Logs", path: "user-logs"},
-      {label:"User License", path:"user-licenses"}
-    ]
+    tabs: [
+      { label: "Roles", path: "roles" },
+      { label: "Role Wizard", path: "role-wizard" },
+      { label: "Users", path: "users" },
+      { label: "User Logs", path: "user-logs" },
+      { label: "User License", path: "user-licenses" },
+    ],
   },
 
   {
     label: "Utilities",
     icon: Settings,
     basePath: "/utilities",
-    tabs:[
-       { label: "Data Import", path: "data-import"},
-      { label: "E-Invoice Generator", path: "e-invoice"},
-      { label: "E-Way Bill Generator", path: "e-way-bill"},
-    ]
+    tabs: [
+      { label: "Data Import", path: "data-import" },
+      { label: "E-Invoice Generator", path: "e-invoice" },
+      { label: "E-Way Bill Generator", path: "e-way-bill" },
+    ],
   },
 
   {
@@ -91,11 +124,27 @@ export const MODULE_ROUTES: ModuleRoute[] = [
     icon: Boxes,
     basePath: "/inventory",
     tabs: [
-      { label: "Inventory Dashboard", path: "dashboard", icon: LayoutDashboard },
+      {
+        label: "Inventory Dashboard",
+        path: "dashboard",
+        icon: LayoutDashboard,
+      },
       { label: "Product Setup", path: "product-setup", icon: Package },
-      { label: "Warehouse Management", path: "warehouse-management", icon: Warehouse },
-      { label: "Inventory Management", path: "inventory-management", icon: Layers },
-      { label: "Inventory Operations", path: "inventory-operations", icon: ArrowLeftRight },
+      {
+        label: "Warehouse Management",
+        path: "warehouse-management",
+        icon: Warehouse,
+      },
+      {
+        label: "Inventory Management",
+        path: "inventory-management",
+        icon: Layers,
+      },
+      {
+        label: "Inventory Operations",
+        path: "inventory-operations",
+        icon: ArrowLeftRight,
+      },
       { label: "Reports", path: "reports", icon: BarChart2 },
       { label: "Configuration", path: "configuration", icon: Settings },
     ],
