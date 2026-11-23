@@ -7,32 +7,7 @@ import {
   updateOrganizationUnit
 } from "../../../services/admin/organization/OrganizationUnit.service.js";
 import { AuthRequest } from "../../../middleware/auth.middleware.js";
-import { createAuditLog } from "../../../services/admin/userLogs.service.js";
-
-
-const logOrgUnitAction = async (
-  req: AuthRequest,
-  action: string,
-  description: string,
-  level: "SUCCESS" | "ERROR" | "WARNING" | "INFO" = "SUCCESS"
-): Promise<void> => {
-
-  
-  try {
-    await createAuditLog({
-      level,
-      action,
-      module: "Organization Unit",
-      userId: req.user?.id ?? null,
-      userName: req.user?.email ?? null,
-      description,
-      ipAddress: req.ip,
-    });
-  } catch (error) {
-    console.error("Failed to create organization unit", error);
-     
-  }
-};
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export const createOrgUnitController = async (
   req: Request,
@@ -43,11 +18,11 @@ export const createOrgUnitController = async (
 
     const result = await createOrganizationUnit(req.body);
 
-
-     await logOrgUnitAction(
-      req,
-      "CREATED ORG_UNIT",
-      `org_unit: ${result.organizationUnit }`
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_UNIT_CREATED",
+      `Organization unit created: ${result.organizationUnit}`
     );
 
     return res.status(201).json({
@@ -55,16 +30,14 @@ export const createOrgUnitController = async (
       data: result,
     });
   } catch (error) {
-    console.error(error);
-      await logOrgUnitAction(
-      req,
-      "Organization Unit",
-      `Failed to create organization unit: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_UNIT_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
     );
-
+    console.error(error);
     return res.status(500).json({
       message: "Failed to save organization unit",
       error: error instanceof Error ? error.message : error,
@@ -87,7 +60,7 @@ export const getOrgUnitController = async (
 
     const result = await getOrganizationUnit(req.user.id);
 
-    
+
 
     res.status(200).json({
       message: "Organization units fetched successfully",
@@ -143,10 +116,11 @@ export const updateOrgUnitController = async (
       id,
       req.body
     );
-    await logOrgUnitAction(
-      req,
-      "UPDATED ORG_UNIT",
-      `org_unit: ${result.organizationUnit }`
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_UNIT_UPDATED",
+      `Organization unit updated: ${result.organizationUnit}`
     );
 
     return res.status(200).json({
@@ -154,15 +128,13 @@ export const updateOrgUnitController = async (
       data: result,
     });
   } catch (error: any) {
- await logOrgUnitAction(
-      req,
-      "Organization Unit",
-      `Failed to update organization unit: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_UNIT_UPDATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
     );
-
     return res.status(500).json({
       message: "Failed to update organization unit",
       error: error.message,
@@ -180,24 +152,22 @@ export const deleteOrgUnitController = async (
 
     const result = await deleteOrganizationUnit(id);
 
-     await logOrgUnitAction(
-      req,
-      "DELETED ORG_UNIT",
-      `org_unit: ${result.organizationUnit }`
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_UNIT_DELETED",
+      `Organization unit deleted: ${result.organizationUnit}`
     );
-
-
     return res.status(200).json({
       message: "Organization unit deleted successfully",
       data: result,
     });
   } catch (error: any) {
-     await logOrgUnitAction(
-      req,
-      "Organization Unit",
-      `Failed to delete organization unit: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`,
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_UNIT_DELETE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
       "ERROR"
     );
     return res.status(500).json({

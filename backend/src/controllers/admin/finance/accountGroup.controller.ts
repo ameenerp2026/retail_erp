@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import * as accountGroupService from "../../../services/admin/finance/AccountGroup.service.js";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 /**
  * Get all groups
@@ -123,14 +125,26 @@ export const createAccountGroup = async (
 
     const data = await accountGroupService.createAccountGroup(req.body, userId);
 
+    await audit(req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_GROUP_CREATED",
+      `Account Group created: ${data.rootGroupName}`
+    )
+
     res.status(201).json({
       success: true,
       message: "Account Group created successfully",
       data,
     });
   } catch (error) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_GROUP_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
+      "ERROR"
+    );
     console.error(error);
-
     res.status(500).json({
       success: false,
       message: "Failed to create account group",
@@ -150,14 +164,27 @@ export const updateAccountGroup = async (
 
     const data = await accountGroupService.updateAccountGroup(id, req.body);
 
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_GROUP_UPDATED",
+      `Account Group updated: ${data.rootGroupName}`
+    );
+
     res.status(200).json({
       success: true,
       message: "Account Group updated successfully",
       data,
     });
   } catch (error) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_GROUP_UPDATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
+      "ERROR"
+    );
     console.error(error);
-
     res.status(500).json({
       success: false,
       message: "Failed to update account group",
@@ -175,15 +202,28 @@ export const deleteAccountGroup = async (
   try {
     const id = Number(req.params.id);
 
-    await accountGroupService.deleteAccountGroup(id);
+    const data = await accountGroupService.deleteAccountGroup(id);
+
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_GROUP_DELETED",
+      `Account Group deleted: ${data.rootGroupName}`
+    );
 
     res.status(200).json({
       success: true,
       message: "Account Group deleted successfully",
     });
   } catch (error) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "ACCOUNT_GROUP_DELETE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
+      "ERROR"
+    );
     console.error(error);
-
     res.status(500).json({
       success: false,
       message: "Failed to delete account group",

@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import { einvoiceService } from "../../../services/admin/utilities/Einvoice.service.js";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 // Function to fetch dropdown/lookup data for the e-invoice form
 export const getFormOptionsHandler = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const data = await einvoiceService.getFormOptions();
@@ -25,7 +27,14 @@ export const getFormOptionsHandler = async (
 
 // Function to create a new e-invoice
 export const createEInvoiceHandler = async (req: Request, res: Response) => {
-  const { transactionType, supplyType, documentDate, sellerGstProfileId, toGstin, items } = req.body;
+  const {
+    transactionType,
+    supplyType,
+    documentDate,
+    sellerGstProfileId,
+    toGstin,
+    items,
+  } = req.body;
 
   const errors: Record<string, string[]> = {};
 
@@ -36,7 +45,9 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
     errors.supplyType = ["Supply Type must be one of the listed options"];
   }
   if (!documentDate || Number.isNaN(Date.parse(documentDate))) {
-    errors.documentDate = ["Document Date is required and must be a valid date"];
+    errors.documentDate = [
+      "Document Date is required and must be a valid date",
+    ];
   }
   if (!sellerGstProfileId) {
     errors.sellerGstProfileId = ["From GSTIN is required"];
@@ -49,9 +60,12 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
   } else {
     const itemErrors: string[] = [];
     items.forEach((item: any, idx: number) => {
-      if (!item?.hsnCode) itemErrors.push(`Item ${idx + 1}: Item HSN Code is required`);
+      if (!item?.hsnCode)
+        itemErrors.push(`Item ${idx + 1}: Item HSN Code is required`);
       if (typeof item?.taxableValue !== "number" || item.taxableValue <= 0) {
-        itemErrors.push(`Item ${idx + 1}: Taxable Value must be a positive number`);
+        itemErrors.push(
+          `Item ${idx + 1}: Taxable Value must be a positive number`,
+        );
       }
     });
     if (itemErrors.length > 0) errors.items = itemErrors;
@@ -65,24 +79,44 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
     const userId = (req as any).user?.id;
     const data = await einvoiceService.createEInvoice(req.body, userId);
 
+    await audit(
+      req as AuthRequest,
+      "UTILITIES",
+      "E_INVOICE_CREATED",
+      "E-Invoice created successfully",
+    );
+
     return res.status(201).json({
       success: true,
       message: "E-Invoice created successfully",
       data,
     });
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "UTILITIES",
+      "E_INVOICE_CREATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR",
+    );
     if (err.code === "FUTURE_DATE") {
       return res.status(422).json({ errors: { documentDate: [err.message] } });
     }
     if (err.code === "INVALID_SELLER") {
-      return res.status(422).json({ errors: { sellerGstProfileId: [err.message] } });
+      return res
+        .status(422)
+        .json({ errors: { sellerGstProfileId: [err.message] } });
     }
     if (err.code === "INVALID_HSN") {
       return res.status(422).json({ errors: { items: [err.message] } });
     }
     if (err.code === "P2002") {
       return res.status(409).json({
-        errors: { documentNumber: ["A document with this number already exists for this seller"] },
+        errors: {
+          documentNumber: [
+            "A document with this number already exists for this seller",
+          ],
+        },
       });
     }
     if (err.code === "P2003") {
@@ -91,6 +125,8 @@ export const createEInvoiceHandler = async (req: Request, res: Response) => {
       });
     }
     console.error(err);
-    return res.status(500).json({ error: "Something went wrong. Please try again." });
+    return res
+      .status(500)
+      .json({ error: "Something went wrong. Please try again." });
   }
 };

@@ -5,37 +5,52 @@ import {
   getOrganizationGroupById,
   updateOrganizationGroup
 } from "../../../services/admin/organization/organizationGroup.service.js";
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export const createOrgGroupController = async (
   req: Request,
   res: Response
 ) => {
-  console.log('createOrgGroupController',req.body)
+  console.log('createOrgGroupController', req.body)
   try {
-    
-    const result = await createOrganizationGroup(req.body);
 
+    const result = await createOrganizationGroup(req.body);
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_GROUP_CREATED",
+      `Organization group created: ID ${result.id}`,
+    );
     return res.status(201).json({
       message: "Organization group saved successfully",
       data: result,
     });
   } catch (error) {
-    console.error(error);
 
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_GROUP_CREATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
+      "ERROR"
+    );
+    console.error(error);
     return res.status(500).json({
       message: "Failed to save organization group",
       error: error instanceof Error ? error.message : error,
     });
   }
 };
+
 export const getOrgGroupController = async (
   req: Request,
   res: Response
 ) => {
-   try {
-     const groups = await getOrganizationGroup();
+  try {
+    const groups = await getOrganizationGroup();
 
-  if (!groups) {
+    if (!groups) {
       return res.status(404).json({
         message: "Organization group not found",
       });
@@ -46,20 +61,20 @@ export const getOrgGroupController = async (
       data: groups,
     });
   }
-   catch (error: any) {
+  catch (error: any) {
     return res.status(500).json({
       message: "Failed to fetch organization group",
       error: error.message,
     });
   }
-   
+
 }
 export const getOrgGroupByIdController = async (
   req: Request,
   res: Response
 ) => {
   try {
-    
+
     const id = Number(req.params.id);
 
     const result = await getOrganizationGroupById(id);
@@ -86,21 +101,34 @@ export const updateOrgGroupController = async (
   req: Request,
   res: Response
 ) => {
-    console.log('Body',res)
+  console.log('Body', res)
   try {
-    
+
     const id = Number(req.params.id);
 
     const result = await updateOrganizationGroup(
       id,
       req.body
     );
-
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_GROUP_UPDATED",
+      `Organization group updated: ID ${id}`,
+    );
     return res.status(200).json({
       message: "Organization group updated successfully",
       data: result,
     });
   } catch (error: any) {
+    await audit(
+      req as AuthRequest,
+      "ORGANIZATION",
+      "ORGANIZATION_GROUP_UPDATE_FAILED",
+      error instanceof Error ? error.message : "Unknown error",
+      "ERROR"
+    );
+    console.error(error)
     return res.status(500).json({
       message: "Failed to update organization group",
       error: error.message,

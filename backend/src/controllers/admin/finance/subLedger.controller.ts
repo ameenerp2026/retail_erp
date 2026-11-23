@@ -1,6 +1,8 @@
 // controllers/admin/finance/subLedger.controller.ts
 import { Request, Response } from 'express'
 import { subLedgerService } from '../../../services/admin/finance/SubLedger.service.js'
+import { AuthRequest } from "../../../middleware/auth.middleware.js";
+import { audit } from "../../../utils/admin/securities/audit.utils.js";
 
 export const getSubLedgersHandler = async (req: Request, res: Response) => {
   try {
@@ -34,8 +36,22 @@ export const createSubLedgerHandler = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id
     const data = await subLedgerService.createSubLedger(req.body, userId)
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "SUB_LEDGER_CREATED",
+      `Created Sub Ledger: ${data.subLedgerName}`
+    );
+
     return res.status(201).json({ success: true, message: 'Sub Ledger created successfully', data })
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "SUB_LEDGER_CREATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === 'INVALID_LEDGER') {
       return res.status(422).json({ errors: { ledgerId: [err.message] } })
     }
@@ -69,8 +85,21 @@ export const updateSubLedgerHandler = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id
     const data = await subLedgerService.updateSubLedger(id, req.body, userId)
+    await audit(req as AuthRequest,
+      "FINANCE",
+      "SUB_LEDGER_UPDATED",
+      `Updated Sub Ledger: ${data.subLedgerName}`,
+    )
+
     return res.status(200).json({ success: true, message: 'Sub Ledger updated successfully', data })
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "SUB_LEDGER_UPDATE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === 'NOT_FOUND') {
       return res.status(404).json({ error: 'Sub Ledger not found' })
     }
@@ -99,8 +128,21 @@ export const deleteSubLedgerHandler = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id
     await subLedgerService.deleteSubLedger(id, userId)
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "SUB_LEDGER_DELETED",
+      `Deleted Sub Ledger ID ${id}`,
+    );
     return res.status(200).json({ success: true, message: 'Sub Ledger deleted successfully' })
   } catch (err: any) {
+    await audit(
+      req as AuthRequest,
+      "FINANCE",
+      "SUB_LEDGER_DELETE_FAILED",
+      err instanceof Error ? err.message : "Unknown error",
+      "ERROR"
+    );
     if (err.code === 'NOT_FOUND') {
       return res.status(404).json({ error: 'Sub Ledger not found' })
     }
