@@ -1,10 +1,13 @@
-import { X } from 'lucide-react'
-import { useState,useEffect } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { OrgUnitFormData, orgUnitSchema } from '@/components/forms/validate.schema'
+import { X, ChevronDown, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  OrgUnitFormData,
+  orgUnitSchema,
+} from "@/components/forms/validate.schema";
 import apiClient from "@/services/apiClient";
-import { getCountries, getStates } from '@/services/location.service'
+import { getStates } from "@/services/location.service";
 
 interface OrganizationUnit {
   id: number;
@@ -31,210 +34,303 @@ type Props = {
   loading: boolean;
   onClose: () => void;
   onSave: (data: OrgUnitFormData) => Promise<void>;
-}
+};
 
 export function OrgUnitForm({ editData, loading, onClose, onSave }: Props) {
   const {
     register,
     handleSubmit,
-    control,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<OrgUnitFormData>({
     resolver: zodResolver(orgUnitSchema),
-      defaultValues: {
-    name: '',
-    type: undefined,
-    gstin: '',
-    manager: '',
-    group: '',
-    country: '',
-    state: '',
-    address: '',
-  },
-  })
-  const selectedCountry = useWatch({ name: 'country', control })
-  const countries = getCountries()
-  const states = selectedCountry ? getStates(selectedCountry) : []
+    defaultValues: {
+      name: "",
+      type: "" as any,
+      gstin: "",
+      manager: "",
+      group: "",
+      country: "IN",
+      state: "",
+      address: "",
+    },
+  });
 
-useEffect(() => {
-  if (editData) {
-    reset({
-      name: editData.organizationUnit,
-      type: editData.unitType as OrgUnitFormData["type"],
-      gstin: editData.gstIn,
-      manager: editData.manager,
-      group: String(editData.organizationGroupId),
-      country: editData.country,
-      state: editData.state,
-      address: editData.address,
-    });
-  }
-}, [editData, reset]);
-const [groups, setGroups] = useState<{ id: number; shortName: string; organizationGroup?: string }[]>([]);
-useEffect(() => {
-  const fetchGroups = async () => {
-    const groups = await apiClient.get('/api/organization/org-group')
-    setGroups(groups.data.data);
+  const states = getStates("IN");
+  const [groups, setGroups] = useState<
+    { id: number; shortName: string; organizationGroup?: string }[]
+  >([]);
+
+  useEffect(() => {
+    if (editData) {
+      reset({
+        name: editData.organizationUnit,
+        type: editData.unitType as OrgUnitFormData["type"],
+        gstin: editData.gstIn,
+        manager: editData.manager,
+        group: String(editData.organizationGroupId),
+        country: editData.country || "IN",
+        state: editData.state,
+        address: editData.address,
+      });
+    } else {
+      reset({
+        name: "",
+        type: "" as any,
+        gstin: "",
+        manager: "",
+        group: "",
+        country: "IN",
+        state: "",
+        address: "",
+      });
+    }
+  }, [editData, reset]);
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const res = await apiClient.get("/api/organization/org-group");
+        setGroups(res.data.data);
+      } catch (err) {
+        console.error("Failed to load org groups", err);
+      }
+    };
+
+    fetchGroups();
+  }, []);
+
+  const onSubmit = async (data: OrgUnitFormData) => {
+    try {
+      await onSave({
+        ...data,
+        country: data.country || "IN",
+        gstin: data.gstin.trim().toUpperCase(),
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  fetchGroups();
-}, []);
-
-
-
-  const onSubmit = async(data: OrgUnitFormData) => {
-  
-    try{
-    await onSave(data);
-    } catch (err) {
-      console.error(err)
-    //  toast.error('Failed to save')
-    }
-  }
-
-  const inputClass = "mt-1.5 w-full h-10 px-3 rounded-lg border text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#043793] transition"
-  const labelClass = "text-sm font-medium text-gray-700"
-  const errorClass = "text-xs text-red-600 mt-1"
+  const inputClass =
+    "w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-[#F8FAFC] text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-[#043793] focus:ring-1 focus:ring-[#043793] outline-none transition";
+  const selectClass =
+    "w-full h-10 px-3.5 pr-9 rounded-xl border border-slate-200 bg-[#F8FAFC] text-sm text-slate-800 focus:bg-white focus:border-[#043793] focus:ring-1 focus:ring-[#043793] outline-none transition appearance-none cursor-pointer";
+  const textareaClass =
+    "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-[#F8FAFC] text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-[#043793] focus:ring-1 focus:ring-[#043793] outline-none transition resize-none";
+  const labelClass = "block text-xs font-semibold text-slate-700 mb-1.5";
+  const errorClass = "text-xs text-rose-500 mt-1";
 
   return (
     <>
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 border-b border-gray-200 shrink-0">
+      <div className="px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-lg font-semibold text-[#043793]">
-              {editData? 'Edit Org Unit' : 'Create Org Unit'}
+              {editData ? "Edit Org Unit" : "Create Org Unit"}
             </h2>
-            <p className="text-[#94A3B8] text-sm mt-1">
+            <p className="text-slate-400 text-sm mt-0.5">
               Add a new branch, regional office, or HQ
             </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 transition p-1 rounded-lg hover:bg-slate-100"
+            aria-label="Close"
+          >
             <X size={20} />
           </button>
         </div>
       </div>
 
-      {/* Scrollable body */}
+      {/* Form Body - Exact Row Order:
+          Row 1: Unit Name * | Unit Type *
+          Row 2: Org Group * | GSTIN *
+          Row 3: Branch Manager | State
+          Row 4: Address
+      */}
       <div className="px-6 py-5 overflow-y-auto">
         <form id="org-unit-form" onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Row 1, Col 1: Unit Name * */}
             <div>
               <label className={labelClass}>
-                Unit Name <span className="text-red-500">*</span>
+                Unit Name <span className="text-rose-500">*</span>
               </label>
               <input
-                {...register('name')}
-                className={`${inputClass} ${errors.name? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#043793]'}`}
+                {...register("name")}
+                className={`${inputClass} ${
+                  errors.name
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500"
+                    : ""
+                }`}
                 placeholder="e.g. Mumbai South"
               />
-              {errors.name && <p className={errorClass}>{errors.name.message}</p>}
+              {errors.name && (
+                <p className={errorClass}>{errors.name.message}</p>
+              )}
             </div>
-            
+
+            {/* Row 1, Col 2: Unit Type * */}
             <div>
               <label className={labelClass}>
-                Unit Type <span className="text-red-500">*</span>
+                Unit Type <span className="text-rose-500">*</span>
               </label>
-              <select 
-                {...register('type')}
-                className={`${inputClass} ${errors.type? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#043793]'}`}
-              >
-                <option value="" disabled>Select type</option>
-                <option value="Head Office">Head Office</option>
-                <option value="Branch">Branch</option>
-                <option value="Regional Office">Regional Office</option>
-              </select>
-              {errors.type && <p className={errorClass}>{errors.type.message}</p>}
-            </div>
-
-            <div>
-              <label className={labelClass}>
-                GSTIN <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('gstin')}
-                className={`${inputClass} ${errors.gstin? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#043793]'}`}
-                placeholder="27AABCS1429B1ZB"
-              />
-              {errors.gstin && <p className={errorClass}>{errors.gstin.message}</p>}
-            </div>
-
-            <div>
-              <label className={labelClass}>Manager</label>
-              <input
-                {...register('manager')}
-                className={`${inputClass} ${errors.manager? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#043793]'}`}
-                placeholder="Raj Kumar"
-              />
-              {errors.manager && <p className={errorClass}>{errors.manager.message}</p>}
-            </div>
-
-            <div>
-              <label className={labelClass}>Group</label>
-              <select
-                {...register('group')}
-                className={`${inputClass} border-gray-300 focus:border-[#043793]`}
-                
-              >
-              <option value='' disabled>Select org-group</option>
-              {groups && groups.map((group)=>(
-                  <option key={group.id}value={group.id}>
-                    {group.shortName}
-                    </option>
-                ))
-              }
-              </select>
-            </div>
-
-            <div>
-              <label className={labelClass}>Country</label>
-              <select
-                {...register('country')}
-                className={`${inputClass} border-gray-300 focus:border-[#043793]`}
-              >
-                <option value=''>Select country</option>
-                {countries.map((c) => (
-                  <option key={c.isoCode} value={c.isoCode}>
-                    {c.name}
+              <div className="relative">
+                <select
+                  {...register("type")}
+                  defaultValue=""
+                  className={`${selectClass} ${
+                    errors.type
+                      ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500"
+                      : ""
+                  }`}
+                >
+                  <option value="" disabled>
+                    Head Office / Branch…
                   </option>
-                ))}
-              </select>
+                  <option value="Head Office">Head Office</option>
+                  <option value="Branch">Branch</option>
+                  <option value="Regional Office">Regional Office</option>
+                  <option value="Warehouse">Warehouse</option>
+                </select>
+                <ChevronDown
+                  size={16}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
+              {errors.type && (
+                <p className={errorClass}>{errors.type.message}</p>
+              )}
             </div>
 
+            {/* Row 2, Col 1: Org Group * */}
+            <div>
+              <label className={labelClass}>
+                Org Group <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  {...register("group")}
+                  defaultValue=""
+                  className={`${selectClass} ${
+                    errors.group
+                      ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500"
+                      : ""
+                  }`}
+                >
+                  <option value="" disabled>
+                    Select org group
+                  </option>
+                  {groups &&
+                    groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.shortName}
+                      </option>
+                    ))}
+                </select>
+                <ChevronDown
+                  size={16}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
+              {errors.group && (
+                <p className={errorClass}>{errors.group.message}</p>
+              )}
+            </div>
+
+            {/* Row 2, Col 2: GSTIN * */}
+            <div>
+              <label className={labelClass}>
+                GSTIN <span className="text-rose-500">*</span>
+              </label>
+              <input
+                {...register("gstin")}
+                maxLength={15}
+                className={`${inputClass} font-mono uppercase ${
+                  errors.gstin
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500"
+                    : ""
+                }`}
+                placeholder="27AABCS1429B1ZB"
+                onChange={(e) => {
+                  e.target.value = e.target.value.toUpperCase();
+                }}
+              />
+              {errors.gstin && (
+                <p className={errorClass}>{errors.gstin.message}</p>
+              )}
+            </div>
+
+            {/* Row 3, Col 1: Branch Manager */}
+            <div>
+              <label className={labelClass}>Branch Manager</label>
+              <div className="relative">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+                <input
+                  {...register("manager")}
+                  className={`${inputClass} pl-9`}
+                  placeholder="Search by name"
+                />
+              </div>
+              {errors.manager && (
+                <p className={errorClass}>{errors.manager.message}</p>
+              )}
+            </div>
+
+            {/* Row 3, Col 2: State */}
             <div>
               <label className={labelClass}>State</label>
-              <select
-                {...register('state')}
-                className={`${inputClass} border-gray-300 focus:border-[#043793]`}
-              >
-                <option value=''>Select state</option>
-                {states.map((s) => (
-                  <option key={s.isoCode} value={s.name}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  {...register("state")}
+                  defaultValue=""
+                  className={selectClass}
+                >
+                  <option value="">Select state</option>
+                  {states.map((s) => (
+                    <option key={s.isoCode} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={16}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
+              {errors.state && (
+                <p className={errorClass}>{errors.state.message}</p>
+              )}
             </div>
 
-
-            <div className="col-span-2">
+            {/* Row 4: Address (Full width) */}
+            <div className="sm:col-span-2">
               <label className={labelClass}>Address</label>
-              <input
-                {...register('address')}
-                className={`${inputClass} border-gray-300 focus:border-[#043793]`}
-                placeholder="Bangalore"
+              <textarea
+                {...register("address")}
+                rows={3}
+                className={textareaClass}
+                placeholder="Full address…"
               />
+              {errors.address && (
+                <p className={errorClass}>{errors.address.message}</p>
+              )}
             </div>
           </div>
         </form>
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 bg-slate-50 border-t border-gray-200 flex justify-end gap-3 shrink-0">
-        <button 
-          onClick={onClose} 
-          className="h-10 px-4 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+      <div className="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex justify-end gap-3 shrink-0">
+        <button
+          type="button"
+          onClick={onClose}
+          className="h-10 px-5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition shadow-2xs"
         >
           Cancel
         </button>
@@ -242,11 +338,11 @@ useEffect(() => {
           type="submit"
           form="org-unit-form"
           disabled={loading}
-          className="h-10 px-4 rounded-lg bg-[linear-gradient(#093055,#043793)] text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+          className="h-10 px-5 rounded-xl bg-[linear-gradient(#093055,#043793)] text-white text-sm font-medium hover:opacity-95 transition disabled:opacity-50 shadow-xs"
         >
-          {loading? 'Saving...' : editData? 'Update Unit' : 'Create Unit'}
+          {loading ? "Saving..." : editData ? "Update Unit" : "Create Unit"}
         </button>
       </div>
     </>
-  )
+  );
 }

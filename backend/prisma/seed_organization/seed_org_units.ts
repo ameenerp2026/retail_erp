@@ -40,7 +40,7 @@ const ORG_UNITS: {
   {
     organizationUnit: "Bengaluru East",
     unitType: "Head Office",
-    gstIn: "29BLRO05160B1DU",
+    gstIn: "29AAACB1234D1Z8",
     manager: "Ravi Kumar",
     organizationGroup: "ACME",
     country: "IN",
@@ -51,7 +51,7 @@ const ORG_UNITS: {
   {
     organizationUnit: "Bhopal West",
     unitType: "Head Office",
-    gstIn: "23BPLC02452C1DU",
+    gstIn: "23AAACB2452C1ZD",
     manager: "Ramya",
     organizationGroup: "ACME",
     country: "IN",

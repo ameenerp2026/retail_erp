@@ -15,30 +15,37 @@ export default function Pagination({
   totalItems,
   onPageChange
 }: PaginationProps) {
-  if (totalPages <= 1) return null
+  if (totalItems === 0) return null
+
+  const effectiveTotalPages = Math.max(1, totalPages)
 
   return (
-    <div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
-      <p className="text-xs text-gray-500 sm:text-sm">
-        Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} results
+    <div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs text-slate-500 sm:text-sm">
+        {effectiveTotalPages <= 1
+          ? `Showing ${totalItems} of ${totalItems} results`
+          : `Showing ${startIndex + 1} to ${Math.min(endIndex, totalItems)} of ${totalItems} results`}
       </p>
       <div className="flex flex-wrap items-center gap-1">
         <button
+          type="button"
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-          className="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-500 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={currentPage <= 1}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Previous page"
         >
           ‹
         </button>
 
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+        {Array.from({ length: effectiveTotalPages }, (_, i) => i + 1).map((page) => (
           <button
             key={page}
+            type="button"
             onClick={() => onPageChange(page)}
-            className={`w-8 h-8 rounded-lg text-sm font-medium ${
+            className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium transition ${
               currentPage === page
-               ? 'bg-[#0A2472] text-white'
-                : 'hover:bg-gray-100 text-gray-700'
+                ? 'bg-[#093055] text-white shadow-xs'
+                : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             {page}
@@ -46,9 +53,11 @@ export default function Pagination({
         ))}
 
         <button
-          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage === totalPages}
-          className="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-500 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          type="button"
+          onClick={() => onPageChange(Math.min(effectiveTotalPages, currentPage + 1))}
+          disabled={currentPage >= effectiveTotalPages}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Next page"
         >
           ›
         </button>
