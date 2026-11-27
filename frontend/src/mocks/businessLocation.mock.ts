@@ -387,7 +387,8 @@ export const addMockBusinessLocation = (item: Partial<BusinessLocationRow>): Bus
   const newLocation: BusinessLocationRow = {
     id: newId,
     locationName: item.locationName || `Location ${newId}`,
-    code: item.code || `LOC-${String(newId).padStart(3, '0')}`,
+    code: item.code || item.locationCode || `LOC-${String(newId).padStart(3, '0')}`,
+    locationCode: item.locationCode || item.code || `LOC-${String(newId).padStart(3, '0')}`,
     parentOrganizationUnitId: item.parentOrganizationUnitId || 1,
     locationType: item.locationType || 'BRANCH',
     businessCategory: item.businessCategory || 'RETAIL',

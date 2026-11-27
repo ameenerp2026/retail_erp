@@ -1,4 +1,4 @@
-import { Search, Bell, Menu, ChevronRight, ChevronDown } from "lucide-react";
+import { Search, Bell, Menu, ChevronRight, ChevronDown, Plus, Moon } from "lucide-react";
 import type { Ref } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { MODULE_ROUTES } from "@/config/navigationConfig";
@@ -144,7 +144,17 @@ function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
             type="button"
             className="hidden sm:flex h-8 items-center gap-1.5 rounded-lg bg-[#093055] px-3 text-xs font-medium text-white shadow-xs transition hover:bg-[#072440]"
           >
-            Quick Create
+            <Plus size={14} />
+            <span>Quick Create</span>
+          </button>
+
+          {/* Theme Toggle (Dark Mode) */}
+          <button
+            type="button"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100"
+            aria-label="Toggle theme"
+          >
+            <Moon size={16} />
           </button>
 
           {/* Notifications */}
@@ -154,6 +164,7 @@ function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
             aria-label="Notifications"
           >
             <Bell size={17} />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
           </button>
 
           {/* User Avatar */}

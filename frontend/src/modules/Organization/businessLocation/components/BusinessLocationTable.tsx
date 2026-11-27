@@ -38,6 +38,7 @@ export default function BusinessLocationTable({
 
   const getLocationCode = (row: BusinessLocationRow) => {
     if (row.code) return row.code
+    if ((row as any).locationCode) return (row as any).locationCode
     const initials = row.locationName
       ? row.locationName
           .split(' ')

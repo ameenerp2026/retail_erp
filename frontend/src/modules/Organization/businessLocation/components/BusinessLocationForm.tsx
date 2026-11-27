@@ -2,7 +2,7 @@ import { useForm, useWatch, Controller } from 'react-hook-form'
 import { useEffect, useMemo } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
-import { Save, ArrowLeft, Info, MapPin, Calendar, Clock } from 'lucide-react'
+import { Save, ArrowLeft, Info, MapPin, Calendar, Clock, ChevronDown } from 'lucide-react'
 import {
   businessLocationSchema,
   type businessLocationFormData,
@@ -27,13 +27,6 @@ const LOCATION_TYPE_OPTIONS = [
   { label: 'Warehouse', value: 'WAREHOUSE' },
   { label: 'Branch', value: 'BRANCH' },
   { label: 'Head Office', value: 'HEAD_OFFICE' },
-]
-
-const BUSINESS_CATEGORY_OPTIONS = [
-  { label: 'Retail', value: 'RETAIL' },
-  { label: 'Wholesale', value: 'WHOLESALE' },
-  { label: 'Distribution', value: 'DISTRIBUTION' },
-  { label: 'Manufacturing', value: 'MANUFACTURING' },
 ]
 
 const GST_REGISTRATION_OPTIONS = [
@@ -80,6 +73,17 @@ function ToggleCard({ label, checked, onChange, disabled }: ToggleCardProps) {
   )
 }
 
+function SectionHeading({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
+      <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#155DFC]">
+        {title}
+      </h4>
+      <div className="h-px flex-1 bg-slate-100" />
+    </div>
+  )
+}
+
 export default function BusinessLocationForm({
   location,
   onBack,
@@ -98,15 +102,15 @@ export default function BusinessLocationForm({
     resolver: zodResolver(businessLocationSchema),
     defaultValues: {
       locationName: '',
-      locationCode: 'BL001',
+      locationCode: '',
       parentOrganizationUnit: '',
       locationType: '',
-      businessCategory: '',
+      businessCategory: 'RETAIL',
       addressLine1: '',
       addressLine2: '',
       landmark: '',
       city: '',
-      state: 'Maharashtra',
+      state: '',
       country: 'IN',
       pinCode: '',
       contactPerson: '',
@@ -129,14 +133,46 @@ export default function BusinessLocationForm({
   })
 
   useEffect(() => {
-    if (!location) return
+    if (!location) {
+      reset({
+        locationName: '',
+        locationCode: '',
+        parentOrganizationUnit: '',
+        locationType: '',
+        businessCategory: 'RETAIL',
+        addressLine1: '',
+        addressLine2: '',
+        landmark: '',
+        city: '',
+        state: '',
+        country: 'IN',
+        pinCode: '',
+        contactPerson: '',
+        phoneNumber: '',
+        email: '',
+        emergencyContact: '',
+        linkedGSTIN: '',
+        registrationType: 'REGULAR',
+        defaultBillingLocation: true,
+        defaultStockLocation: false,
+        allowSales: true,
+        allowPurchase: true,
+        allowInventory: true,
+        allowDispatch: false,
+        allowPOS: true,
+        status: true,
+        defaultWarehouse: '',
+        parentWarehouse: '',
+      })
+      return
+    }
 
     reset({
       locationName: location.locationName ?? '',
-      locationCode: location.code ?? `BL00${location.id}`,
+      locationCode: location.code || (location as any).locationCode || '',
       parentOrganizationUnit: String(location.parentOrganizationUnitId ?? ''),
       locationType: location.locationType ?? '',
-      businessCategory: location.businessCategory ?? '',
+      businessCategory: location.businessCategory ?? 'RETAIL',
       addressLine1: location.addressLine1 ?? '',
       addressLine2: location.addressLine2 ?? '',
       landmark: location.landmark ?? '',
@@ -170,6 +206,13 @@ export default function BusinessLocationForm({
   const watchedCountry = useWatch({ name: 'country', control })
   const watchedLocationName = useWatch({ name: 'locationName', control })
   const watchedCode = useWatch({ name: 'locationCode', control })
+  const watchedParentOrgUnit = useWatch({ name: 'parentOrganizationUnit', control })
+  const watchedGSTIN = useWatch({ name: 'linkedGSTIN', control })
+  const watchedLocationType = useWatch({ name: 'locationType', control })
+  const watchedState = useWatch({ name: 'state', control })
+  const watchedRegType = useWatch({ name: 'registrationType', control })
+  const watchedDefWH = useWatch({ name: 'defaultWarehouse', control })
+  const watchedParWH = useWatch({ name: 'parentWarehouse', control })
 
   const countries = useMemo(() => {
     const list = getCountries()
@@ -198,19 +241,36 @@ export default function BusinessLocationForm({
   const { data: gstins = [] } = useGSTINs()
   const gstinOptions: Array<{ label: string; value: string }> = useMemo(() => {
     if (gstins && gstins.length > 0) {
-      return (gstins as Array<{ id: number; gstin?: string; gstinNumber?: string }>).map((g) => ({
+      let list = gstins as Array<{
+        id: number
+        gstin?: string
+        gstinNumber?: string
+        organizationUnitId?: number
+        organizationUnit?: { id?: number }
+      }>
+      if (watchedParentOrgUnit) {
+        const orgId = Number(watchedParentOrgUnit)
+        list = list.filter(
+          (g) => g.organizationUnitId === orgId || g.organizationUnit?.id === orgId
+        )
+      }
+      return list.map((g) => ({
         label: g.gstin || g.gstinNumber || `GSTIN-${g.id}`,
         value: String(g.id),
       }))
     }
-    return [
-      { label: '27AABCU9603R1ZM (Maharashtra)', value: '1' },
-      { label: '07AABCU9603R1ZM (Delhi)', value: '2' },
-      { label: '29AABCU9603R1ZM (Karnataka)', value: '3' },
-      { label: '33AABCU9603R1ZM (Tamil Nadu)', value: '4' },
-      { label: '36AABCU9603R1ZM (Telangana)', value: '5' },
-    ]
-  }, [gstins])
+    return []
+  }, [gstins, watchedParentOrgUnit])
+
+  // Reset linked GSTIN if parent unit changes and current GSTIN is not linked to it
+  useEffect(() => {
+    if (watchedParentOrgUnit && watchedGSTIN && gstinOptions.length > 0) {
+      const isValid = gstinOptions.some((opt) => opt.value === String(watchedGSTIN))
+      if (!isValid) {
+        setValue('linkedGSTIN', '')
+      }
+    }
+  }, [watchedParentOrgUnit, gstinOptions, watchedGSTIN, setValue])
 
   const { data: organizationUnits = [] } = useOrganizationUnits()
   const orgUnitOptions: Array<{ label: string; value: string }> = useMemo(() => {
@@ -220,12 +280,7 @@ export default function BusinessLocationForm({
         value: String(u.id),
       }))
     }
-    return [
-      { label: 'Retail Operations Unit', value: '1' },
-      { label: 'North India Regional Division', value: '2' },
-      { label: 'Supply Chain & Logistics Hub', value: '3' },
-      { label: 'South Hub Operations', value: '4' },
-    ]
+    return []
   }, [organizationUnits])
 
   const locationInitials = useMemo(() => {
@@ -258,6 +313,9 @@ export default function BusinessLocationForm({
       )
     }
   }
+
+  const selectBaseClass =
+    'w-full appearance-none rounded-xl border px-3.5 py-2 pr-9 text-sm outline-none transition focus:border-[#043793] focus:bg-white cursor-pointer'
 
   return (
     <form
@@ -300,8 +358,8 @@ export default function BusinessLocationForm({
       </div>
 
       {/* Main Grid: Left Location Summary & Right Details */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* LEFT COLUMN: Location Summary */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
+        {/* LEFT COLUMN: Location Summary (stops naturally without stretching) */}
         <div className="lg:col-span-4 xl:col-span-3">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
             <h3 className="text-sm font-semibold text-slate-800">
@@ -325,7 +383,7 @@ export default function BusinessLocationForm({
               </label>
               <input
                 type="text"
-                placeholder="BL001"
+                placeholder="e.g. BL001"
                 value={watchedCode || ''}
                 onChange={(e) => setValue('locationCode', e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2 text-sm font-medium text-slate-700 outline-none transition focus:border-[#043793] focus:bg-white"
@@ -337,17 +395,25 @@ export default function BusinessLocationForm({
               <label className="mb-1 block text-xs font-semibold text-slate-500">
                 Location Type
               </label>
-              <select
-                {...register('locationType')}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-[#043793]"
-              >
-                <option value="">Select Type</option>
-                {LOCATION_TYPE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  {...register('locationType')}
+                  className={`${selectBaseClass} ${
+                    !watchedLocationType ? 'text-slate-400' : 'text-slate-800'
+                  } border-slate-200 bg-white`}
+                >
+                  <option value="" className="text-slate-400">Select Type</option>
+                  {LOCATION_TYPE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value} className="text-slate-800">
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={16}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
             </div>
 
             {/* Parent Org Unit */}
@@ -355,17 +421,25 @@ export default function BusinessLocationForm({
               <label className="mb-1 block text-xs font-semibold text-slate-500">
                 Parent Org Unit
               </label>
-              <select
-                {...register('parentOrganizationUnit')}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-[#043793]"
-              >
-                <option value="">Select Org Unit</option>
-                {orgUnitOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  {...register('parentOrganizationUnit')}
+                  className={`${selectBaseClass} ${
+                    !watchedParentOrgUnit ? 'text-slate-400' : 'text-slate-800'
+                  } border-slate-200 bg-white`}
+                >
+                  <option value="" className="text-slate-400">Select Org Unit</option>
+                  {orgUnitOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value} className="text-slate-800">
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={16}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
             </div>
 
             {/* Linked GSTIN */}
@@ -373,32 +447,29 @@ export default function BusinessLocationForm({
               <label className="mb-1 block text-xs font-semibold text-slate-500">
                 Linked GSTIN
               </label>
-              <select
-                {...register('linkedGSTIN')}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-[#043793]"
-              >
-                <option value="">Select GSTIN</option>
-                {gstinOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
+              <div className="relative">
+                <select
+                  {...register('linkedGSTIN')}
+                  className={`${selectBaseClass} ${
+                    !watchedGSTIN ? 'text-slate-400' : 'text-slate-800'
+                  } border-slate-200 bg-white`}
+                >
+                  <option value="" className="text-slate-400">
+                    {gstinOptions.length === 0 && watchedParentOrgUnit
+                      ? 'No GSTIN for selected Unit'
+                      : 'Select GSTIN'}
                   </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status Toggle Card */}
-            <div className="pt-1">
-              <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <ToggleCard
-                    label="Status"
-                    checked={!!field.value}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
+                  {gstinOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value} className="text-slate-800">
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={16}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
             </div>
 
             {/* Dates at bottom */}
@@ -446,10 +517,8 @@ export default function BusinessLocationForm({
             </h3>
 
             {/* 1. BASIC INFORMATION */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#093055]">
-                Basic Information
-              </h4>
+            <div className="space-y-4">
+              <SectionHeading title="Basic Information" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {/* Location Name */}
                 <div>
@@ -472,7 +541,7 @@ export default function BusinessLocationForm({
                 {/* Location Code */}
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
-                    Location Code <span className="text-red-500">*</span>
+                    Location Code
                   </label>
                   <input
                     type="text"
@@ -488,19 +557,27 @@ export default function BusinessLocationForm({
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     Parent Organization Unit <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    {...register('parentOrganizationUnit')}
-                    className={`w-full rounded-xl border px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793] ${
-                      errors.parentOrganizationUnit ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
-                    }`}
-                  >
-                    <option value="">Select Org Unit</option>
-                    {orgUnitOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      {...register('parentOrganizationUnit')}
+                      className={`${selectBaseClass} ${
+                        !watchedParentOrgUnit ? 'text-slate-400' : 'text-slate-800'
+                      } ${
+                        errors.parentOrganizationUnit ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <option value="" className="text-slate-400">Select Org Unit</option>
+                      {orgUnitOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value} className="text-slate-800">
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
                   <p className="mt-1 text-[11px] text-slate-400">One location belongs to only one Org Unit.</p>
                   {errors.parentOrganizationUnit && (
                     <p className="mt-1 text-xs text-red-500">{errors.parentOrganizationUnit.message}</p>
@@ -512,19 +589,27 @@ export default function BusinessLocationForm({
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     Location Type <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    {...register('locationType')}
-                    className={`w-full rounded-xl border px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793] ${
-                      errors.locationType ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
-                    }`}
-                  >
-                    <option value="">Select Location Type</option>
-                    {LOCATION_TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      {...register('locationType')}
+                      className={`${selectBaseClass} ${
+                        !watchedLocationType ? 'text-slate-400' : 'text-slate-800'
+                      } ${
+                        errors.locationType ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <option value="" className="text-slate-400">Select Location Type</option>
+                      {LOCATION_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value} className="text-slate-800">
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
                   <p className="mt-1 text-[11px] text-slate-400">
                     Location Type cannot be changed once transactions exist.
                   </p>
@@ -532,32 +617,12 @@ export default function BusinessLocationForm({
                     <p className="mt-1 text-xs text-red-500">{errors.locationType.message}</p>
                   )}
                 </div>
-
-                {/* Business Category */}
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">
-                    Business Category
-                  </label>
-                  <select
-                    {...register('businessCategory')}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793]"
-                  >
-                    <option value="">Select Category</option>
-                    {BUSINESS_CATEGORY_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
             </div>
 
             {/* 2. ADDRESS INFORMATION */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#093055]">
-                Address Information
-              </h4>
+            <div className="space-y-4 pt-2">
+              <SectionHeading title="Address Information" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {/* Address Line 1 */}
                 <div className="sm:col-span-2">
@@ -621,49 +686,65 @@ export default function BusinessLocationForm({
                   )}
                 </div>
 
-                {/* State */}
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">
-                    State <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    {...register('state')}
-                    className={`w-full rounded-xl border px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793] ${
-                      errors.state ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
-                    }`}
-                  >
-                    <option value="">Select State</option>
-                    {states.map((s) => (
-                      <option key={s.isoCode || s.name} value={s.name}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.state && (
-                    <p className="mt-1 text-xs text-red-500">{errors.state.message}</p>
-                  )}
-                </div>
-
                 {/* Country */}
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     Country <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    {...register('country')}
-                    className={`w-full rounded-xl border px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793] ${
-                      errors.country ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
-                    }`}
-                  >
-                    <option value="">Select Country</option>
-                    {countries.map((c) => (
-                      <option key={c.isoCode} value={c.isoCode}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      {...register('country')}
+                      className={`${selectBaseClass} ${
+                        !watchedCountry ? 'text-slate-400' : 'text-slate-800'
+                      } ${
+                        errors.country ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <option value="" className="text-slate-400">Select Country</option>
+                      {countries.map((c) => (
+                        <option key={c.isoCode} value={c.isoCode} className="text-slate-800">
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
                   {errors.country && (
                     <p className="mt-1 text-xs text-red-500">{errors.country.message}</p>
+                  )}
+                </div>
+
+                {/* State */}
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-600">
+                    State <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      {...register('state')}
+                      className={`${selectBaseClass} ${
+                        !watchedState ? 'text-slate-400' : 'text-slate-800'
+                      } ${
+                        errors.state ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <option value="" className="text-slate-400">Select State</option>
+                      {states.map((s) => (
+                        <option key={s.isoCode || s.name} value={s.name} className="text-slate-800">
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
+                  {errors.state && (
+                    <p className="mt-1 text-xs text-red-500">{errors.state.message}</p>
                   )}
                 </div>
 
@@ -674,6 +755,7 @@ export default function BusinessLocationForm({
                   </label>
                   <input
                     type="text"
+                    maxLength={6}
                     placeholder="e.g. 600017"
                     {...register('pinCode')}
                     className={`w-full rounded-xl border px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#043793] ${
@@ -688,10 +770,8 @@ export default function BusinessLocationForm({
             </div>
 
             {/* 3. CONTACT DETAILS */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#093055]">
-                Contact Details
-              </h4>
+            <div className="space-y-4 pt-2">
+              <SectionHeading title="Contact Details" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
@@ -753,28 +833,38 @@ export default function BusinessLocationForm({
             </div>
 
             {/* 4. GST INFORMATION */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#093055]">
-                GST Information
-              </h4>
+            <div className="space-y-4 pt-2">
+              <SectionHeading title="GST Information" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     Linked GSTIN <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    {...register('linkedGSTIN')}
-                    className={`w-full rounded-xl border px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793] ${
-                      errors.linkedGSTIN ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
-                    }`}
-                  >
-                    <option value="">Select Linked GSTIN</option>
-                    {gstinOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
+                  <div className="relative">
+                    <select
+                      {...register('linkedGSTIN')}
+                      className={`${selectBaseClass} ${
+                        !watchedGSTIN ? 'text-slate-400' : 'text-slate-800'
+                      } ${
+                        errors.linkedGSTIN ? 'border-red-500 bg-red-50/40' : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <option value="" className="text-slate-400">
+                        {gstinOptions.length === 0 && watchedParentOrgUnit
+                          ? 'No GSTIN for selected Unit'
+                          : 'Select Linked GSTIN'}
                       </option>
-                    ))}
-                  </select>
+                      {gstinOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value} className="text-slate-800">
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
                   <p className="mt-1 text-[11px] text-slate-400">Multiple locations can share one GSTIN.</p>
                   {errors.linkedGSTIN && (
                     <p className="mt-1 text-xs text-red-500">{errors.linkedGSTIN.message}</p>
@@ -785,17 +875,25 @@ export default function BusinessLocationForm({
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     GST Registration Type
                   </label>
-                  <select
-                    {...register('registrationType')}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793]"
-                  >
-                    <option value="">Select Registration Type</option>
-                    {GST_REGISTRATION_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      {...register('registrationType')}
+                      className={`${selectBaseClass} ${
+                        !watchedRegType ? 'text-slate-400' : 'text-slate-800'
+                      } border-slate-200 bg-white`}
+                    >
+                      <option value="" className="text-slate-400">Select Registration Type</option>
+                      {GST_REGISTRATION_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value} className="text-slate-800">
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
                 </div>
 
                 {/* Default Billing Location Toggle */}
@@ -827,10 +925,8 @@ export default function BusinessLocationForm({
             </div>
 
             {/* 5. OPERATIONAL SETTINGS */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#093055]">
-                Operational Settings
-              </h4>
+            <div className="space-y-4 pt-2">
+              <SectionHeading title="Operational Settings" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Controller
                   control={control}
@@ -900,17 +996,25 @@ export default function BusinessLocationForm({
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     Default Warehouse
                   </label>
-                  <select
-                    {...register('defaultWarehouse')}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793]"
-                  >
-                    <option value="">Select Default Warehouse</option>
-                    {WAREHOUSE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      {...register('defaultWarehouse')}
+                      className={`${selectBaseClass} ${
+                        !watchedDefWH ? 'text-slate-400' : 'text-slate-800'
+                      } border-slate-200 bg-white`}
+                    >
+                      <option value="" className="text-slate-400">Select Default Warehouse</option>
+                      {WAREHOUSE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value} className="text-slate-800">
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
                 </div>
 
                 {/* Parent Warehouse */}
@@ -918,37 +1022,45 @@ export default function BusinessLocationForm({
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     Parent Warehouse
                   </label>
-                  <select
-                    {...register('parentWarehouse')}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 outline-none transition focus:border-[#043793]"
-                  >
-                    <option value="">Select Parent Warehouse</option>
-                    {WAREHOUSE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      {...register('parentWarehouse')}
+                      className={`${selectBaseClass} ${
+                        !watchedParWH ? 'text-slate-400' : 'text-slate-800'
+                      } border-slate-200 bg-white`}
+                    >
+                      <option value="" className="text-slate-400">Select Parent Warehouse</option>
+                      {WAREHOUSE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value} className="text-slate-800">
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* 6. STATUS */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#093055]">
-                Status
-              </h4>
-              <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <ToggleCard
-                    label="Record Status"
-                    checked={!!field.value}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
+            {/* 6. STATUS - Fixed width matching grid (BL-10) */}
+            <div className="space-y-4 pt-2">
+              <SectionHeading title="Status" />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Controller
+                  control={control}
+                  name="status"
+                  render={({ field }) => (
+                    <ToggleCard
+                      label="Record Status"
+                      checked={!!field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
             </div>
 
             {/* 7. Business Rules Box */}

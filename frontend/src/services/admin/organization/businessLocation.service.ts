@@ -41,6 +41,7 @@ const buildPayload = (data: businessLocationFormData) => ({
   allowInventory: data.allowInventory ?? false,
   allowDispatch: data.allowDispatch ?? false,
   allowPOS: data.allowPOS ?? false,
+  status: data.status === false ? 'INACTIVE' : 'ACTIVE',
 })
 
 export const createBusinessLocation = async (
@@ -77,7 +78,7 @@ export const createBusinessLocation = async (
         allowInventory: !!data.allowInventory,
         allowDispatch: !!data.allowDispatch,
         allowPOS: !!data.allowPOS,
-        status: 'ACTIVE',
+        status: data.status === false ? 'INACTIVE' : 'ACTIVE',
       })
     },
     async () => {
@@ -121,6 +122,7 @@ export const updateBusinessLocation = async (
         allowInventory: !!data.allowInventory,
         allowDispatch: !!data.allowDispatch,
         allowPOS: !!data.allowPOS,
+        status: data.status === false ? 'INACTIVE' : 'ACTIVE',
       })
     },
     async () => {

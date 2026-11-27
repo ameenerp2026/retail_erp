@@ -103,14 +103,13 @@ function BusinessLocationPage() {
     return result;
   }, [locations, searchTerm, selectedStatus, selectedState]);
 
-  const currentLocations = useMemo(() => {
-    if (currentPage === 1) {
-      return filteredLocations.slice(0, 5);
-    }
-    return filteredLocations.slice(5, 12);
-  }, [filteredLocations, currentPage]);
+  const PAGE_SIZE = 5;
+  const totalPages = Math.ceil(filteredLocations.length / PAGE_SIZE) || 1;
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
 
-  const totalPages = filteredLocations.length > 5 ? 2 : 1;
+  const currentLocations = useMemo(() => {
+    return filteredLocations.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredLocations, startIndex]);
 
   const handleCreate = () => {
     setSelectedLocation(null);

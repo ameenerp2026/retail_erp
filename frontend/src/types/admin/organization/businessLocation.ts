@@ -5,6 +5,7 @@ export interface BusinessLocationRow {
 
   locationName: string
   code?: string
+  locationCode?: string
   parentOrganizationUnitId: number
   locationType: LocationType
   businessCategory: BusinessCategory

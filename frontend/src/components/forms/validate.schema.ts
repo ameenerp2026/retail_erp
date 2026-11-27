@@ -51,7 +51,7 @@ export const orgUnitSchema = z.object({
     message: 'Unit type is required' // ← Use 'message' not 'errorMap'
   }),
   
-  group: z.string().min(1, 'Organization Group is required'),
+  group: z.string().min(1, 'Org Group is required'),
   
   gstin: z.string()
     .trim()
@@ -76,7 +76,7 @@ export const businessLocationSchema = z.object({
   locationCode: z.string().optional(),
   parentOrganizationUnit: z.string().min(1, 'Select organization unit'),
   locationType: z.string().min(1, 'Select location Type'),
-  businessCategory: z.string().min(1, 'Select Business Category'),
+  businessCategory: z.string().optional(),
   addressLine1: z.string().min(1, 'Address Line1 is required'),
   addressLine2: z.string().optional(),
   landmark: z.string().optional(),
@@ -91,15 +91,15 @@ pinCode: z.string()
   phoneNumber: z.string()
   .trim()
   .optional()
-  .refine(val => !val || /^[0-9]{10}$/.test(val), {
-    message: "Phone number must be 10 digits"
+  .refine(val => !val || /^[0-9]{10,15}$/.test(val.replace(/[^0-9]/g, '')), {
+    message: "Phone number must be at least 10 digits"
   }),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
 emergencyContact: z.string()
   .trim()
   .optional()
-  .refine(val => !val || /^[0-9]{10}$/.test(val), {
-    message: "Emergency Contact must be 10 digits"
+  .refine(val => !val || /^[0-9]{10,15}$/.test(val.replace(/[^0-9]/g, '')), {
+    message: "Emergency Contact must be at least 10 digits"
   }),
  
   linkedGSTIN: z.string().min(1, 'Select Linked GSTIN'),
