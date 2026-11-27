@@ -1,4 +1,4 @@
-import { Search, Bell, Menu, ChevronRight, ChevronDown } from "lucide-react";
+import { Search, Bell, Menu, ChevronRight, ChevronDown, Plus, Moon } from "lucide-react";
 import type { Ref } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { MODULE_ROUTES } from "@/config/navigationConfig";
@@ -29,6 +29,17 @@ function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
     location.pathname.includes(t.path)
   );
   const currentInventorySectionTitle = currentInventoryTab?.label ?? "Dashboard";
+
+  // Current tab for other modules
+  const currentModuleTab = activeModule?.tabs?.find(
+    (t) =>
+      location.pathname.endsWith(`/${t.path}`) ||
+      location.pathname.includes(`/${t.path}`)
+  );
+  const currentModuleTabTitle =
+    currentModuleTab?.label === "Business Location"
+      ? "Business Locations"
+      : currentModuleTab?.label;
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -78,39 +89,73 @@ function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
                 )}
               </>
             ) : (
-              <span className="text-slate-800 font-semibold text-sm">
-                {activeModule?.label ?? "Dashboard"}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <Link
+                  to={activeModule?.basePath ?? "/"}
+                  className="text-slate-400 hover:text-slate-600 transition"
+                >
+                  {activeModule?.label ?? "Dashboard"}
+                </Link>
+                {currentModuleTabTitle && (
+                  <>
+                    <span className="text-slate-300">/</span>
+                    <span className="text-slate-900 font-semibold truncate">
+                      {currentModuleTabTitle}
+                    </span>
+                  </>
+                )}
+              </div>
             )}
           </nav>
         </div>
 
         {/* Right: Selectors, Search, Notifications, Avatar */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Financial Year Selector */}
-          <div className="hidden sm:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 cursor-pointer">
-            <span>FY 2024 - 2025</span>
-            <ChevronDown size={13} className="text-slate-400" />
-          </div>
+          {/* Inventory-specific Financial Year & Month Selectors */}
+          {isInventory && (
+            <>
+              <div className="hidden sm:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 cursor-pointer">
+                <span>FY 2024 - 2025</span>
+                <ChevronDown size={13} className="text-slate-400" />
+              </div>
 
-          {/* Month Selector */}
-          <div className="hidden md:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 cursor-pointer">
-            <span>January 2025</span>
-            <ChevronDown size={13} className="text-slate-400" />
-          </div>
+              <div className="hidden md:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50 cursor-pointer">
+                <span>January 2025</span>
+                <ChevronDown size={13} className="text-slate-400" />
+              </div>
+            </>
+          )}
 
-          {/* Global Inventory Search */}
+          {/* Global Search Bar */}
           <div className="relative flex items-center">
-            <input
-              type="text"
-              placeholder="Search inventory..."
-              className="h-8 w-36 sm:w-48 md:w-56 rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs text-slate-700 placeholder:text-slate-400 outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
-            />
             <Search
               size={14}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+            />
+            <input
+              type="text"
+              placeholder={isInventory ? "Search inventory..." : "Search modules, records..."}
+              className="h-8 w-36 sm:w-48 md:w-56 rounded-lg border border-slate-200 bg-white pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 outline-none transition focus:border-[#043793] focus:ring-1 focus:ring-[#043793]"
             />
           </div>
+
+          {/* Quick Create Button */}
+          <button
+            type="button"
+            className="hidden sm:flex h-8 items-center gap-1.5 rounded-lg bg-[#093055] px-3 text-xs font-medium text-white shadow-xs transition hover:bg-[#072440]"
+          >
+            <Plus size={14} />
+            <span>Quick Create</span>
+          </button>
+
+          {/* Theme Toggle (Dark Mode) */}
+          <button
+            type="button"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100"
+            aria-label="Toggle theme"
+          >
+            <Moon size={16} />
+          </button>
 
           {/* Notifications */}
           <button
@@ -119,14 +164,18 @@ function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
             aria-label="Notifications"
           >
             <Bell size={17} />
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-xs">
-              7
-            </span>
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
           </button>
 
           {/* User Avatar */}
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0B2A6B] text-xs font-semibold text-white shadow-2xs">
-            AR
+          <div className="flex items-center gap-1.5 cursor-pointer rounded-lg px-1.5 py-1 transition hover:bg-slate-50">
+            <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-[#093055] text-xs font-bold text-white shadow-2xs">
+              AD
+            </div>
+            <span className="hidden md:inline text-xs font-semibold text-slate-700">
+              Admin
+            </span>
+            <ChevronDown size={13} className="hidden md:inline text-slate-400" />
           </div>
         </div>
       </div>
@@ -142,7 +191,7 @@ function Topbar({ menuButtonRef, onMenuClick }: TopbarProps) {
                 className={({ isActive }) =>
                   `shrink-0 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-medium transition sm:px-0 ${
                     isActive
-                      ? "border-[#043793] text-[#043793]"
+                      ? "border-[#043793] text-[#043793] font-semibold"
                       : "border-transparent text-slate-500 hover:text-[#043793]"
                   }`
                 }

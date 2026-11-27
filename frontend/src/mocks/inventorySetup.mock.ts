@@ -284,12 +284,17 @@ export const MOCK_TAX_CONFIGS: TaxConfig[] = [
 /* ---------------- Barcode ---------------- */
 
 export const MOCK_BARCODES: Barcode[] = [
-  { id: '1', barcodeId: 'BAR-001', productName: 'Samsung Galaxy A54 5G', productCode: 'ELE-SAM-A54', value: '8806094760583', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '12 Jun 2026 09:14', status: 'Active' },
-  { id: '2', barcodeId: 'BAR-002', productName: 'Nike Air Max 270', productCode: 'APP-NIK-AM270', value: '0195866882527', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '12 Jun 2026 09:20', status: 'Active' },
-  { id: '3', barcodeId: 'BAR-003', productName: 'Dove Body Wash 500ml', productCode: 'FMCG-DOV-BW500', value: '8901030784743', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '12 Jun 2026 09:26', status: 'Active' },
-  { id: '4', barcodeId: 'BAR-004', productName: 'Bosch Drill 600W', productCode: 'HRD-BSH-DR600', value: '3165140557009', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '12 Jun 2026 09:31', status: 'Active' },
-  { id: '5', barcodeId: 'BAR-005', productName: 'Apple iPhone 15 128GB', productCode: 'ELE-APL-IPH15', value: 'APL-IPH15-128-BLK', type: 'QR', format: '2D', batch: 'BCH-2025-001', generatedAt: '12 Jun 2026 09:38', status: 'Active' },
-  { id: '6', barcodeId: 'BAR-006', productName: 'Aashirvaad Atta 5Kg', productCode: 'FMCG-ITC-AASH500', value: '8901030800015', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '12 Jun 2026 09:44', status: 'Active' },
+  { id: '1', barcodeId: 'BAR-001', productName: 'Samsung Galaxy A54 5G', productCode: 'ELE-SAM-A54', value: '8806094760583', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '2', barcodeId: 'BAR-001', productName: 'Samsung Galaxy A54 5G', productCode: 'ELE-SAM-A54', value: '8806094760583', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '3', barcodeId: 'BAR-001', productName: 'Samsung Galaxy A54 5G', productCode: 'ELE-SAM-A54', value: '8806094760583', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '4', barcodeId: 'BAR-001', productName: 'Samsung Galaxy A54 5G', productCode: 'ELE-SAM-A54', value: '8806094760583', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '5', barcodeId: 'BAR-001', productName: 'Samsung Galaxy A54 5G', productCode: 'ELE-SAM-A54', value: '8806094760583', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '6', barcodeId: 'BAR-001', productName: 'Samsung Galaxy A54 5G', productCode: 'ELE-SAM-A54', value: '8806094760583', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '7', barcodeId: 'BAR-002', productName: 'Nike Air Max 270', productCode: 'APP-NIK-AM270', value: '0195866882527', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '8', barcodeId: 'BAR-003', productName: 'Dove Body Wash 500ml', productCode: 'FMCG-DOV-BW500', value: '8901030784743', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '9', barcodeId: 'BAR-004', productName: 'Bosch Drill 600W', productCode: 'HRD-BSH-DR600', value: '3165140557009', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '10', barcodeId: 'BAR-005', productName: 'Apple iPhone 15 128GB', productCode: 'ELE-APL-IPH15', value: 'APL-IPH15-128-BLK', type: 'QR', format: '2D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
+  { id: '11', barcodeId: 'BAR-006', productName: 'Aashirvaad Atta 5Kg', productCode: 'FMCG-ITC-AASH500', value: '8901030800015', type: 'EAN-13', format: '1D', batch: 'BCH-2025-001', generatedAt: '2025-01-15', status: 'Active' },
 ]
 
 export const BARCODE_STATS = {

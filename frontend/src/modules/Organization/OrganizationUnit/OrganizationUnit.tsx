@@ -36,7 +36,7 @@ export interface OrganizationUnit {
 type StatusFilter = "all" | "Active" | "Inactive";
 
 const orgUnitColumns: ExportColumn<OrganizationUnit>[] = [
-  { header: "Unit ID", accessor: (u) => u.id },
+  { header: "Unit ID", accessor: (u) => `ORG-${String(u.id).padStart(3, "0")}` },
   {
     header: "Name",
     accessor: (u) => `${u.organizationUnit} (${u.organizationGroup.shortName})`,
@@ -82,24 +82,26 @@ function OrganizationUnitContent() {
   const [loading, setLoading] = useState(false);
 
   const filteredUnits = useMemo(() => {
-    return units.filter((unit) => {
-      const matchesStatus =
-        statusFilter === "all" || unit.status === statusFilter;
-      const term = searchTerm.toLowerCase().trim();
-      const matchesSearch =
-        !term ||
-        [
-          unit.organizationUnit,
-          unit.gstIn,
-          unit.unitType,
-          unit.manager,
-          unit.organizationGroup.shortName,
-          unit.state,
-          unit.country,
-          unit.address,
-        ].some((field) => field?.toLowerCase().includes(term));
-      return matchesStatus && matchesSearch;
-    });
+    return units
+      .filter((unit) => {
+        const matchesStatus =
+          statusFilter === "all" || unit.status === statusFilter;
+        const term = searchTerm.toLowerCase().trim();
+        const matchesSearch =
+          !term ||
+          [
+            unit.organizationUnit,
+            unit.gstIn,
+            unit.unitType,
+            unit.manager,
+            unit.organizationGroup.shortName,
+            unit.state,
+            unit.country,
+            unit.address,
+          ].some((field) => field?.toLowerCase().includes(term));
+        return matchesStatus && matchesSearch;
+      })
+      .sort((a, b) => a.id - b.id);
   }, [units, searchTerm, statusFilter]);
 
   // exportToPDF(filteredUnits, orgUnitColumns, { filename: 'org-units.pdf', title: 'Org Units' })
@@ -167,7 +169,6 @@ function OrganizationUnitContent() {
           `/api/organizationUnit/org-unit/${editingUnit.id}`,
           data,
         );
-        // toast.error("Failed to save");
       } else {
         await apiClient.post("/api/organizationUnit/org-unit", data);
       }
@@ -175,8 +176,12 @@ function OrganizationUnitContent() {
       toast.success(`Org unit ${isEdit ? "updated" : "created"} successfully!`);
       setIsModalOpen(false);
       setEditingUnit(null);
-    } catch {
-      toast.error(`Failed to ${isEdit ? "update" : "create"} org unit`);
+    } catch (error: any) {
+      console.error(error);
+      const errorMessage =
+        error?.response?.data?.message ||
+        `Failed to ${isEdit ? "update" : "create"} org unit`;
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -204,9 +209,13 @@ function OrganizationUnitContent() {
 
       setDeleteModalOpen(false);
       setUnitToDelete(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to delete org unit");
+      const errorMessage =
+        error?.response?.data?.message || "Failed to delete org unit";
+      toast.error(errorMessage);
+      setDeleteModalOpen(false);
+      setUnitToDelete(null);
     } finally {
       setLoading(false);
     }
@@ -279,7 +288,7 @@ function OrganizationUnitContent() {
           />
           <input
             type="text"
-            placeholder="Search units, GSTIN,Manager..."
+            placeholder="Search units, GSTIN…"
             value={searchTerm}
             onChange={(e) => updateSearchTerm(e.target.value)}
             className="w-full h-10 pl-10 pr-4 rounded-lg border border-gray-200 text-sm focus:outline-none"
@@ -315,24 +324,22 @@ function OrganizationUnitContent() {
           No org units match your filters
         </div>
       ) : (
-        <>
-          <div className="overflow-x-auto">
-            <OrgUnitTable
-              units={currentUnits}
-              onEdit={handleEditClick}
-              onDelete={handleDeleteClick}
-              loading={loading}
+        <OrgUnitTable
+          units={currentUnits}
+          onEdit={handleEditClick}
+          onDelete={handleDeleteClick}
+          loading={loading}
+          pagination={
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIndex={startIndex}
+              endIndex={startIndex + rowsPerPage}
+              totalItems={filteredUnits.length}
+              onPageChange={setCurrentPage}
             />
-          </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            startIndex={startIndex}
-            endIndex={startIndex + rowsPerPage}
-            totalItems={filteredUnits.length}
-            onPageChange={setCurrentPage}
-          />
-        </>
+          }
+        />
       )}
 
       {/* CREATE/EDIT MODAL */}

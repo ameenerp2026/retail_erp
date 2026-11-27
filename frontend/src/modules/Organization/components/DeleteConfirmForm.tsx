@@ -32,14 +32,14 @@ export function DeleteConfirmForm({loading, onClose, onConfirm }: Props) {
         <button
           onClick={onClose}
           disabled={loading}
-          className="flex-1 h-10 rounded-lg bg-gray-100 text-sm font-medium text-gray-600 hover:bg-gray-200 transition disabled:opacity-50"
+          className="flex-1 h-11 rounded-xl border border-gray-200 bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
           disabled={loading}
-          className="flex-1 h-10 rounded-lg bg-[#E53E3E] text-white text-sm font-medium hover:bg-red-600 transition disabled:opacity-50"
+          className="flex-1 h-11 rounded-xl bg-[#E53E3E] text-white text-sm font-medium hover:bg-red-600 transition disabled:opacity-50"
         >
           {loading? 'Deleting...' : 'Delete'}
         </button>

@@ -27,6 +27,7 @@ export const getGSTDetails = async () => {
     include: {
       organizationUnit: {
         select: {
+          id: true,
           organizationUnit: true,
         },
       },

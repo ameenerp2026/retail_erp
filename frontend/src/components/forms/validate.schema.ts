@@ -51,7 +51,7 @@ export const orgUnitSchema = z.object({
     message: 'Unit type is required' // ← Use 'message' not 'errorMap'
   }),
   
-  group: z.string().min(1, 'Organization Group is required'),
+  group: z.string().min(1, 'Org Group is required'),
   
   gstin: z.string()
     .trim()
@@ -73,45 +73,47 @@ export type OrgUnitFormData = z.infer<typeof orgUnitSchema> & {
 
 export const businessLocationSchema = z.object({
   locationName: z.string().min(1, 'Location Name is required'),
-  //locationCode: z.string().min(1, 'Location Code is required'),
+  locationCode: z.string().optional(),
   parentOrganizationUnit: z.string().min(1, 'Select organization unit'),
   locationType: z.string().min(1, 'Select location Type'),
-   businessCategory: z.string().min(1, 'Select Business Category'),
-   addressLine1: z.string().min(1, 'Address Line1 is required'),
-   addressLine2: z.string().min(1, 'Address Line2 is required'),
-   landmark: z.string().min(1, 'Landmark is required'),
-   city: z.string().min(1, 'City Name is required'),
-   state: z.string().min(1, 'Select location State'),
-   country: z.string().min(1, 'Select Business Country'),
+  businessCategory: z.string().optional(),
+  addressLine1: z.string().min(1, 'Address Line1 is required'),
+  addressLine2: z.string().optional(),
+  landmark: z.string().optional(),
+  city: z.string().min(1, 'City Name is required'),
+  state: z.string().min(1, 'Select location State'),
+  country: z.string().min(1, 'Select Business Country'),
 pinCode: z.string()
   .trim()
   .length(6, "PIN Code must be 6 digits")
   .regex(/^[1-9]\d{5}$/, "Invalid PIN Code format"),
-   contactPerson: z.string().min(1, 'Contact Person is required'),
+  contactPerson: z.string().optional(),
   phoneNumber: z.string()
   .trim()
   .optional()
-  .refine(val => !val || /^[0-9]{10}$/.test(val), {
-    message: "Phone number must be 10 digits"
+  .refine(val => !val || /^[0-9]{10,15}$/.test(val.replace(/[^0-9]/g, '')), {
+    message: "Phone number must be at least 10 digits"
   }),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
 emergencyContact: z.string()
   .trim()
   .optional()
-  .refine(val => !val || /^[0-9]{10}$/.test(val), {
-    message: "Emergency Contact must be 10 digits"
+  .refine(val => !val || /^[0-9]{10,15}$/.test(val.replace(/[^0-9]/g, '')), {
+    message: "Emergency Contact must be at least 10 digits"
   }),
  
   linkedGSTIN: z.string().min(1, 'Select Linked GSTIN'),
-  registrationType: z.string().min(1, 'Select Registration Type'),
- defaultBillingLocation:z.boolean(),
- defaultStockLocation:z.boolean(),
- allowSales:z.boolean(),
-  allowPurchase:z.boolean(),
- allowInventory:z.boolean(),
- allowDispatch:z.boolean(),
- allowPOS:z.boolean(),
- status:z.boolean(),
+  registrationType: z.string().optional(),
+ defaultBillingLocation: z.boolean().optional(),
+ defaultStockLocation: z.boolean().optional(),
+ allowSales: z.boolean().optional(),
+  allowPurchase: z.boolean().optional(),
+ allowInventory: z.boolean().optional(),
+ allowDispatch: z.boolean().optional(),
+ allowPOS: z.boolean().optional(),
+ status: z.boolean().optional(),
+ defaultWarehouse: z.string().optional(),
+ parentWarehouse: z.string().optional(),
 //  defaultWarehouse: z.string().min(1, 'Select Warehouse'),
 //  parentWarehouse: z.string().min(1, 'Select Parent Warehouse'),
 })

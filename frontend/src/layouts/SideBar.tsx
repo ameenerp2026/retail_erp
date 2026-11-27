@@ -1,7 +1,7 @@
 import { MODULE_ROUTES } from "@/config/navigationConfig";
 import { forwardRef, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, X, ChevronDown, ChevronRight, ChevronsUpDown, Package } from "lucide-react";
+import { LogOut, X, ChevronDown, ChevronRight, Package } from "lucide-react";
 import { useAuth } from "@/context/useAuth";
 
 type SidebarProps = {
@@ -15,7 +15,7 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
 ) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, user, hasPermission } = useAuth();
+  const { logout, hasPermission } = useAuth();
   const [isDesktop, setIsDesktop] = useState(
     () => window.matchMedia("(min-width: 1024px)").matches,
   );
@@ -211,7 +211,7 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
                 onClick={onClose}
                 className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
                   isModuleActive
-                    ? "bg-gradient-to-r from-[#2B6CB0] to-[#1A4A8A] text-white shadow-sm"
+                    ? "bg-[#0B3B95] text-white shadow-sm"
                     : "text-white/90 hover:bg-[#1A3A7A]"
                 }`}
               >
@@ -222,35 +222,32 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
           })}
         </nav>
 
-        <div className="mb-3 h-px bg-[#5B8BC6]/40" />
+        <div className="mb-3 h-px bg-[#5B8BC6]/30" />
 
         {/* User Profile */}
-        <div className="mb-2 flex w-full items-center justify-between rounded-xl border border-[#2B4B8C]/40 bg-[#1A3A7A]/60 p-2.5 shadow-sm">
+        <div className="flex w-full items-center justify-between px-1 py-1">
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1848B0] border border-[#2D62DC] text-xs font-bold text-white shadow-sm">
-              AR
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#08265E] text-xs font-bold text-white shadow-sm">
+              AD
             </div>
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold text-white">
-                {user?.name || "Arjun Sharma"}
+                Admin User
               </p>
               <p className="truncate text-[11px] text-[#8FA8D4]">
-                Inventory Manager
+                admin@streamys.in
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <ChevronsUpDown size={15} className="text-white/60 shrink-0" />
-            <button
-              type="button"
-              onClick={logout}
-              className="shrink-0 rounded-lg p-1 text-white/70 hover:bg-white/10 hover:text-white transition"
-              aria-label="Log out"
-              title="Log out"
-            >
-              <LogOut size={15} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="shrink-0 rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </aside>
