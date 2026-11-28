@@ -1,19 +1,17 @@
 import { useMemo, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  Pencil,
   Plus,
-  Trash2,
   Upload,
   Download,
-  Globe,
-  Box,
   FileSpreadsheet,
   X,
   Image,
   Check,
   ChevronDown,
 } from 'lucide-react'
+import { AppstoreOutlined, GlobalOutlined } from '@ant-design/icons'
+import { Button, Empty, Input, Popconfirm, Skeleton } from 'antd'
 import { useQuery } from '@tanstack/react-query'
 import { inventorySetupService } from '@/services/inventorySetupService'
 import type { Brand, ProductStatus } from '@/types/inventorySetup'
@@ -561,97 +559,89 @@ function getBrandColor(name: string, code?: string): string {
 function BrandCard({
   brand,
   onEdit,
-  onDelete,
+  onStatusChange,
 }: {
   brand: Brand
-  onEdit: (b: Brand) => void
-  onDelete: (b: Brand) => void
+  onEdit: (brand: Brand) => void
+  onStatusChange: (brand: Brand) => void
 }) {
   const initial = brand.name?.trim()?.charAt(0)?.toUpperCase() || 'B'
+  const isActive = brand.status === 'Active'
 
   return (
-    <div
-      onClick={() => onEdit(brand)}
-      className="group relative flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-4.5 shadow-none transition hover:border-slate-300 hover:shadow-xs cursor-pointer"
-    >
-      <div>
-        {/* Top row: Avatar & Status Badge */}
-        <div className="flex items-center justify-between">
-          <div
-            className="flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-[7.5px] text-[13px] font-bold leading-none text-white select-none"
-            style={{ backgroundColor: getBrandColor(brand.name, brand.code) }}
-          >
-            {initial}
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            {/* Quick action buttons on hover */}
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEdit(brand)
-                }}
-                title="Edit Brand"
-                className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
-              >
-                <Pencil size={12} />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDelete(brand)
-                }}
-                title="Delete Brand"
-                className="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
-              >
-                <Trash2 size={12} />
-              </button>
-            </div>
-
-            {brand.status === 'Active' ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Active
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                Inactive
-              </span>
-            )}
-          </div>
+    <div className="flex flex-col rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sm font-semibold text-white"
+          style={{ backgroundColor: getBrandColor(brand.name, brand.code) }}
+          aria-hidden="true"
+        >
+          {initial}
         </div>
-
-        {/* Brand Name */}
-        <h4 className="mt-3 truncate text-sm font-bold tracking-tight text-slate-900 group-hover:text-[#155DFC] transition-colors">
-          {brand.name}
-        </h4>
-
-        {/* Brand Code */}
-        <div className="mt-0.5 text-xs font-semibold tracking-wide text-[#155DFC]">
-          {brand.code}
-        </div>
-
-        {/* Description */}
-        <p className="mt-2 text-xs leading-relaxed text-slate-500 line-clamp-2 min-h-[34px]">
-          {brand.description}
-        </p>
+        <span
+          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${
+            isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
+          }`}
+        >
+          <span aria-hidden="true">●</span>
+          {isActive ? 'Active' : 'Inactive'}
+        </span>
       </div>
 
-      <div>
-        {/* Meta row: Country & Products count */}
-        <div className="mt-3.5 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-          <div className="flex items-center gap-1.5">
-            <Globe size={13} className="shrink-0 text-slate-400" />
-            <span className="truncate">{brand.country || 'Global'}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Box size={13} className="shrink-0 text-slate-400" />
-            <span>{brand.productCount} products</span>
-          </div>
+      <h4 className="mt-2 truncate text-sm font-semibold text-slate-900">{brand.name}</h4>
+      <div className="font-mono text-[11px] uppercase tracking-wide text-[#155DFC]">
+        {brand.code}
+      </div>
+      <p className="mt-1 line-clamp-2 min-h-[32px] text-xs text-slate-500">
+        {brand.description}
+      </p>
+
+      <div className="mt-3 border-t border-slate-100 pt-2">
+        <div className="flex items-center justify-between text-[11px] text-slate-500">
+          <span className="flex min-w-0 items-center gap-1.5 truncate">
+            <GlobalOutlined aria-hidden="true" />
+            <span className="truncate">{brand.country || '-'}</span>
+          </span>
+          <span className="flex shrink-0 items-center gap-1.5">
+            <AppstoreOutlined aria-hidden="true" />
+            {brand.productCount} products
+          </span>
+        </div>
+
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <Button
+            size="small"
+            block
+            aria-label={`Edit brand ${brand.name}`}
+            onClick={() => onEdit(brand)}
+          >
+            Edit
+          </Button>
+          {isActive ? (
+            <Popconfirm
+              title={`Deactivate ${brand.name}?`}
+              onConfirm={() => onStatusChange(brand)}
+            >
+              <Button
+                size="small"
+                block
+                danger
+                aria-label={`Deactivate brand ${brand.name}`}
+              >
+                Deactivate
+              </Button>
+            </Popconfirm>
+          ) : (
+            <Button
+              size="small"
+              block
+              aria-label={`Activate brand ${brand.name}`}
+              className="!border-emerald-500 !text-emerald-600 hover:!border-emerald-600 hover:!text-emerald-700"
+              onClick={() => onStatusChange(brand)}
+            >
+              Activate
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -724,6 +714,16 @@ export default function BrandsTab() {
     })
   }
 
+  const handleStatusChange = (brand: Brand) => {
+    const status: ProductStatus = brand.status === 'Active' ? 'Inactive' : 'Active'
+    setLocalBrands((prev) =>
+      (prev ?? serverBrands).map((current) =>
+        current.id === brand.id ? { ...current, status } : current
+      )
+    )
+    toast.success(`Brand "${brand.name}" ${status === 'Active' ? 'activated' : 'deactivated'}`)
+  }
+
   const handleDeleteBrand = () => {
     if (!deleteTarget) return
     setLocalBrands(
@@ -742,68 +742,66 @@ export default function BrandsTab() {
       {/* Brands Header Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-col">
-            <h2 className="text-base sm:text-lg font-bold leading-tight text-slate-900">
-              Brands
-            </h2>
-            <span className="text-xs text-slate-400">
-              {filtered.length} records
-            </span>
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">Brands</h2>
+            <span className="text-xs text-slate-500">{filtered.length} records</span>
           </div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-8 w-44 sm:w-52 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-[#155DFC] focus:outline-none focus:ring-1 focus:ring-[#155DFC]"
-            />
-          </div>
+          <Input
+            size="small"
+            aria-label="Search brands"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-[200px]"
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
+          <Button
+            size="small"
+            icon={<Upload size={13} aria-hidden="true" />}
             onClick={handleExport}
-            className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 shadow-2xs transition hover:bg-slate-50 cursor-pointer"
           >
-            <Upload size={13} className="text-slate-500" />
-            <span>Export</span>
-          </button>
-          <button
-            type="button"
+            Export
+          </Button>
+          <Button
+            size="small"
+            icon={<Download size={13} aria-hidden="true" />}
             onClick={() => setImportOpen(true)}
-            className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 shadow-2xs transition hover:bg-slate-50 cursor-pointer"
           >
-            <Download size={13} className="text-slate-500" />
-            <span>Import</span>
-          </button>
-          <button
-            type="button"
+            Import
+          </Button>
+          <Button
+            type="primary"
+            size="small"
+            icon={<Plus size={14} aria-hidden="true" />}
+            className="!border-[#155DFC] !bg-[#155DFC]"
             onClick={() => {
               setEditingBrand(null)
               setCreateOpen(true)
             }}
-            className="flex h-8 items-center gap-1.5 rounded-lg bg-[#155DFC] px-3.5 text-xs font-medium text-white shadow-xs transition hover:bg-[#1048c7] cursor-pointer"
           >
-            <Plus size={14} className="text-white" />
-            <span>New Brand</span>
-          </button>
+            New Brand
+          </Button>
         </div>
       </div>
 
       {/* Grid of Brand Cards (4 columns on desktop) */}
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="h-56 animate-pulse rounded-xl bg-slate-50"
-            />
+              className="rounded-md border border-slate-200 bg-white p-3 shadow-sm"
+            >
+              <Skeleton active title={{ width: '45%' }} paragraph={{ rows: 3 }} />
+            </div>
           ))}
         </div>
+      ) : filtered.length === 0 ? (
+        <Empty description="No brands found" />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {filtered.map((brand) => (
             <BrandCard
               key={brand.id}
@@ -812,7 +810,7 @@ export default function BrandsTab() {
                 setEditingBrand(b)
                 setCreateOpen(true)
               }}
-              onDelete={setDeleteTarget}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>

@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Activity, AlertTriangle, Check, ImagePlus, Printer, SquarePen, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Drawer from '@/components/shared/Drawer'
-import { FieldWrap, SelectInput, TextInput } from '../shared/formControls'
+import { FieldWrap, SelectInput, TextInput, Toggle } from '../shared/formControls'
 import SectionLabel from '../shared/SectionLabel'
 import type { Product } from '@/types/inventorySetup'
+import { MOCK_HIERARCHY, MOCK_PRODUCTS, MOCK_TAX_CONFIGS } from '@/mocks/inventorySetup.mock'
 
 /* ---------------- Tabs (exact design order) ---------------- */
 
@@ -19,6 +20,7 @@ const DRAWER_TABS = [
 ] as const
 
 type DrawerTabKey = (typeof DRAWER_TABS)[number]['key']
+const CREATE_TABS: DrawerTabKey[] = ['general', 'inventory', 'pricing', 'tax', 'images']
 const ALL_TABS: DrawerTabKey[] = [
   'general',
   'inventory',
@@ -75,11 +77,8 @@ function FieldGrid({ children }: { children: React.ReactNode }) {
 /* ---------------- Dropdown Option Lists ---------------- */
 
 const GROUP_OPTIONS = ['Electronics', 'Apparel', 'FMCG', 'Hardware', 'Pharma']
-const DEPARTMENT_OPTIONS = ['Electronics', 'Apparel', 'FMCG', 'Hardware', 'Pharma']
-const SECTION_OPTIONS = ['Mobiles', 'Audio', 'Footwear', 'Power Tools', 'Clothing', 'Personal Care', 'Electricals']
 const BRAND_OPTIONS = ['Samsung', 'Nike', 'Dove', 'Bosch', 'Levis', 'Voltaren', 'Apple', 'HUL', 'Syska', 'Sony', 'ITC', 'Cipla']
 const UOM_OPTIONS = ['PCS', 'BTL', 'TUB', 'PKT', 'KGS', 'STR']
-const PRODUCT_TYPE_OPTIONS = ['Finished Good', 'Raw Material', 'Service']
 const VENDOR_OPTIONS = [
   'Samsung India Pvt Ltd',
   'Redington India',
@@ -87,10 +86,11 @@ const VENDOR_OPTIONS = [
   'Nike Sports India',
   'HUL Distribution Ltd',
 ]
+const ATTRIBUTE_OPTIONS = ['Color', 'Size', 'Material', 'Warranty', 'Storage', 'Fit', 'Capacity', 'RAM']
 
 /* ---------------- Form State Type ---------------- */
 
-export type ProductFormData = {
+type ProductFormData = {
   productCode: string
   oemCode: string
   productName: string
@@ -99,11 +99,101 @@ export type ProductFormData = {
   section: string
   brand: string
   uom: string
-  productType: string
   vendor: string
-  attr1: string
-  attr2: string
-  status: string
+  attributes: string[]
+  status: Product['status']
+}
+
+type RequiredGeneralField = 'productName' | 'group' | 'department' | 'uom' | 'status'
+type GeneralErrors = Partial<Record<RequiredGeneralField, string>>
+
+type PricingData = {
+  costPrice: string
+  wspMargin: string
+  rspMargin: string
+  wsp: string
+  rsp: string
+  mrp: string
+  effectiveFrom: string
+  effectiveTo: string
+}
+
+type InventoryData = {
+  trackBatch: boolean
+  trackSerial: boolean
+  trackExpiry: boolean
+  shelfLife: string
+  reorderLevel: string
+  allowNegativeStock: boolean
+}
+
+type SelectedImage = {
+  file: File
+  previewUrl: string
+}
+
+const INITIAL_ATTRIBUTES = ['', '', '', '']
+
+const createInitialFormData = (product?: Product | null): ProductFormData => ({
+  productCode: product?.productCode ?? '',
+  oemCode: product?.prdCode ?? '',
+  productName: product?.productName ?? '',
+  group: product?.group ?? '',
+  department: product?.department ?? '',
+  section: product?.section ?? '',
+  brand: product?.brand ?? '',
+  uom: product?.uom ?? '',
+  vendor: '',
+  attributes: [...INITIAL_ATTRIBUTES],
+  status: product?.status ?? 'Active',
+})
+
+const createInitialPricingData = (product?: Product | null): PricingData => ({
+  costPrice: product ? String(product.costPrice ?? product.cost ?? '') : '',
+  wspMargin: '',
+  rspMargin: '',
+  wsp: '',
+  rsp: product ? String(product.sellingPrice ?? '') : '',
+  mrp: product ? String(product.mrp ?? '') : '',
+  effectiveFrom: '',
+  effectiveTo: '',
+})
+
+const INITIAL_INVENTORY_DATA: InventoryData = {
+  trackBatch: false,
+  trackSerial: false,
+  trackExpiry: false,
+  shelfLife: '',
+  reorderLevel: '',
+  allowNegativeStock: false,
+}
+
+const formatHsnCode = (value: string): string => {
+  const digits = value.replace(/\s/g, '')
+  if (digits.length <= 4) return digits
+  const trailingDigits = digits.slice(4).match(/.{1,2}/g) ?? []
+  return [digits.slice(0, 4), ...trailingDigits].join(' ')
+}
+
+const getPricingErrors = (pricing: PricingData) => {
+  const rsp = Number(pricing.rsp)
+  const mrp = Number(pricing.mrp)
+  return {
+    mrp:
+      pricing.rsp !== '' &&
+      pricing.mrp !== '' &&
+      Number.isFinite(rsp) &&
+      Number.isFinite(mrp) &&
+      mrp < rsp
+        ? 'MRP cannot be lower than RSP'
+        : undefined,
+    effectiveTo:
+      pricing.effectiveFrom &&
+      pricing.effectiveTo &&
+      pricing.effectiveTo < pricing.effectiveFrom
+        ? 'Price Effective To cannot be before Price Effective From'
+        : undefined,
+  }
 }
 
 /* ---------------- General Tab (Figma Screenshot 2) ---------------- */
@@ -111,13 +201,34 @@ export type ProductFormData = {
 function GeneralSection({
   formData,
   setFormData,
+  errors,
+  setErrors,
 }: {
   formData: ProductFormData
   setFormData: React.Dispatch<React.SetStateAction<ProductFormData>>
+  errors: GeneralErrors
+  setErrors: React.Dispatch<React.SetStateAction<GeneralErrors>>
 }) {
-  const updateField = (key: keyof ProductFormData, val: string) => {
+  const updateField = (
+    key: Exclude<keyof ProductFormData, 'attributes' | 'status'>,
+    val: string,
+  ) => {
     setFormData((prev) => ({ ...prev, [key]: val }))
   }
+  const clearError = (key: RequiredGeneralField) =>
+    setErrors((previous) => ({ ...previous, [key]: undefined }))
+  const groupNode = MOCK_HIERARCHY.find((node) => node.name === formData.group)
+  const departmentOptions = groupNode ? [groupNode.name] : []
+  const sectionOptions = [
+    ...new Set([
+      ...(MOCK_HIERARCHY.find((node) => node.name === formData.department)?.children.map(
+        (node) => node.name,
+      ) ?? []),
+      ...MOCK_PRODUCTS.filter((product) => product.department === formData.department).map(
+        (product) => product.section,
+      ),
+    ]),
+  ]
 
   return (
     <div className="space-y-4">
@@ -143,7 +254,7 @@ function GeneralSection({
           <p className="mt-1 text-[11px] text-slate-400">Auto-generated on save</p>
         </div>
 
-        <FieldWrap label="OEM Code" required>
+        <FieldWrap label="OEM Code">
           <TextInput
             placeholder="e.g. PRD-001"
             value={formData.oemCode}
@@ -156,8 +267,14 @@ function GeneralSection({
           <TextInput
             placeholder="e.g. Samsung Galaxy A54 5G"
             value={formData.productName}
-            onChange={(v) => updateField('productName', v)}
+            onChange={(v) => {
+              updateField('productName', v)
+              clearError('productName')
+            }}
           />
+          {errors.productName && (
+            <p className="text-xs text-red-600">{errors.productName}</p>
+          )}
         </FieldWrap>
 
         <FieldWrap label="Group" required>
@@ -165,25 +282,41 @@ function GeneralSection({
             options={GROUP_OPTIONS}
             value={formData.group}
             placeholder="Select dropdown"
-            onChange={(v) => updateField('group', v)}
+            onChange={(v) => {
+              setFormData((previous) => ({
+                ...previous,
+                group: v,
+                department: '',
+                section: '',
+              }))
+              clearError('group')
+              clearError('department')
+            }}
           />
+          {errors.group && <p className="text-xs text-red-600">{errors.group}</p>}
         </FieldWrap>
 
         {/* Row 3 */}
         <FieldWrap label="Department" required>
           <SelectInput
-            options={DEPARTMENT_OPTIONS}
+            options={departmentOptions}
             value={formData.department}
             placeholder="Select dropdown"
-            onChange={(v) => updateField('department', v)}
+            disabled={!formData.group}
+            onChange={(v) => {
+              setFormData((previous) => ({ ...previous, department: v, section: '' }))
+              clearError('department')
+            }}
           />
+          {errors.department && <p className="text-xs text-red-600">{errors.department}</p>}
         </FieldWrap>
 
         <FieldWrap label="Section">
           <SelectInput
-            options={SECTION_OPTIONS}
+            options={sectionOptions}
             value={formData.section}
             placeholder="Select dropdown"
+            disabled={!formData.department}
             onChange={(v) => updateField('section', v)}
           />
         </FieldWrap>
@@ -205,19 +338,11 @@ function GeneralSection({
             placeholder="Select dropdown"
             onChange={(v) => updateField('uom', v)}
           />
+          {errors.uom && <p className="text-xs text-red-600">{errors.uom}</p>}
         </FieldWrap>
 
         {/* Row 5 */}
-        <FieldWrap label="Product Type" required>
-          <SelectInput
-            options={PRODUCT_TYPE_OPTIONS}
-            value={formData.productType}
-            placeholder="Select dropdown"
-            onChange={(v) => updateField('productType', v)}
-          />
-        </FieldWrap>
-
-        <FieldWrap label="Select Vendor" required>
+        <FieldWrap label="Select Vendor">
           <SelectInput
             options={VENDOR_OPTIONS}
             value={formData.vendor}
@@ -226,23 +351,53 @@ function GeneralSection({
           />
         </FieldWrap>
 
-        {/* Row 6 */}
-        <FieldWrap label="Attribute 1" required>
-          <SelectInput
-            options={['Color', 'Size', 'Material', 'Warranty']}
-            value={formData.attr1}
-            placeholder="Select dropdown"
-            onChange={(v) => updateField('attr1', v)}
-          />
-        </FieldWrap>
+        {formData.attributes.map((attribute, index) => (
+          <FieldWrap key={`attribute-${index}`} label={`Attribute ${index + 1}`}>
+            <SelectInput
+              options={ATTRIBUTE_OPTIONS}
+              value={attribute}
+              placeholder="Select dropdown"
+              onChange={(value) =>
+                setFormData((previous) => ({
+                  ...previous,
+                  attributes: previous.attributes.map((item, itemIndex) =>
+                    itemIndex === index ? value : item,
+                  ),
+                }))
+              }
+            />
+          </FieldWrap>
+        ))}
 
-        <FieldWrap label="Attribute 2" required>
+        <div className="flex items-end">
+          <button
+            type="button"
+            onClick={() =>
+              setFormData((previous) => ({
+                ...previous,
+                attributes: [...previous.attributes, ''],
+              }))
+            }
+            className="text-xs font-medium text-[#2563EB] hover:underline"
+          >
+            + Add Attribute
+          </button>
+        </div>
+
+        <FieldWrap label="Status" required>
           <SelectInput
-            options={['Storage', 'Size', 'Fit', 'Capacity', 'RAM']}
-            value={formData.attr2}
+            options={['Active', 'Inactive']}
+            value={formData.status}
             placeholder="Select dropdown"
-            onChange={(v) => updateField('attr2', v)}
+            onChange={(value) => {
+              setFormData((previous) => ({
+                ...previous,
+                status: value === 'Inactive' ? 'Inactive' : 'Active',
+              }))
+              clearError('status')
+            }}
           />
+          {errors.status && <p className="text-xs text-red-600">{errors.status}</p>}
         </FieldWrap>
       </FieldGrid>
     </div>
@@ -251,57 +406,141 @@ function GeneralSection({
 
 /* ---------------- Inventory Tab ---------------- */
 
-function InventorySection() {
-  const [tracking, setTracking] = useState({ batch: false, serial: false, expiry: false })
-  const toggle = (key: keyof typeof tracking) => setTracking((t) => ({ ...t, [key]: !t[key] }))
-
+function InventorySection({
+  inventory,
+  setInventory,
+}: {
+  inventory: InventoryData
+  setInventory: React.Dispatch<React.SetStateAction<InventoryData>>
+}) {
   return (
     <div className="space-y-6">
       <div>
-        <SectionLabel>Inventory Rules</SectionLabel>
+        <SectionLabel>TRACKING CONFIGURATION</SectionLabel>
+        <div className="mt-3 space-y-3">
+          <label className="flex cursor-pointer items-start justify-between gap-4">
+            <span>
+              <span className="block text-xs font-medium text-slate-700">Track by batch</span>
+              <span className="mt-1 block text-[11px] text-slate-500">
+                Require batch numbers during GRN and opening stock receipts.
+              </span>
+            </span>
+            <Toggle
+              checked={inventory.trackBatch}
+              onChange={(checked) =>
+                setInventory((previous) => ({
+                  ...previous,
+                  trackBatch: checked,
+                  trackExpiry: checked && previous.trackExpiry,
+                }))
+              }
+            />
+          </label>
+          <label className="flex cursor-pointer items-start justify-between gap-4">
+            <span>
+              <span className="block text-xs font-medium text-slate-700">Track serial numbers</span>
+              <span className="mt-1 block text-[11px] text-slate-500">
+                Capture a unique serial number for every received unit when enabled.
+              </span>
+            </span>
+            <Toggle
+              checked={inventory.trackSerial}
+              onChange={(checked) =>
+                setInventory((previous) => ({ ...previous, trackSerial: checked }))
+              }
+            />
+          </label>
+          <label className="flex cursor-pointer items-start justify-between gap-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-medium text-slate-700">Track expiry</p>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
+                  Requires batch tracking
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-slate-500">
+                Request an expiry date during stock receipt.
+              </p>
+            </div>
+            <fieldset
+              disabled={!inventory.trackBatch}
+              className="shrink-0 border-0 p-0 disabled:opacity-50"
+            >
+              <Toggle
+                checked={inventory.trackExpiry}
+                onChange={(checked) =>
+                  setInventory((previous) => ({ ...previous, trackExpiry: checked }))
+                }
+              />
+            </fieldset>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <SectionLabel>STOCK CONFIGURATION</SectionLabel>
         <div className="mt-3">
           <FieldGrid>
-            <FieldWrap label="Batch">
-              <TextInput type="number" value={0} onChange={() => {}} />
-            </FieldWrap>
-            <FieldWrap label="Serial Number">
-              <TextInput type="number" value={0} onChange={() => {}} />
-            </FieldWrap>
-            <FieldWrap label="Expiry Date">
-              <input
-                type="date"
-                defaultValue="2026-12-31"
-                className="h-[38px] w-full rounded-lg border border-slate-200 bg-white px-3 text-xs sm:text-[13px] text-slate-700 focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/15"
-              />
-            </FieldWrap>
-            <FieldWrap label="Negative Stocks">
-              <TextInput type="number" value={0} onChange={() => {}} />
-            </FieldWrap>
+            <div>
+              <FieldWrap label="Shelf life (days)">
+                <TextInput
+                  type="number"
+                  placeholder="0"
+                  value={inventory.shelfLife}
+                  onChange={(value) =>
+                    setInventory((previous) => ({ ...previous, shelfLife: value }))
+                  }
+                />
+              </FieldWrap>
+              <p className="mt-1 text-[11px] text-slate-500">
+                Suggest expiry date from manufacture date during GRN.
+              </p>
+            </div>
+            <div>
+              <FieldWrap label="Reorder level">
+                <div className="flex items-center gap-2">
+                  <TextInput
+                    type="number"
+                    placeholder="0"
+                    value={inventory.reorderLevel}
+                    onChange={(value) =>
+                      setInventory((previous) => ({ ...previous, reorderLevel: value }))
+                    }
+                  />
+                  <span className="text-xs text-slate-500">units</span>
+                </div>
+              </FieldWrap>
+              <p className="mt-1 text-[11px] text-slate-500">
+                Trigger a low-stock alert at or below this quantity.
+              </p>
+            </div>
           </FieldGrid>
         </div>
       </div>
 
       <div>
-        <SectionLabel>Tracking Configuration</SectionLabel>
-        <div className="mt-3 space-y-2.5">
-          {(
-            [
-              ['batch', 'Enable Batch Tracking'],
-              ['serial', 'Enable Serial Number Tracking'],
-              ['expiry', 'Enable Expiry Date Tracking'],
-            ] as const
-          ).map(([key, label]) => (
-            <label key={key} className="flex cursor-pointer items-center gap-2.5">
-              <input
-                type="checkbox"
-                checked={tracking[key]}
-                onChange={() => toggle(key)}
-                className="h-4 w-4 rounded border-slate-300 accent-[#2563EB]"
-              />
-              <span className="text-xs sm:text-[13px] text-slate-700">{label}</span>
-            </label>
-          ))}
+        <SectionLabel>STOCK POLICY</SectionLabel>
+        <div className="mt-3">
+          <label className="flex cursor-pointer items-start justify-between gap-4">
+            <span>
+              <span className="block text-xs font-medium text-slate-700">Allow negative stock</span>
+              <span className="mt-1 block text-[11px] text-slate-500">
+                Prevent transactions that would take stock below zero.
+              </span>
+            </span>
+            <Toggle
+              checked={inventory.allowNegativeStock}
+              onChange={(checked) =>
+                setInventory((previous) => ({ ...previous, allowNegativeStock: checked }))
+              }
+            />
+          </label>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-blue-100 bg-blue-50 px-3.5 py-3 text-xs text-blue-700">
+        Batch, serial and expiry values are entered during GRN or Opening Stock—not in Product
+        Setup.
       </div>
     </div>
   )
@@ -309,69 +548,136 @@ function InventorySection() {
 
 /* ---------------- Pricing Tab ---------------- */
 
-function PricingSection({ product }: { product?: Product | null }) {
+function PricingSection({
+  pricing,
+  setPricing,
+}: {
+  pricing: PricingData
+  setPricing: React.Dispatch<React.SetStateAction<PricingData>>
+}) {
+  const errors = getPricingErrors(pricing)
+
+  const updateField = (key: keyof PricingData, value: string) =>
+    setPricing((previous) => ({ ...previous, [key]: value }))
+
   return (
     <FieldGrid>
       <FieldWrap label="Cost Price">
-        <TextInput type="number" value={product?.costPrice ?? 28500} onChange={() => {}} />
+        <TextInput
+          type="number"
+          placeholder="0"
+          value={pricing.costPrice}
+          onChange={(value) => updateField('costPrice', value)}
+        />
       </FieldWrap>
       <FieldWrap label="WSP Margin %">
-        <TextInput type="number" value={15} onChange={() => {}} />
+        <TextInput
+          type="number"
+          placeholder="0"
+          value={pricing.wspMargin}
+          onChange={(value) => updateField('wspMargin', value)}
+        />
       </FieldWrap>
       <FieldWrap label="RSP Margin %">
-        <TextInput type="number" value={22} onChange={() => {}} />
+        <TextInput
+          type="number"
+          placeholder="0"
+          value={pricing.rspMargin}
+          onChange={(value) => updateField('rspMargin', value)}
+        />
       </FieldWrap>
-      <FieldWrap label="WSP ( Wholesale Price )">
-        <TextInput type="number" value={32000} onChange={() => {}} />
+      <FieldWrap label="WSP (Wholesale Price)">
+        <TextInput
+          type="number"
+          placeholder="0"
+          value={pricing.wsp}
+          onChange={(value) => updateField('wsp', value)}
+        />
       </FieldWrap>
-      <FieldWrap label="RSP ( Retail Sale Price )">
-        <TextInput type="number" value={product?.sellingPrice ?? 34999} onChange={() => {}} />
+      <FieldWrap label="RSP (Retail Sale Price)">
+        <TextInput
+          type="number"
+          placeholder="0"
+          value={pricing.rsp}
+          onChange={(value) => updateField('rsp', value)}
+        />
       </FieldWrap>
-      <FieldWrap label="MRP ( Maximum Retail Price )">
-        <TextInput type="number" value={product?.mrp ?? 38500} onChange={() => {}} />
-      </FieldWrap>
+      <div>
+        <FieldWrap label="MRP (Maximum Retail Price)">
+          <TextInput
+            type="number"
+            placeholder="0"
+            value={pricing.mrp}
+            onChange={(value) => updateField('mrp', value)}
+          />
+        </FieldWrap>
+        {errors.mrp && <p className="mt-1 text-xs text-red-600">{errors.mrp}</p>}
+      </div>
       <FieldWrap label="Price Effective From">
-        <input
+        <TextInput
           type="date"
-          defaultValue="2025-01-01"
-          className="h-[38px] w-full rounded-lg border border-slate-200 bg-white px-3 text-xs sm:text-[13px] text-slate-700 focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/15"
+          placeholder="select Date"
+          value={pricing.effectiveFrom}
+          onChange={(value) => updateField('effectiveFrom', value)}
         />
       </FieldWrap>
-      <FieldWrap label="Price Effective To">
-        <input
-          type="date"
-          defaultValue="2025-12-31"
-          className="h-[38px] w-full rounded-lg border border-slate-200 bg-white px-3 text-xs sm:text-[13px] text-slate-700 focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/15"
-        />
-      </FieldWrap>
+      <div>
+        <FieldWrap label="Price Effective To">
+          <TextInput
+            type="date"
+            placeholder="select Date"
+            value={pricing.effectiveTo}
+            onChange={(value) => updateField('effectiveTo', value)}
+          />
+        </FieldWrap>
+        {errors.effectiveTo && (
+          <p className="mt-1 text-xs text-red-600">{errors.effectiveTo}</p>
+        )}
+      </div>
     </FieldGrid>
   )
 }
 
 /* ---------------- Tax Tab ---------------- */
 
-function TaxSection({ product }: { product?: Product | null }) {
+function TaxSection({
+  hsnCode,
+  onHsnCodeChange,
+  error,
+}: {
+  hsnCode: string
+  onHsnCodeChange: (value: string) => void
+  error?: string
+}) {
+  const taxConfig = MOCK_TAX_CONFIGS.find(
+    (tax) => tax.hsnSac.replace(/\s/g, '') === hsnCode.replace(/\s/g, ''),
+  )
+  const taxOptions = MOCK_TAX_CONFIGS.map((tax) => ({
+    value: tax.hsnSac,
+    label: formatHsnCode(tax.hsnSac),
+  }))
+  if (hsnCode && !taxConfig) {
+    taxOptions.unshift({ value: hsnCode, label: formatHsnCode(hsnCode) })
+  }
+
   return (
     <FieldGrid>
       <FieldWrap label="HSN Code" required>
-        <TextInput placeholder="e.g. 8517 12 90" value={product?.hsnSac || '8517 12 90'} onChange={() => {}} />
+        <SelectInput
+          options={taxOptions}
+          value={taxConfig?.hsnSac ?? hsnCode}
+          placeholder="Select dropdown"
+          onChange={onHsnCodeChange}
+        />
+        {error && <p className="text-xs text-red-600">{error}</p>}
       </FieldWrap>
       <FieldWrap label="GST Rate" required>
-        <SelectInput
-          options={['0%', '5%', '12%', '18%', '28%']}
-          value="18%"
-          placeholder="Select dropdown"
-        />
-      </FieldWrap>
-      <FieldWrap label="Tax Group">
-        <SelectInput
-          options={['Electronics 18%', 'Apparel 12%', 'FMCG 18%', 'Grocery 5%']}
-          value="Electronics 18%"
-          placeholder="Select dropdown"
-        />
+        <TextInput type="text" value={taxConfig ? `${taxConfig.igst}%` : ''} disabled />
+        <p className="text-[11px] text-slate-400">From the selected HSN code</p>
       </FieldWrap>
       <FieldWrap label="CESS (%)">
-        <TextInput type="number" value={0} onChange={() => {}} />
+        <TextInput type="text" value={taxConfig ? String(taxConfig.cess) : ''} disabled />
+        <p className="text-[11px] text-slate-400">From the selected HSN code</p>
       </FieldWrap>
     </FieldGrid>
   )
@@ -379,20 +685,77 @@ function TaxSection({ product }: { product?: Product | null }) {
 
 /* ---------------- Images Tab ---------------- */
 
-function ImagesSection() {
+function ImagesSection({
+  images,
+  error,
+  onFilesSelected,
+  onRemoveImage,
+}: {
+  images: SelectedImage[]
+  error: string | null
+  onFilesSelected: (files: File[]) => void
+  onRemoveImage: (previewUrl: string) => void
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   return (
-    <div className="rounded-xl border-2 border-dashed border-slate-200 py-12">
-      <div className="flex flex-col items-center gap-1 text-center">
-        <ImagePlus size={28} className="mb-2 text-slate-400" />
-        <p className="text-sm font-semibold text-slate-700">Drag &amp; drop product images here</p>
-        <p className="text-xs text-slate-400">Supports JPEG, PNG, WEBP up to 5MB each</p>
-        <button
-          type="button"
-          className="mt-4 h-9 rounded-lg bg-[#2563EB] px-4 text-xs sm:text-sm font-medium text-white transition hover:bg-[#1D4ED8] cursor-pointer"
-        >
-          Browse Files
-        </button>
+    <div>
+      <div
+        className="rounded-xl border-2 border-dashed border-slate-200 py-12"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault()
+          onFilesSelected(Array.from(event.dataTransfer.files))
+        }}
+      >
+        <div className="flex flex-col items-center gap-1 text-center">
+          <ImagePlus size={28} className="mb-2 text-slate-400" />
+          <p className="text-sm font-semibold text-slate-700">Drag &amp; drop product images here</p>
+          <p className="text-xs text-slate-400">Supports JPEG, PNG, WEBP up to 5MB each</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="hidden"
+            aria-label="Choose product images"
+            onChange={(event) => {
+              onFilesSelected(Array.from(event.currentTarget.files ?? []))
+              event.currentTarget.value = ''
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="mt-4 h-9 rounded-lg bg-[#2563EB] px-4 text-xs sm:text-sm font-medium text-white transition hover:bg-[#1D4ED8] cursor-pointer"
+          >
+            Browse Files
+          </button>
+        </div>
       </div>
+      {error && <p role="alert" className="mt-3 text-xs text-red-600">{error}</p>}
+      {images.length > 0 && (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {images.map((image) => (
+            <div key={image.previewUrl} className="relative">
+              <img
+                src={image.previewUrl}
+                alt={image.file.name}
+                className="h-28 w-full rounded-lg border border-slate-200 object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => onRemoveImage(image.previewUrl)}
+                aria-label={`Remove ${image.file.name}`}
+                className="absolute right-1 top-1 rounded-full bg-white p-1 text-slate-500 shadow hover:text-red-600"
+              >
+                <X size={14} />
+              </button>
+              <p className="mt-1 truncate text-xs text-slate-500">{image.file.name}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -616,100 +979,199 @@ type Props = {
 
 export default function CreateProductDrawer({ isOpen, onClose, product, onProductCreated }: Props) {
   const isView = !!product
-  // Drawer state is seeded from the product prop. The parent gives this drawer
-  // a `key` that changes on every open, so it remounts and re-seeds cleanly —
-  // no reset effect needed.
-  const [activeTab, setActiveTab] = useState<DrawerTabKey>('history')
+  const [activeTab, setActiveTab] = useState<DrawerTabKey>(product ? 'history' : 'general')
+  const [formData, setFormData] = useState<ProductFormData>(() => createInitialFormData(product))
+  const [pricing, setPricing] = useState<PricingData>(() => createInitialPricingData(product))
+  const [inventory, setInventory] = useState<InventoryData>({ ...INITIAL_INVENTORY_DATA })
+  const [generalErrors, setGeneralErrors] = useState<GeneralErrors>({})
+  const [hsnError, setHsnError] = useState<string>()
+  const [images, setImages] = useState<SelectedImage[]>([])
+  const [imageError, setImageError] = useState<string | null>(null)
+  const imageUrlsRef = useRef(new Set<string>())
+  const selectedHsnCode = product?.hsnSac ?? ''
+  const [hsnCode, setHsnCode] = useState(selectedHsnCode)
+  const selectedTaxConfig = MOCK_TAX_CONFIGS.find(
+    (tax) => tax.hsnSac.replace(/\s/g, '') === hsnCode.replace(/\s/g, ''),
+  )
 
-  const [formData, setFormData] = useState<ProductFormData>(product ? {
-          productCode: product.productCode || '',
-          oemCode: product.prdCode || 'PRD-001',
-          productName: product.productName || '',
-          group: product.group || 'Electronics',
-          department: product.department || 'Electronics',
-          section: product.section || 'Mobiles',
-          brand: product.brand || 'Samsung',
-          uom: product.uom || 'PCS',
-          productType: 'Finished Good',
-          vendor: 'Samsung India Pvt Ltd',
-          attr1: 'Color',
-          attr2: 'Storage',
-          status: product.status || 'Active',
-        } : {
-          productCode: '',
-          oemCode: 'PRD-001',
-          productName: '',
-          group: 'Electronics',
-          department: 'Electronics',
-          section: 'Mobiles',
-          brand: 'Samsung',
-          uom: 'PCS',
-          productType: 'Finished Good',
-          vendor: 'Samsung India Pvt Ltd',
-          attr1: 'Color',
-          attr2: 'Storage',
-          status: 'Active',
-        } as ProductFormData)
+  useEffect(
+    () => () => {
+      imageUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+      imageUrlsRef.current.clear()
+    },
+    [],
+  )
 
-  const tabs = ALL_TABS
+  const tabs = product ? ALL_TABS : CREATE_TABS
   const current = activeTab
 
-  const handleCreate = () => {
-    if (!formData.productName.trim()) {
-      toast.error('Please enter a product name')
+  const handleClose = () => {
+    imageUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    imageUrlsRef.current.clear()
+    setImages([])
+    setImageError(null)
+    setGeneralErrors({})
+    setHsnError(undefined)
+    if (!product) {
+      setFormData(createInitialFormData())
+      setPricing(createInitialPricingData())
+      setInventory({ ...INITIAL_INVENTORY_DATA })
+      setHsnCode('')
+      setActiveTab('general')
+    }
+    onClose()
+  }
+
+  const handleFilesSelected = (files: File[]) => {
+    const acceptedImages: SelectedImage[] = []
+    let hasInvalidFile = false
+
+    files.forEach((file) => {
+      const acceptedType = ['image/jpeg', 'image/png', 'image/webp'].includes(
+        file.type.toLowerCase(),
+      )
+      if (!acceptedType || file.size > 5 * 1024 * 1024) {
+        hasInvalidFile = true
+        return
+      }
+
+      const previewUrl = URL.createObjectURL(file)
+      imageUrlsRef.current.add(previewUrl)
+      acceptedImages.push({ file, previewUrl })
+    })
+
+    if (acceptedImages.length > 0) setImages((previous) => [...previous, ...acceptedImages])
+    setImageError(
+      hasInvalidFile
+        ? 'Choose JPEG, PNG, or WEBP images that are 5 MB or smaller.'
+        : null,
+    )
+  }
+
+  const handleRemoveImage = (previewUrl: string) => {
+    URL.revokeObjectURL(previewUrl)
+    imageUrlsRef.current.delete(previewUrl)
+    setImages((previous) => previous.filter((image) => image.previewUrl !== previewUrl))
+  }
+
+  const handleSave = (isDraft: boolean) => {
+    const nextGeneralErrors: GeneralErrors = {
+      productName: formData.productName.trim() ? undefined : 'Product Name is required',
+      group: formData.group ? undefined : 'Group is required',
+      department: formData.department ? undefined : 'Department is required',
+      uom: formData.uom ? undefined : 'UOM is required',
+      status: formData.status ? undefined : 'Status is required',
+    }
+    const nextHsnError = selectedTaxConfig ? undefined : 'Select an HSN code'
+    const pricingErrors = getPricingErrors(pricing)
+    const hasGeneralErrors = Object.values(nextGeneralErrors).some(Boolean)
+    const hasPricingErrors = Boolean(pricingErrors.mrp || pricingErrors.effectiveTo)
+
+    setGeneralErrors(isDraft ? {} : nextGeneralErrors)
+    setHsnError(isDraft ? undefined : nextHsnError)
+
+    if (!isDraft && hasGeneralErrors) {
+      setActiveTab('general')
+      toast.error('Please complete the required fields')
       return
     }
-    const newCode = `PRD-${Date.now().toString().slice(-4)}`
+
+    if (hasPricingErrors) {
+      setActiveTab('pricing')
+      toast.error('Please correct the pricing errors')
+      return
+    }
+
+    if (!isDraft && nextHsnError) {
+      setActiveTab('tax')
+      toast.error('Please complete the required fields')
+      return
+    }
+
+    if (isDraft) {
+      toast.success('Product saved as draft')
+      handleClose()
+      return
+    }
+
+    const now = Date.now()
+    const newCode = `PRD-${String(now).slice(-4)}`
     toast.success('Product created successfully!')
+    // TODO: Replace the local callback with the Products API call when available.
     onProductCreated?.({
-      id: String(Date.now()),
+      id: String(now),
       productCode: newCode,
+      prdCode: formData.oemCode || undefined,
       productName: formData.productName,
       group: formData.group,
       department: formData.department,
       section: formData.section,
       brand: formData.brand,
       uom: formData.uom,
-      status: 'Active',
+      hsnSac: selectedTaxConfig?.hsnSac ?? '',
+      costPrice: Number(pricing.costPrice) || 0,
+      sellingPrice: Number(pricing.rsp) || 0,
+      mrp: Number(pricing.mrp) || 0,
+      stock: 0,
+      imageCount: images.length,
+      status: formData.status,
     })
-    onClose()
-  }
-
-  const handleSaveDraft = () => {
-    toast.success('Product saved as draft')
-    onClose()
+    handleClose()
   }
 
   const sectionMap: Record<DrawerTabKey, React.ReactNode> = {
-    general: <GeneralSection formData={formData} setFormData={setFormData} />,
-    inventory: <InventorySection />,
-    pricing: <PricingSection product={product} />,
-    tax: <TaxSection product={product} />,
-    images: <ImagesSection />,
+    general: (
+      <GeneralSection
+        formData={formData}
+        setFormData={setFormData}
+        errors={generalErrors}
+        setErrors={setGeneralErrors}
+      />
+    ),
+    inventory: <InventorySection inventory={inventory} setInventory={setInventory} />,
+    pricing: <PricingSection pricing={pricing} setPricing={setPricing} />,
+    tax: (
+      <TaxSection
+        hsnCode={hsnCode}
+        onHsnCodeChange={(value) => {
+          setHsnCode(value)
+          setHsnError(undefined)
+        }}
+        error={hsnError}
+      />
+    ),
+    images: (
+      <ImagesSection
+        images={images}
+        error={imageError}
+        onFilesSelected={handleFilesSelected}
+        onRemoveImage={handleRemoveImage}
+      />
+    ),
     history: <HistorySection />,
     timeline: <TimelineSection />,
   }
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose} size="productDetail" raw>
+    <Drawer isOpen={isOpen} onClose={handleClose} size="productDetail" raw>
       <div className="flex flex-col h-full bg-white select-none">
         {/* Header - Unified seamlessly with Tab Bar without separating border */}
         <div className="flex-shrink-0 flex items-start justify-between px-6 pt-5 pb-3 bg-white">
           <div>
             <h2 className="text-[20px] font-bold text-[#0F2A66] leading-tight tracking-tight">
-              {isView || activeTab === 'history' || activeTab === 'timeline'
+              {isView
                 ? (product?.productName || 'Samsung Galaxy A54 5G')
                 : 'Create New Product'}
             </h2>
             <p className="mt-1 text-[12px] text-slate-500 font-normal leading-normal">
-              {isView || activeTab === 'history' || activeTab === 'timeline'
+              {isView
                 ? `${product?.productCode || 'ELE-SAM-A54'} · ${product?.category || product?.department || product?.group || 'Electronics'} · ${product?.brand || 'Samsung'}`
                 : 'Fill in the details to add a new product to the catalog'}
             </p>
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="text-slate-400 hover:text-slate-700 transition p-1 -mr-1 -mt-0.5 cursor-pointer rounded-lg hover:bg-slate-100"
             aria-label="Close drawer"
           >
@@ -728,13 +1190,13 @@ export default function CreateProductDrawer({ isOpen, onClose, product, onProduc
         </div>
 
         {/* Sticky/Fixed Footer */}
-        {isView || activeTab === 'history' || activeTab === 'timeline' ? (
-          <ViewFooter onClose={onClose} onEdit={() => setActiveTab('general')} />
+        {isView ? (
+          <ViewFooter onClose={handleClose} onEdit={() => setActiveTab('general')} />
         ) : (
           <CreateFooter
-            onClose={onClose}
-            onCreate={handleCreate}
-            onSaveDraft={handleSaveDraft}
+            onClose={handleClose}
+            onCreate={() => handleSave(false)}
+            onSaveDraft={() => handleSave(true)}
           />
         )}
       </div>

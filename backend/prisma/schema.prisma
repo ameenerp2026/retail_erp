@@ -182,6 +182,7 @@ model OrganizationGroup {
   organizationUnits OrganizationUnit[]
   roles             Role[]
   userRoles         UserRole[]
+  ProductHierarchy ProductHierarchy[]
 
   @@schema("organization")
 }
@@ -881,4 +882,36 @@ model TaxConfig {
   updatedAt     DateTime     @updatedAt
 
   @@schema("inventory")
+}
+
+enum HierarchyLevel{
+  GROUP
+  DEPARTMENT
+  SECTION
+ @@schema("inventory")
+}
+
+
+model ProductHierarchy{
+  id            Int          @id @default(autoincrement())
+  code          String
+  name          String
+  level         HierarchyLevel 
+  parentId      Int?
+  parent        ProductHierarchy? @relation("HierarchyTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children      ProductHierarchy[]  @relation("HierarchyTree")
+
+   organizationGroupId Int
+  organizationGroup   OrganizationGroup @relation(fields: [organizationGroupId], references: [id])
+  status        MasterStatus @default(ACTIVE)
+  createdById   Int
+  updatedById   Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+   @@unique([organizationGroupId, level, code])   // replaces @@unique([level, code])
+   @@index([organizationGroupId])
+  @@index([parentId])
+
+   @@schema("inventory")
 }
